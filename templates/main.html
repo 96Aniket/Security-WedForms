@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Security Records</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta name="referrer" content="no-referrer">
+</head>
+
+<body class="bg-light">
+
+    <!-- HEADER -->
+    <header class="header-dashboard"
+        style="display:flex;justify-content:space-between;align-items:center;width:100%;position:relative;">
+
+        <div class="hamburger-dashboard" id="hamburger"
+            style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+            ☰
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo-dashboard">
+        </div>
+
+        <div id="profileAvatar"
+            style="display:flex;align-items:center;cursor:pointer;background:#fff;padding:6px 10px;border-radius:50px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+
+            <div id="profileInitials"
+                style="background:#007bff;color:#fff;width:32px;height:32px;border-radius:50%;
+                display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1rem;">
+                {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+            </div>
+
+            <span id="username" style="margin-left:8px;font-weight:bold;color:#333;font-size:.9rem;">
+                {{ (session.get('user') or {}).get('name','Guest User') }}
+            </span>
+        </div>
+
+        <!-- Hamburger Menu -->
+        <div id="hamburgerMenu"
+            style="display:none;position:absolute;left:10px;top:60px;background:#fff;
+            border-radius:8px;box-shadow:0 8px 16px rgba(0,0,0,0.1);
+            overflow:hidden;min-width:220px;">
+            <a href="{{ url_for('routes_bp.home') }}"
+                style="display:block;padding:10px 14px;text-decoration:none;color:#333;">
+                Forms Page
+            </a>
+        </div>
+
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <div class="container mt-4">
+        <div class="row g-3">
+
+            <div class="col-md-4">
+                <a href="{{ url_for('routes_bp.pil_patrolling') }}" class="btn btn-primary w-100">
+                    PIL Patrolling Observation Register
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{{ url_for('routes_bp.pil_baa_test') }}" class="btn btn-primary w-100">
+                    PIL BAA Test Record Register
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{{ url_for('routes_bp.casual_labour') }}" class="btn btn-primary w-100">
+                    Casual Labour List
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{{ url_for('routes_bp.pil_mitras') }}" class="btn btn-primary w-100">
+                    PIL Mitras (CS)
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{{ url_for('routes_bp.pil_vehicle') }}" class="btn btn-primary w-100">
+                    PIL Vehicle Checklist
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{{ url_for('routes_bp.pil_visitor') }}" class="btn btn-primary w-100">
+                    PIL Visitor Declaration Slip
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{{ url_for('routes_bp.gov_visitor') }}" class="btn btn-primary w-100">
+                    Government Official Visitor
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{{ url_for('routes_bp.requisition_form') }}" class="btn btn-primary w-100">
+                    Requisition Form CWF
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{{ url_for('routes_bp.reports') }}" class="btn btn-primary w-100">
+                    Reports
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
