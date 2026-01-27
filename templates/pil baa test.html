@@ -1,44 +1,54 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BBA Test Record Register</title>
 
-{% block title %}BBA Test Record Register{% endblock %}
-{% block header_title %}BBA Test Record Register{% endblock %}
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/pil_mitras_cs.css') }}"
+  >
+</head>
 
-{% block content %}
+<body>
 
-<link
-  rel="stylesheet"
-  href="{{ url_for('static', filename='css/pil_mitras_cs.css') }}"
->
+  <h2 style="text-align:center;">BBA Test Record Register</h2>
 
-<!-- Toolbar (Top Right) -->
-<div class="toolbar right">
-  <button id="addRowButton" class="btn-add">
-    Add Row
-  </button>
-</div>
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="btn-add" onclick="addRow()">Add Row</button>
+    <button class="btn-save" onclick="saveTable()">Save</button>
+  </div>
 
-<table id="bbaTable">
-  <thead>
-    <tr>
-      <th>S. No</th>
-      <th>Location</th>
-      <th>Date</th>
-      <th>Time</th>
-      <th>Test Record No<br>(Displayed on BBA Device)</th>
-      <th>Name of Individual</th>
-      <th>Employee / Contractor / Others</th>
-      <th>Result of Test<br>Negative / Positive?</th>
-      <th>BAC Count (0–500 mg)</th>
-      <th>Attachment</th>
-      <th>Name of Security Personnel</th>
-      <th>Remarks</th>
-      <th>Action</th>
-    </tr>
-  </thead>
+  <!-- Table -->
+  <table id="bbaTable">
+    <thead>
+      <tr>
+        <th>S. No</th>
+        <th>Location</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Test Record No<br>(Displayed on BBA Device)</th>
+        <th>Name of Individual</th>
+        <th>Employee / Contractor / Others</th>
+        <th>Result of Test<br>(Negative / Positive)</th>
+        <th>BAC Count (0–500 mg)</th>
+        <th>Attachment</th>
+        <th>Name of Security Personnel</th>
+        <th>Remarks</th>
+        <th>Action</th>
+      </tr>
+    </thead>
 
-  <tbody>
-    <tr>
-      <td>1</td>
+    <tbody>
+      <!-- rows will be added by JS -->
+    </tbody>
+  </table>
+
+  <!-- ================= ADD ROW TEMPLATE ================= -->
+  <template id="bbaAddRowTemplate">
+    <tr data-new="true">
+      <td class="sr-no"></td>
       <td contenteditable="true"></td>
       <td><input type="date"></td>
       <td><input type="time"></td>
@@ -67,24 +77,15 @@
       <td contenteditable="true"></td>
       <td contenteditable="true"></td>
 
-      <!-- Action buttons -->
       <td>
         <button class="btn-edit" onclick="editRow(this)">Edit</button>
         <button class="btn-delete" onclick="deleteRow(this)">Delete</button>
       </td>
     </tr>
-  </tbody>
-</table>
+  </template>
 
-<!-- Save button -->
-<div class="toolbar" style="justify-content:center; margin-top:20px;">
-  <button class="btn-save">
-    Save
-  </button>
-</div>
+  <!-- JS -->
+  <script src="{{ url_for('static', filename='javascript/pil_bba_test.js') }}"></script>
 
-{% endblock %}
-
-{% block scripts %}
-<script src="{{ url_for('static', filename='javascript/pil_bba_test.js') }}"></script>
-{% endblock %}
+</body>
+</html>

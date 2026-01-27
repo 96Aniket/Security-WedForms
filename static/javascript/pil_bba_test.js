@@ -1,72 +1,75 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const addRowButton = document.getElementById("addRowButton");
-  const tableBody = document.querySelector("#bbaTable tbody");
+function bbaTestApp() {
 
-  addRowButton.addEventListener("click", addRowAtTop);
+  /* ================= HELPERS ================= */
 
-  function addRowAtTop() {
-    const newRow = document.createElement("tr");
-
-    newRow.innerHTML = `
-      <td></td>
-      <td contenteditable="true"></td>
-      <td><input type="date"></td>
-      <td><input type="time"></td>
-      <td contenteditable="true"></td>
-      <td contenteditable="true"></td>
-
-      <td>
-        <select>
-          <option value="">Select</option>
-          <option value="Employee">Employee</option>
-          <option value="Contractor">Contractor</option>
-          <option value="Others">Others</option>
-        </select>
-      </td>
-
-      <td>
-        <select>
-          <option value="">Select</option>
-          <option value="Negative">Negative</option>
-          <option value="Positive">Positive</option>
-        </select>
-      </td>
-
-      <td contenteditable="true"></td>
-      <td><input type="file"></td>
-      <td contenteditable="true"></td>
-      <td contenteditable="true"></td>
-
-      <td>
-        <button class="btn-edit" onclick="editRow(this)">Edit</button>
-        <button class="btn-delete" onclick="deleteRow(this)">Delete</button>
-      </td>
-    `;
-
-    tableBody.insertBefore(newRow, tableBody.firstChild);
-    updateSerialNumbers();
+  function cloneTemplate(id) {
+    return document.getElementById(id).content.cloneNode(true);
   }
 
   function updateSerialNumbers() {
-    const rows = Array.from(tableBody.rows);
+    const rows = document.querySelectorAll("#bbaTable tbody tr");
     const total = rows.length;
 
-    rows.forEach((row, index) => {
-      row.cells[0].textContent = total - index;
+    rows.forEach((row, i) => {
+      row.querySelector(".sr-no").innerText = total - i; // descending
     });
   }
 
-  window.deleteRow = function (btn) {
-    if (confirm("Are you sure you want to delete this record?")) {
-      btn.closest("tr").remove();
-      updateSerialNumbers();
-    }
-  };
+  /* ================= ADD ROW ================= */
 
-  window.editRow = function (btn) {
+  function addRow() {
+    const tbody = document.querySelector("#bbaTable tbody");
+    const tpl = cloneTemplate("bbaAddRowTemplate");
+    const row = tpl.querySelector("tr");
+
+    row.dataset.new = "true";
+
+    tbody.prepend(row);
+    updateSerialNumbers();
+  }
+
+  /* ================= DELETE ================= */
+
+  function deleteRow(btn) {
     const row = btn.closest("tr");
+
+    if (!confirm("Are you sure you want to delete this record?")) return;
+
+    row.remove();
+    updateSerialNumbers();
+  }
+
+  /* ================= EDIT ================= */
+
+  function editRow(btn) {
+    const row = btn.closest("tr");
+
     row.querySelectorAll("[contenteditable]").forEach(cell => {
       cell.focus();
     });
-  };
-});
+  }
+
+  /* ================= SAVE (placeholder) ================= */
+
+  function saveTable() {
+    alert("Save logic can be added here");
+  }
+
+  /* ================= INIT ================= */
+
+  function init() {
+    updateSerialNumbers();
+  }
+
+  /* ================= EXPOSE TO HTML ================= */
+
+  window.addRow = addRow;
+  window.deleteRow = deleteRow;
+  window.editRow = editRow;
+  window.saveTable = saveTable;
+
+  document.addEventListener("DOMContentLoaded", init);
+}
+
+/* ================= START APP ================= */
+bbaTestApp();
