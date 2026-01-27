@@ -4,53 +4,63 @@
 {% block header_title %}Pipeline Mitra Register{% endblock %}
 
 {% block content %}
-<div class="form-container" id="vehiclemovementForm">
 
-  <button class="modify-btn" onclick="modifyRow()">
-    <i class="fas fa-pencil-alt"></i>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/pil_mitras_cs.css') }}"
+>
+
+<!-- Toolbar (TOP RIGHT) -->
+<div class="toolbar right">
+  <button id="addRowButton" class="btn-add">
+    Add Row
   </button>
-
-  <button class="add-row" id="addRowButton">
-    <i class="fas fa-plus"></i>
-  </button>
-
-  <table class="table table-bordered">
-    <thead style="background-color: #e0e0e0">
-      <tr>
-        <th>Sr. No</th>
-        <th>Location</th>
-        <th>Date</th>
-        <th>Chainage No</th>
-        <th>PIL Mitra Name</th>
-        <th>Address</th>
-        <th>Mobile No</th>
-        <th>Remarks</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      <tr>
-        <td>1</td>
-        <td contenteditable="true"></td>
-        <td><input type="date" /></td>
-        <td contenteditable="true"></td>
-        <td contenteditable="true"></td>
-        <td contenteditable="true"></td>
-        <td contenteditable="true"></td>
-        <td contenteditable="true"></td>
-      </tr>
-    </tbody>
-  </table>
-
 </div>
 
-<div class="d-flex justify-content-between mt-4">
-  <button class="btn btn-warning px-5" style="margin: 0 auto">
+<table id="mitraTable" class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Sr. No</th>
+      <th>Location</th>
+      <th>Date</th>
+      <th>Chainage No</th>
+      <th>Name of PM</th>
+      <th>Name of Village of PM</th>
+      <th>Mobile No. of PM</th>
+      <th>Remarks</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td contenteditable="true"></td>
+      <td><input type="date"></td>
+      <td contenteditable="true"></td>
+      <td contenteditable="true"></td>
+      <td contenteditable="true"></td>
+      <td contenteditable="true"></td>
+      <td contenteditable="true"></td>
+
+      <!-- Action buttons -->
+      <td>
+        <button class="btn-edit" onclick="editRow(this)">Edit</button>
+        <button class="btn-delete" onclick="deleteRow(this)">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Save button -->
+<div class="toolbar" style="justify-content:center; margin-top:20px;">
+  <button class="btn-save">
     Save
   </button>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='javascript/table18.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/pil_mitras_cs.js') }}"></script>
 {% endblock %}
