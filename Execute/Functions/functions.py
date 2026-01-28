@@ -1,5 +1,32 @@
 from flask import request, jsonify
 from Execute import queries
+from flask import request, session
+from Execute.executesql import get_connection
+
+def save_patrolling_data_fn():
+    created_by = session['user']['email']
+
+    data = request.json
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO PatrollingRegister (location, date, remarks, created_by)
+        VALUES (?, ?, ?, ?)
+    """, (
+        data['location'],
+        data['date'],
+        data['remarks'],
+        created_by
+    ))
+
+    conn.commit()
+    conn.close()
+
+    return {"status": "success"}
+
+
 
 #------------start Patrolling Observation Register-----------------
 #------------create------------------
