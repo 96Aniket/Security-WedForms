@@ -384,3 +384,168 @@ def delete_bba_test_data(data):
     except Exception as e:
         return False, str(e)
 
+
+# ------------ START PIPELINE MITRA REGISTER -----------------
+
+# ------------ CREATE -----------------
+def save_pipeline_mitra_data(data, username="system"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT ISNULL(MAX(n_sr_no), 0) + 1 
+            FROM dbo.PIPELINE_MITRA_REGISTER
+        """)
+        next_sr_no = cursor.fetchone()[0]
+
+        insert_pipeline_mitra_record(cursor, data, next_sr_no, username)
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Pipeline Mitra record saved successfully"
+
+    except Exception as e:
+        return False, str(e)
+
+
+def insert_pipeline_mitra_record(cursor, data, n_sr_no, username):
+    sql = """
+    INSERT INTO dbo.PIPELINE_MITRA_REGISTER
+    (
+        n_sr_no,
+        s_location_code,
+        d_entry_date,
+        s_chainage_no,
+        s_pm_name,
+        s_pm_village_name,
+        s_pm_mobile_no,
+        s_remarks,
+        s_created_by
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """
+
+    cursor.execute(sql, (
+        n_sr_no,
+        data.get("s_location_code"),
+        data.get("d_entry_date"),
+        data.get("s_chainage_no"),
+        data.get("s_pm_name"),
+        data.get("s_pm_village_name"),
+        data.get("s_pm_mobile_no"),
+        data.get("s_remarks"),
+        username
+    ))
+
+
+# ------------ READ -----------------
+def get_pipeline_mitra_data():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                n_sr_no,
+                s_location_code,
+                d_entry_date,
+                s_chainage_no,
+                s_pm_name,
+                s_pm_village_name,
+                s_pm_mobile_no,
+                s_remarks
+            FROM dbo.PIPELINE_MITRA_REGISTER
+            ORDER BY n_sr_no DESC
+        """)
+
+        rows = cursor.fetchall()
+
+        result = []
+        for r in rows:
+            result.append({
+                "n_sr_no": r[0],
+                "s_location_code": r[1],
+                "d_entry_date": str(r[2]),
+                "s_chainage_no": r[3],
+                "s_pm_name": r[4],
+                "s_pm_village_name": r[5],
+                "s_pm_mobile_no": r[6],
+                "s_remarks": r[7]
+            })
+
+        cursor.close()
+        conn.close()
+
+        return True, result
+
+    except Exception as e:
+        return False, str(e)
+
+
+# ------------ UPDATE -----------------
+def update_pipeline_mitra_data(data, username="system"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        sql = """
+        UPDATE dbo.PIPELINE_MITRA_REGISTER
+        SET
+            s_location_code = ?,
+            d_entry_date = ?,
+            s_chainage_no = ?,
+            s_pm_name = ?,
+            s_pm_village_name = ?,
+            s_pm_mobile_no = ?,
+            s_remarks = ?,
+            dt_updated_at = GETDATE(),
+            s_updated_by = ?
+        WHERE n_sr_no = ?
+        """
+
+        cursor.execute(sql, (
+            data["s_location_code"],
+            data["d_entry_date"],
+            data["s_chainage_no"],
+            data["s_pm_name"],
+            data["s_pm_village_name"],
+            data["s_pm_mobile_no"],
+            data["s_remarks"],
+            username,
+            data["n_sr_no"]
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Pipeline Mitra record updated successfully"
+
+    except Exception as e:
+        return False, str(e)
+
+
+# ------------ DELETE -----------------
+def delete_pipeline_mitra_data(data):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "DELETE FROM dbo.PIPELINE_MITRA_REGISTER WHERE n_sr_no = ?",
+            (data["n_sr_no"],)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Pipeline Mitra record deleted successfully"
+
+    except Exception as e:
+        return False, str(e)
+
+

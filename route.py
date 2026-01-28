@@ -64,3 +64,9 @@ routes_bp.add_url_rule('/get_bba_test_data',view_func=functions.get_bba_test_dat
 routes_bp.add_url_rule('/update_bba_test_data',view_func=functions.update_bba_test_data,methods=['POST'])
 routes_bp.add_url_rule('/delete_bba_test_data',view_func=functions.delete_bba_test_data,methods=['POST'])
 
+# ------------ PIPELINE MITRA REGISTER -----------------
+routes_bp.add_url_rule('/save_pipeline_mitra_data',view_func=functions.save_pipeline_mitra_data_fn,methods=['POST'])
+routes_bp.add_url_rule('/get_pipeline_mitra_data',view_func=functions.get_pipeline_mitra_data,methods=['GET'])
+routes_bp.add_url_rule('/update_pipeline_mitra_data',view_func=functions.update_pipeline_mitra_data,methods=['POST'])
+routes_bp.add_url_rule('/delete_pipeline_mitra_data',view_func=functions.delete_pipeline_mitra_data,methods=['POST'])
+

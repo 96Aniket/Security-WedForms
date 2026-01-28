@@ -63,10 +63,9 @@ def delete_patrolling_data():
         "success": success,
         "message": msg
     })
-#------------ end Patrolling Observation Register-----------------
 
 
-
+# ------------ START BBA Test Record Register -----------------
 # ----------- CREATE ----------------
 def save_bba_test_data_fn():
     try:
@@ -107,3 +106,68 @@ def delete_bba_test_data():
     success, msg = queries.delete_bba_test_data(data)
 
     return jsonify({"success": success, "message": msg})
+
+# ------------ START PIPELINE MITRA REGISTER -----------------
+# ------------ CREATE -----------------
+def save_pipeline_mitra_data_fn():
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({
+                "success": False,
+                "message": "No data received"
+            }), 400
+
+        success, msg = queries.save_pipeline_mitra_data(data)
+
+        return jsonify({
+            "success": success,
+            "message": msg
+        })
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 500
+
+
+# ------------ READ -----------------
+def get_pipeline_mitra_data():
+    success, data = queries.get_pipeline_mitra_data()
+
+    return jsonify({
+        "success": success,
+        "data": data
+    })
+
+
+# ------------ UPDATE -----------------
+def update_pipeline_mitra_data():
+    data = request.get_json()
+
+    success, msg = queries.update_pipeline_mitra_data(data)
+
+    return jsonify({
+        "success": success,
+        "message": msg
+    })
+
+
+# ------------ DELETE -----------------
+def delete_pipeline_mitra_data():
+    data = request.get_json()
+
+    if not data or "n_sr_no" not in data:
+        return jsonify({
+            "success": False,
+            "message": "Invalid delete request"
+        }), 400
+
+    success, msg = queries.delete_pipeline_mitra_data(data)
+
+    return jsonify({
+        "success": success,
+        "message": msg
+    })
