@@ -201,4 +201,186 @@ def delete_patrolling_data(data):
     except Exception as e:
         return False, str(e)
     
-#------------ end Patrolling Observation Register-----------------
+
+
+# ------------ START BBA Test Record Register -----------------
+
+# ----------- CREATE ---------------
+def save_bba_test_data(data, username="system"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Get next SR NO
+        cursor.execute("SELECT ISNULL(MAX(n_sr_no), 0) + 1 FROM dbo.BAA_Test_Record_Register")
+        next_sr_no = cursor.fetchone()[0]
+
+        insert_bba_test_record(cursor, data, next_sr_no, username)
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "BBA Test record saved successfully"
+
+    except Exception as e:
+        return False, str(e)
+
+
+def insert_bba_test_record(cursor, data, n_sr_no, username):
+    sql = """
+    INSERT INTO dbo.BAA_Test_Record_Register
+    (
+        n_sr_no,
+        s_location_code,
+        d_test_date,
+        t_test_time,
+        s_test_record_no,
+        s_individual_name,
+        s_person_type,
+        s_test_result,
+        n_bac_count,
+        img_attachment,
+        s_security_personnel_name,
+        s_remarks,
+        s_created_by
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """
+
+    cursor.execute(sql, (
+        n_sr_no,
+        data.get("s_location_code"),
+        data.get("d_test_date"),
+        data.get("t_test_time"),
+        data.get("s_test_record_no"),
+        data.get("s_individual_name"),
+        data.get("s_person_type"),
+        data.get("s_test_result"),
+        data.get("n_bac_count"),
+        None,  # attachment (handle later if needed)
+        data.get("s_security_personnel_name"),
+        data.get("s_remarks"),
+        username
+    ))
+
+
+# ----------- READ ----------------
+def get_bba_test_data():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                n_sr_no,
+                s_location_code,
+                d_test_date,
+                t_test_time,
+                s_test_record_no,
+                s_individual_name,
+                s_person_type,
+                s_test_result,
+                n_bac_count,
+                s_security_personnel_name,
+                s_remarks
+            FROM dbo.BAA_Test_Record_Register
+            ORDER BY n_sr_no DESC
+        """)
+
+        rows = cursor.fetchall()
+
+        result = []
+        for r in rows:
+            result.append({
+                "n_sr_no": r[0],
+                "s_location_code": r[1],
+                "d_test_date": str(r[2]),
+                "t_test_time": str(r[3]),
+                "s_test_record_no": r[4],
+                "s_individual_name": r[5],
+                "s_person_type": r[6],
+                "s_test_result": r[7],
+                "n_bac_count": r[8],
+                "s_security_personnel_name": r[9],
+                "s_remarks": r[10]
+            })
+
+        cursor.close()
+        conn.close()
+
+        return True, result
+
+    except Exception as e:
+        return False, str(e)
+
+
+# ----------- UPDATE ---------------
+def update_bba_test_data(data, username="system"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        sql = """
+        UPDATE dbo.BAA_Test_Record_Register
+        SET
+            s_location_code = ?,
+            d_test_date = ?,
+            t_test_time = ?,
+            s_test_record_no = ?,
+            s_individual_name = ?,
+            s_person_type = ?,
+            s_test_result = ?,
+            n_bac_count = ?,
+            s_security_personnel_name = ?,
+            s_remarks = ?,
+            dt_updated_at = GETDATE(),
+            s_updated_by = ?
+        WHERE n_sr_no = ?
+        """
+
+        cursor.execute(sql, (
+            data["s_location_code"],
+            data["d_test_date"],
+            data["t_test_time"],
+            data["s_test_record_no"],
+            data["s_individual_name"],
+            data["s_person_type"],
+            data["s_test_result"],
+            data["n_bac_count"],
+            data["s_security_personnel_name"],
+            data["s_remarks"],
+            username,
+            data["n_sr_no"]
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "BBA Test record updated successfully"
+
+    except Exception as e:
+        return False, str(e)
+
+
+# ----------- DELETE ----------------
+def delete_bba_test_data(data):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "DELETE FROM dbo.BAA_Test_Record_Register WHERE n_sr_no = ?",
+            (data["n_sr_no"],)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "BBA Test record deleted successfully"
+
+    except Exception as e:
+        return False, str(e)
+

@@ -58,5 +58,9 @@ routes_bp.add_url_rule('/get_patrolling_data',view_func=functions.get_patrolling
 routes_bp.add_url_rule('/update_patrolling_data',view_func=functions.update_patrolling_data,methods=['POST'])
 routes_bp.add_url_rule('/delete_patrolling_data',view_func=functions.delete_patrolling_data,methods=['POST'])
 
-
+# ------------ BBA Test Record Register -----------------
+routes_bp.add_url_rule('/save_bba_test_data',view_func=functions.save_bba_test_data_fn,methods=['POST'])
+routes_bp.add_url_rule('/get_bba_test_data',view_func=functions.get_bba_test_data,methods=['GET'])
+routes_bp.add_url_rule('/update_bba_test_data',view_func=functions.update_bba_test_data,methods=['POST'])
+routes_bp.add_url_rule('/delete_bba_test_data',view_func=functions.delete_bba_test_data,methods=['POST'])
 
