@@ -75,43 +75,73 @@ function bbaTestApp() {
   /* ================= SAVE ================= */
 
   function saveTable() {
-    const rows = document.querySelectorAll("#bbaTable tbody tr");
+  const rows = document.querySelectorAll("#bbaTable tbody tr");
 
-    rows.forEach(row => {
-      const data = {
-        n_sr_no: row.dataset.id,
-        s_location_code: getCellValue(row, 1),
-        d_test_date: getCellValue(row, 2),
-        t_test_time: getCellValue(row, 3),
-        s_test_record_no: getCellValue(row, 4),
-        s_individual_name: getCellValue(row, 5),
-        s_person_type: getCellValue(row, 6),
-        s_test_result: getCellValue(row, 7),
-        n_bac_count: getCellValue(row, 8),
-        s_security_personnel_name: getCellValue(row, 10),
-        s_remarks: getCellValue(row, 11)
-      };
+  // 🔒 FIX 1: If no rows, do nothing
+  if (rows.length === 0) {
+    alert("No records to save.");
+    return;
+  }
 
-      const url = row.dataset.new
-        ? "/save_bba_test_data"
-        : "/update_bba_test_data";
+  let hasValidRow = false;
 
-      $.ajax({
-        url: url,
-        type: "POST",
-        contentType: "application/json",
-        data: JSON.stringify(data),
-        success: function (res) {
-          if (res.success) {
-            row.dataset.new = "";
+  rows.forEach(row => {
+
+    // Check if row has ANY user input
+    const hasData =
+      row.children[1].innerText.trim() !== "" ||   // Location
+      row.children[4].innerText.trim() !== "" ||   // Test record no
+      row.children[5].innerText.trim() !== "";     // Individual name
+
+    if (!hasData) {
+      // ❌ Skip completely empty rows
+      return;
+    }
+
+    hasValidRow = true;
+
+    const data = {
+      n_sr_no: row.dataset.id || null,
+      s_location_code: getCellValue(row, 1),
+      d_test_date: getCellValue(row, 2),
+      t_test_time: getCellValue(row, 3),
+      s_test_record_no: getCellValue(row, 4),
+      s_individual_name: getCellValue(row, 5),
+      s_person_type: getCellValue(row, 6),
+      s_test_result: getCellValue(row, 7),
+      n_bac_count: getCellValue(row, 8),
+      s_security_personnel_name: getCellValue(row, 10),
+      s_remarks: getCellValue(row, 11)
+    };
+
+    const url = row.dataset.new
+      ? "/save_bba_test_data"
+      : "/update_bba_test_data";
+
+    $.ajax({
+      url: url,
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(data),
+      success: function (res) {
+        if (res.success) {
+          row.dataset.new = "";
+          if (res.n_sr_no) {
+            row.dataset.id = res.n_sr_no;
           }
         }
-      });
+      }
     });
+  });
 
-    alert("Data saved successfully");
-    loadData();
+  if (!hasValidRow) {
+    alert("Please enter data before saving.");
+    return;
   }
+
+  alert("Data saved successfully");
+}
+
 
   /* ================= DELETE ================= */
 

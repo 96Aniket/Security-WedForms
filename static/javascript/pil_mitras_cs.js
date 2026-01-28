@@ -72,40 +72,69 @@ function pipelineMitraApp() {
   /* ================= SAVE ================= */
 
   function saveTable() {
-    const rows = document.querySelectorAll("#mitraTable tbody tr");
+  const rows = document.querySelectorAll("#mitraTable tbody tr");
 
-    rows.forEach(row => {
-      const data = {
-        n_sr_no: row.dataset.id,
-        s_location_code: getCellValue(row, 1),
-        d_entry_date: getCellValue(row, 2),
-        s_chainage_no: getCellValue(row, 3),
-        s_pm_name: getCellValue(row, 4),
-        s_pm_village_name: getCellValue(row, 5),
-        s_pm_mobile_no: getCellValue(row, 6),
-        s_remarks: getCellValue(row, 7)
-      };
+  
+  if (rows.length === 0) {
+    alert("No records to save.");
+    return;
+  }
 
-      const url = row.dataset.new
-        ? "/save_pipeline_mitra_data"
-        : "/update_pipeline_mitra_data";
+  let hasValidRow = false;
 
-      $.ajax({
-        url: url,
-        type: "POST",
-        contentType: "application/json",
-        data: JSON.stringify(data),
-        success: function (res) {
-          if (res.success) {
-            row.dataset.new = "";
+  rows.forEach(row => {
+
+    
+    const hasData =
+      getCellValue(row, 1) !== "" ||  // Location
+      getCellValue(row, 3) !== "" ||  // Chainage
+      getCellValue(row, 4) !== "";    // PM Name
+
+    if (!hasData) return;
+
+    hasValidRow = true;
+
+    const data = {
+      n_sr_no: row.dataset.id || null,
+      s_location_code: getCellValue(row, 1),
+      d_entry_date: getCellValue(row, 2),
+      s_chainage_no: getCellValue(row, 3),
+      s_pm_name: getCellValue(row, 4),
+      s_pm_village_name: getCellValue(row, 5),
+      s_pm_mobile_no: getCellValue(row, 6),
+      s_remarks: getCellValue(row, 7)
+    };
+
+    const url = row.dataset.new
+      ? "/save_pipeline_mitra_data"
+      : "/update_pipeline_mitra_data";
+
+    $.ajax({
+      url: url,
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(data),
+      success: function (res) {
+        if (res.success) {
+          row.dataset.new = "";
+          if (res.n_sr_no) {
+            row.dataset.id = res.n_sr_no;
           }
         }
-      });
+      }
     });
+  });
 
-    alert("Pipeline Mitra data saved successfully");
-    loadData();
+  
+  if (!hasValidRow) {
+    alert("Please enter data before saving.");
+    return;
   }
+
+  alert("Pipeline Mitra data saved successfully");
+}
+
+
 
   /* ================= DELETE ================= */
 
