@@ -1,5 +1,8 @@
 from flask import Blueprint, render_template , session
 from Execute.Functions import functions
+from flask import request, send_file
+from Execute.vehicle_checklist_export import generate_vehicle_checklist_excel
+from Execute.vehicle_checklist_pdf import generate_vehicle_checklist_pdf
 
 routes_bp = Blueprint('routes_bp', __name__)
 
@@ -42,6 +45,31 @@ def pil_vehicle():
         user=user,                   
         user_location=user.get('location', '')
     )
+# @routes_bp.route('/download_vehicle_checklist', methods=['POST'])
+# def download_vehicle_checklist():
+#     data = request.get_json()
+
+#     output, filename = generate_vehicle_checklist_excel(data)
+
+#     return send_file(
+#         output,
+#         as_attachment=True,
+#         download_name=filename,
+#         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+#     )
+@routes_bp.route('/download_vehicle_checklist_pdf', methods=['POST'])
+def download_vehicle_checklist_pdf():
+    data = request.get_json()
+
+    output, filename = generate_vehicle_checklist_pdf(data)
+
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/pdf"
+    )
+
 
 
 @routes_bp.route('/pil-visitor')
