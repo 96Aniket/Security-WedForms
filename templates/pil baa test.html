@@ -4,89 +4,129 @@
   <meta charset="UTF-8">
   <title>BBA Test Record Register</title>
 
-  <link
-    rel="stylesheet"
-    href="{{ url_for('static', filename='css/pil_mitras_cs.css') }}"
-  >
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pil_mitras_cs.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
 
-  <h2 style="text-align:center;">BBA Test Record Register</h2>
+<!-- ================= HEADER (SAME AS PATROLLING / MITRA) ================= -->
+<header class="header-dashboard">
 
-  <!-- Toolbar -->
-  <div class="toolbar">
-    <button class="btn-add" onclick="addRow()">Add Row</button>
-    <button class="btn-save" onclick="saveTable()">Save</button>
+  <div class="hamburger-dashboard">
+    ☰
+    <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
   </div>
 
-  <!-- Table -->
-  <table id="bbaTable">
-    <thead>
-      <tr>
-        <th>S. No</th>
-        <th>Location</th>
-        <th>Date</th>
-        <th>Time</th>
-        <th>Test Record No<br>(Displayed on BBA Device)</th>
-        <th>Name of Individual</th>
-        <th>Employee / Contractor / Others</th>
-        <th>Result of Test<br>(Negative / Positive)</th>
-        <th>BAC Count (0–500 mg)</th>
-        <th>Attachment</th>
-        <th>Name of Security Personnel</th>
-        <th>Remarks</th>
-        <th>Action</th>
-      </tr>
-    </thead>
+  <h2>BBA Test Record Register</h2>
 
-    <tbody>
-      <!-- rows will be added by JS -->
-    </tbody>
-  </table>
+  <div id="profileAvatar">
+    <div id="profileInitials">
+      {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+    </div>
+    <span id="username">
+      {{ (session.get('user') or {}).get('name','Guest User') }}
+    </span>
+  </div>
 
-  <!-- ================= ADD ROW TEMPLATE ================= -->
-  <template id="bbaAddRowTemplate">
-    <tr data-new="true">
-      <td class="sr-no"></td>
-      <td contenteditable="true"></td>
-      <td><input type="date"></td>
-      <td><input type="time"></td>
-      <td contenteditable="true"></td>
-      <td contenteditable="true"></td>
+</header>
 
-      <td>
-        <select>
-          <option value="">Select</option>
-          <option value="Employee">Employee</option>
-          <option value="Contractor">Contractor</option>
-          <option value="Others">Others</option>
-        </select>
-      </td>
+<!-- ================= PAGINATION TOOLBAR ================= -->
+<div class="toolbar">
+  <div class="pagination">
+    <button id="prevBtn" onclick="prevPage()">◀ Back</button>
+    <span id="pageInfo"></span>
+    <button id="nextBtn" onclick="nextPage()">Next ▶</button>
+  </div>
+</div>
 
-      <td>
-        <select>
-          <option value="">Select</option>
-          <option value="Negative">Negative</option>
-          <option value="Positive">Positive</option>
-        </select>
-      </td>
 
-      <td contenteditable="true"></td>
-      <td><input type="file"></td>
-      <td contenteditable="true"></td>
-      <td contenteditable="true"></td>
+<!-- ================= TOOLBAR (EMPTY – KEPT FOR CONSISTENCY) ================= -->
+<div class="toolbar"></div>
 
-      <td>
-        <button class="btn-edit" onclick="editRow(this)">Edit</button>
-        <button class="btn-delete" onclick="deleteRow(this)">Delete</button>
-      </td>
+<!-- ================= TABLE ================= -->
+<div class="table-wrapper">
+<table id="bbaTable">
+  <thead>
+    <tr>
+      <th>S. No</th>
+      <th>Location</th>
+      <th>Date</th>
+      <th>Time</th>
+      <th>Test Record No<br>(Displayed on BBA Device)</th>
+      <th>Name of Individual</th>
+      <th>Employee / Contractor / Others</th>
+      <th>Result of Test<br>(Negative / Positive)</th>
+      <th>BAC Count (0–500 mg)</th>
+      <th>Attachment</th>
+      <th>Name of Security Personnel</th>
+      <th>Remarks</th>
+      <th class="action-col">Action</th>
     </tr>
-  </template>
+  </thead>
 
-  <!-- JS -->
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="{{ url_for('static', filename='javascript/pil_bba_test.js') }}"></script>
+  <tbody>
+    <!-- rows added by JS -->
+  </tbody>
+</table>
+</div>
+
+<!-- ================= FOOTER BUTTONS ================= -->
+<div class="table-footer">
+  <button class="btn-add" onclick="addRow()">Add Row</button>
+  <button class="btn-save" onclick="saveTable()">Save</button>
+</div>
+
+<!-- ================= ADD ROW TEMPLATE ================= -->
+<template id="bbaAddRowTemplate">
+<tr data-new="true">
+  <td class="sr-no"></td>
+  <td contenteditable="true"></td>
+  <td><input type="date"></td>
+  <td><input type="time"></td>
+  <td contenteditable="true"></td>
+  <td contenteditable="true"></td>
+
+  <td>
+    <select>
+      <option value="">Select</option>
+      <option value="Employee">Employee</option>
+      <option value="Contractor">Contractor</option>
+      <option value="Others">Others</option>
+    </select>
+  </td>
+
+  <td>
+    <select>
+      <option value="">Select</option>
+      <option value="Negative">Negative</option>
+      <option value="Positive">Positive</option>
+    </select>
+  </td>
+
+  <td contenteditable="true"></td>
+  <td><input type="file"></td>
+  <td contenteditable="true"></td>
+  <td contenteditable="true"></td>
+
+  <td class="action-col">
+    <button class="icon-btn edit" onclick="editRow(this)">
+      <i class="fa-solid fa-pen"></i>
+    </button>
+    <button class="icon-btn delete" onclick="deleteRow(this)">
+      <i class="fa-solid fa-trash"></i>
+    </button>
+  </td>
+</tr>
+</template>
+
+<!-- ================= JS ================= -->
+ <script>
+  const USER_LOCATION = "{{ user_location }}";
+</script>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="{{ url_for('static', filename='javascript/pil_bba_test.js') }}"></script>
 
 </body>
 </html>

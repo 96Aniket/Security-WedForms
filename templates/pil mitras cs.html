@@ -4,64 +4,95 @@
   <meta charset="UTF-8">
   <title>Pipeline Mitra Register</title>
 
-  <link
-    rel="stylesheet"
-    href="{{ url_for('static', filename='css/pil_mitras_cs.css') }}"
-  >
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pil_mitras_cs.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
 
-  <h2 style="text-align:center;">Pipeline Mitra Register</h2>
+<!-- ================= HEADER (SAME AS PATROLLING) ================= -->
+<header class="header-dashboard">
 
-  <!-- Toolbar -->
-  <div class="toolbar">
-    <button class="btn-add" onclick="addRow()">Add Row</button>
-    <button class="btn-save" onclick="saveTable()">Save</button>
+  <div class="hamburger-dashboard" id="hamburger">
+    ☰
+    <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
   </div>
 
-  <!-- Table -->
-  <table id="mitraTable">
-    <thead>
-      <tr>
-        <th>Sr. No</th>
-        <th>Location</th>
-        <th>Date</th>
-        <th>Chainage No</th>
-        <th>Name of PM</th>
-        <th>Name of Village of PM</th>
-        <th>Mobile No. of PM</th>
-        <th>Remarks</th>
-        <th>Action</th>
-      </tr>
-    </thead>
+  <h2>Pipeline Mitra Register</h2>
 
-    <tbody>
-      <!-- rows added by JS -->
-    </tbody>
-  </table>
+  <div id="profileAvatar">
+    <div id="profileInitials">
+      {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+    </div>
+    <span id="username">
+      {{ (session.get('user') or {}).get('name','Guest User') }}
+    </span>
+  </div>
 
-  <!-- ================= ADD ROW TEMPLATE ================= -->
-  <template id="mitraAddRowTemplate">
-    <tr data-new="true">
-      <td class="sr-no"></td>
-      <td contenteditable="true"></td>
-      <td><input type="date"></td>
-      <td contenteditable="true"></td>
-      <td contenteditable="true"></td>
-      <td contenteditable="true"></td>
-      <td contenteditable="true"></td>
-      <td contenteditable="true"></td>
-      <td>
-        <button class="btn-edit" onclick="editRow(this)">Edit</button>
-        <button class="btn-delete" onclick="deleteRow(this)">Delete</button>
-      </td>
+</header>
+
+
+<!-- ================= PAGINATION TOOLBAR ================= -->
+<div class="toolbar">
+  <div class="pagination">
+    <button id="prevBtn" onclick="prevPage()">◀ Back</button>
+    <span id="pageInfo"></span>
+    <button id="nextBtn" onclick="nextPage()">Next ▶</button>
+  </div>
+</div>
+
+
+<!-- ================= TABLE ================= -->
+<div class="table-wrapper">
+<table id="mitraTable">
+  <thead>
+    <tr>
+      <th>Sr. No</th>
+      <th>Location</th>
+      <th>Date</th>
+      <th>Chainage No</th>
+      <th>Name of PM</th>
+      <th>Village</th>
+      <th>Mobile No</th>
+      <th>Remarks</th>
+      <th class="action-col">Action</th>
     </tr>
-  </template>
+  </thead>
+  <tbody></tbody>
+</table>
+</div>
 
-  <!-- JS -->
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="{{ url_for('static', filename='javascript/pil_mitras_cs.js') }}"></script>
+<!-- ================= FOOTER BUTTONS ================= -->
+<div class="table-footer">
+  <button class="btn-add" onclick="addRow()">Add Row</button>
+  <button class="btn-save" onclick="saveTable()">Save</button>
+</div>
+
+<!-- ================= ADD ROW TEMPLATE ================= -->
+<template id="mitraAddRowTemplate">
+<tr data-new="true">
+  <td class="sr-no"></td>
+  <td contenteditable="true"></td>
+  <td><input type="date"></td>
+  <td contenteditable="true"></td>
+  <td contenteditable="true"></td>
+  <td contenteditable="true"></td>
+  <td contenteditable="true"></td>
+  <td contenteditable="true"></td>
+
+  <td class="action-col">
+    <button class="icon-btn edit" onclick="editRow(this)">
+      <i class="fa-solid fa-pen"></i>
+    </button>
+    <button class="icon-btn delete" onclick="deleteRow(this)">
+      <i class="fa-solid fa-trash"></i>
+    </button>
+  </td>
+</tr>
+</template>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="{{ url_for('static', filename='javascript/pil_mitras_cs.js') }}"></script>
 
 </body>
 </html>
