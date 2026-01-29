@@ -262,3 +262,79 @@ def delete_vehicle_data():
         "success": success,
         "message": msg
     })
+
+#-------------- visitor start------------
+# ------------ CREATE -----------------
+def save_visitor_data_fn():
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({
+                "success": False,
+                "message": "No data received"
+            }), 400
+
+        username = session.get("user", {}).get("email", "system")
+
+        success, msg = queries.save_visitor_data(data, username)
+
+        return jsonify({
+            "success": success,
+            "message": msg
+        }), 200 if success else 500
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 500
+
+
+# ------------ READ -----------------
+def get_visitor_data():
+    try:
+        success, data = queries.get_visitor_data()
+
+        return jsonify({
+            "success": success,
+            "data": data
+        }), 200
+
+    except Exception as e:
+        print("❌ VISITOR GET ERROR (functions):", e)
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 500
+
+
+# ------------ UPDATE -----------------
+def update_visitor_data():
+    data = request.get_json()
+    username = session.get("user", {}).get("email", "system")
+
+    success, msg = queries.update_visitor_data(data, username)
+
+    return jsonify({
+        "success": success,
+        "message": msg
+    })
+
+
+# ------------ DELETE -----------------
+def delete_visitor_data():
+    data = request.get_json()
+
+    if not data or "n_sr_no" not in data:
+        return jsonify({
+            "success": False,
+            "message": "Invalid delete request"
+        }), 400
+
+    success, msg = queries.delete_visitor_data(data)
+
+    return jsonify({
+        "success": success,
+        "message": msg
+    })

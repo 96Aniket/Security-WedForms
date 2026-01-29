@@ -730,3 +730,147 @@ def delete_vehicle_data(data):
     except Exception as e:
         return False, str(e)
 
+#------------- visitor start --------------
+# ------------ CREATE -----------------
+def save_visitor_data(data, username="system"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT ISNULL(MAX(n_sr_no), 0) + 1 FROM dbo.VISITOR_DECLARATION_SLIP"
+        )
+        next_sr_no = cursor.fetchone()[0]
+
+        sql = """
+        INSERT INTO dbo.VISITOR_DECLARATION_SLIP
+        (
+            n_sr_no,
+            s_location_code,
+            dt_visit_datetime,
+            s_visitor_name,
+            s_visitor_pass_no,
+            s_whom_to_meet,
+            s_created_by
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """
+
+        cursor.execute(sql, (
+            next_sr_no,
+            data.get("s_location_code"),
+            data.get("dt_visit_datetime"),
+            data.get("s_visitor_name"),
+            data.get("s_visitor_pass_no"),
+            data.get("s_whom_to_meet"),
+            username
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Visitor record saved successfully"
+
+    except Exception as e:
+        return False, str(e)
+
+
+# ------------ READ -----------------
+def get_visitor_data():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                n_sr_no,
+                s_location_code,
+                dt_visit_datetime,
+                s_visitor_name,
+                s_visitor_pass_no,
+                s_whom_to_meet
+            FROM dbo.VISITOR_DECLARATION_SLIP
+            ORDER BY n_sr_no DESC
+        """)
+
+        rows = cursor.fetchall()
+
+        result = []
+        for r in rows:
+            result.append({
+                "n_sr_no": r[0],
+                "s_location_code": r[1],
+                "dt_visit_datetime": str(r[2]),
+                "s_visitor_name": r[3],
+                "s_visitor_pass_no": r[4],
+                "s_whom_to_meet": r[5]
+            })
+
+        cursor.close()
+        conn.close()
+
+        return True, result
+
+    except Exception as e:
+        return False, str(e)
+
+
+# ------------ UPDATE -----------------
+def update_visitor_data(data, username="system"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        sql = """
+        UPDATE dbo.VISITOR_DECLARATION_SLIP
+        SET
+            s_location_code = ?,
+            dt_visit_datetime = ?,
+            s_visitor_name = ?,
+            s_visitor_pass_no = ?,
+            s_whom_to_meet = ?,
+            dt_updated_at = GETDATE(),
+            s_updated_by = ?
+        WHERE n_sr_no = ?
+        """
+
+        cursor.execute(sql, (
+            data.get("s_location_code"),
+            data.get("dt_visit_datetime"),
+            data.get("s_visitor_name"),
+            data.get("s_visitor_pass_no"),
+            data.get("s_whom_to_meet"),
+            username,
+            data.get("n_sr_no")
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Visitor record updated successfully"
+
+    except Exception as e:
+        return False, str(e)
+
+
+# ------------ DELETE -----------------
+def delete_visitor_data(data):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "DELETE FROM dbo.VISITOR_DECLARATION_SLIP WHERE n_sr_no = ?",
+            (data.get("n_sr_no"),)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Visitor record deleted successfully"
+
+    except Exception as e:
+        return False, str(e)

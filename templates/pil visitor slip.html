@@ -1,11 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Visitor Declaration Slip</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pil patrolling.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
+
 <body>
-    
+
+<header class="header-dashboard">
+    <div class="hamburger-dashboard" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        ☰
+        <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
+    </div>
+
+    <h2 style="text-align:center;">Visitor Declaration Slip</h2>
+
+    <div style="display:flex;align-items:center;cursor:pointer;background:#fff;
+        padding:6px 10px;border-radius:50px;">
+        <div style="background:#007bff;color:#fff;width:32px;height:32px;border-radius:50%;
+            display:flex;align-items:center;justify-content:center;font-weight:bold;">
+            {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+        </div>
+        <span style="margin-left:8px;font-weight:bold;color:black;">
+            {{ (session.get('user') or {}).get('name','Guest User') }}
+        </span>
+    </div>
+</header>
+
+<!-- Pagination -->
+<div class="toolbar" style="justify-content:flex-end;">
+    <div class="pagination">
+        <button id="prevBtn" onclick="prevPage()">◀ Back</button>
+        <span id="pageInfo"></span>
+        <button id="nextBtn" onclick="nextPage()">Next ▶</button>
+    </div>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrapper">
+<table id="visitorTable">
+    <thead>
+        <tr>
+            <th>Sr. No</th>
+            <th>Location</th>
+            <th>Date & Time</th>
+            <th>Visitor Name</th>
+            <th>Visitor Pass No</th>
+            <th>Whom To Meet</th>
+            <th class="action-col">Action</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+</div>
+
+<div class="table-footer">
+    <button class="btn-add" onclick="addRow()">Add Row</button>
+    <button class="btn-save" onclick="saveTable()">Save</button>
+</div>
+
+<!-- ADD ROW TEMPLATE -->
+<template id="addRowTemplate">
+<tr data-new="true">
+    <td class="sr-no"></td>
+    <td class="location"></td>
+    <td><input type="datetime-local"></td>
+    <td><input type="text"></td>
+    <td><input type="text"></td>
+    <td><input type="text"></td>
+    <td class="action-col">
+        <button class="icon-btn edit" onclick="editRow(this)">
+            <i class="fa-solid fa-pen"></i>
+        </button>
+        <button class="icon-btn delete" onclick="deleteRow(this)">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    </td>
+</tr>
+</template>
+
+<!-- VIEW ROW TEMPLATE -->
+<template id="viewRowTemplate">
+<tr>
+    <td class="sr-no"></td>
+    <td class="loc"></td>
+    <td class="dt"></td>
+    <td class="vname"></td>
+    <td class="vpass"></td>
+    <td class="meet"></td>
+    <td class="action-col">
+        <button class="icon-btn edit" onclick="editRow(this)">
+            <i class="fa-solid fa-pen"></i>
+        </button>
+        <button class="icon-btn delete" onclick="deleteRow(this)">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    </td>
+</tr>
+</template>
+
+<script>const USER_LOCATION = "{{ user_location }}";</script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="{{ url_for('static', filename='javascript/visitor_declaration.js') }}"></script>
+
 </body>
 </html>

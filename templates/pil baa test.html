@@ -4,15 +4,13 @@
   <meta charset="UTF-8">
   <title>BBA Test Record Register</title>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/pil_mitras_cs.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pil_bba_test.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
 
-<!-- ================= HEADER (SAME AS PATROLLING / MITRA) ================= -->
 <header class="header-dashboard">
-
   <div class="hamburger-dashboard">
     ☰
     <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
@@ -28,10 +26,9 @@
       {{ (session.get('user') or {}).get('name','Guest User') }}
     </span>
   </div>
-
 </header>
 
-<!-- ================= PAGINATION TOOLBAR ================= -->
+<!-- PAGINATION -->
 <div class="toolbar">
   <div class="pagination">
     <button id="prevBtn" onclick="prevPage()">◀ Back</button>
@@ -40,74 +37,63 @@
   </div>
 </div>
 
-
-<!-- ================= TOOLBAR (EMPTY – KEPT FOR CONSISTENCY) ================= -->
-<div class="toolbar"></div>
-
-<!-- ================= TABLE ================= -->
 <div class="table-wrapper">
 <table id="bbaTable">
   <thead>
     <tr>
-      <th>S. No</th>
+      <th>Sr No</th>
       <th>Location</th>
       <th>Date</th>
       <th>Time</th>
-      <th>Test Record No<br>(Displayed on BBA Device)</th>
-      <th>Name of Individual</th>
-      <th>Employee / Contractor / Others</th>
-      <th>Result of Test<br>(Negative / Positive)</th>
-      <th>BAC Count (0–500 mg)</th>
+      <th>Test Record No</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Result</th>
+      <th>BAC</th>
       <th>Attachment</th>
-      <th>Name of Security Personnel</th>
+      <th>Security</th>
       <th>Remarks</th>
       <th class="action-col">Action</th>
     </tr>
   </thead>
-
-  <tbody>
-    <!-- rows added by JS -->
-  </tbody>
+  <tbody></tbody>
 </table>
 </div>
 
-<!-- ================= FOOTER BUTTONS ================= -->
 <div class="table-footer">
   <button class="btn-add" onclick="addRow()">Add Row</button>
   <button class="btn-save" onclick="saveTable()">Save</button>
 </div>
 
-<!-- ================= ADD ROW TEMPLATE ================= -->
+<!-- ADD ROW TEMPLATE -->
 <template id="bbaAddRowTemplate">
 <tr data-new="true">
   <td class="sr-no"></td>
-  <td contenteditable="true"></td>
+  <td class="loc"></td>
   <td><input type="date"></td>
   <td><input type="time"></td>
-  <td contenteditable="true"></td>
-  <td contenteditable="true"></td>
+  <td><input type="text"></td>
+  <td><input type="text"></td>
 
   <td>
     <select>
-      <option value="">Select</option>
-      <option value="Employee">Employee</option>
-      <option value="Contractor">Contractor</option>
-      <option value="Others">Others</option>
+      <option>Employee</option>
+      <option>Contractor</option>
+      <option>Others</option>
     </select>
   </td>
 
   <td>
     <select>
-      <option value="">Select</option>
-      <option value="Negative">Negative</option>
-      <option value="Positive">Positive</option>
+      <option>Negative</option>
+      <option>Positive</option>
     </select>
   </td>
 
-  <td contenteditable="true"></td>
+  <td><input type="number"></td>
   <td><input type="file"></td>
-  <td contenteditable="true"></td>
-  <td contenteditable="true"></td>
+  <td><input type="text"></td>
+  <td><input type="text"></td>
 
   <td class="action-col">
     <button class="icon-btn edit" onclick="editRow(this)">
@@ -120,11 +106,34 @@
 </tr>
 </template>
 
-<!-- ================= JS ================= -->
- <script>
-  const USER_LOCATION = "{{ user_location }}";
-</script>
+<!-- VIEW ROW TEMPLATE -->
+<template id="bbaViewRowTemplate">
+<tr>
+  <td class="sr-no"></td>
+  <td class="loc"></td>
+  <td class="date"></td>
+  <td class="time"></td>
+  <td class="record"></td>
+  <td class="name"></td>
+  <td class="type"></td>
+  <td class="result"></td>
+  <td class="bac"></td>
+  <td></td>
+  <td class="security"></td>
+  <td class="remarks"></td>
 
+  <td class="action-col">
+    <button class="icon-btn edit" onclick="editRow(this)">
+      <i class="fa-solid fa-pen"></i>
+    </button>
+    <button class="icon-btn delete" onclick="deleteRow(this)">
+      <i class="fa-solid fa-trash"></i>
+    </button>
+  </td>
+</tr>
+</template>
+
+<script>const USER_LOCATION = "{{ user_location }}";</script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="{{ url_for('static', filename='javascript/pil_bba_test.js') }}"></script>
 

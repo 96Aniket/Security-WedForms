@@ -17,12 +17,6 @@ function bbaTestApp() {
     });
   }
 
-  function getCellValue(row, index) {
-    const cell = row.children[index];
-    const input = cell.querySelector("input, select");
-    return input ? input.value : cell.innerText.trim();
-  }
-
   /* ================= ADD ROW ================= */
   function addRow() {
     const tbody = document.querySelector("#bbaTable tbody");
@@ -30,72 +24,10 @@ function bbaTestApp() {
     const row = tpl.querySelector("tr");
 
     row.dataset.new = "true";
-
-    // ✅ Auto location (same as patrolling)
-    row.children[1].innerText = USER_LOCATION;
+    row.querySelector(".loc").innerText = USER_LOCATION;
 
     tbody.prepend(row);
     updateSerialNumbers();
-  }
-
-  /* ================= EDIT ================= */
-  function editRow(btn) {
-    const row = btn.closest("tr");
-    row.dataset.edited = "true";
-
-    row.querySelectorAll("[contenteditable]").forEach(td => td.focus());
-  }
-
-  /* ================= SAVE ================= */
-  function saveTable() {
-    const rows = document.querySelectorAll("#bbaTable tbody tr");
-    let hasAction = false;
-
-    rows.forEach(row => {
-      if (!row.dataset.new && !row.dataset.edited) return;
-
-      const data = {
-        s_location_code: USER_LOCATION,
-        d_test_date: getCellValue(row, 2),
-        t_test_time: getCellValue(row, 3),
-        s_test_record_no: getCellValue(row, 4),
-        s_individual_name: getCellValue(row, 5),
-        s_person_type: getCellValue(row, 6),
-        s_test_result: getCellValue(row, 7),
-        n_bac_count: getCellValue(row, 8),
-        s_security_personnel_name: getCellValue(row, 10),
-        s_remarks: getCellValue(row, 11)
-      };
-
-      // INSERT
-      if (row.dataset.new === "true") {
-        hasAction = true;
-        $.post({
-          url: "/save_bba_test_data",
-          contentType: "application/json",
-          data: JSON.stringify(data)
-        });
-      }
-
-      // UPDATE
-      if (row.dataset.edited === "true" && !row.dataset.new) {
-        hasAction = true;
-        data.n_sr_no = row.dataset.id;
-        $.post({
-          url: "/update_bba_test_data",
-          contentType: "application/json",
-          data: JSON.stringify(data)
-        });
-      }
-    });
-
-    if (!hasAction) {
-      alert("Nothing to save");
-      return;
-    }
-
-    alert("BBA Test data saved successfully");
-    loadData();
   }
 
   /* ================= DELETE ================= */
@@ -110,20 +42,141 @@ function bbaTestApp() {
 
     if (!confirm("Are you sure you want to delete this record?")) return;
 
-    $.post({
+    $.ajax({
       url: "/delete_bba_test_data",
+      type: "POST",
       contentType: "application/json",
       data: JSON.stringify({ n_sr_no: row.dataset.id }),
       success: res => {
-        if (res.success) loadData();
-      }
+        if (res.success) {
+          row.remove();
+          updateSerialNumbers();
+        } else {
+          alert(res.message || "Delete failed");
+        }
+      },
+      error: () => alert("Delete failed")
     });
   }
 
-  /* ================= LOAD + PAGINATION ================= */
-  function loadData() {
+  /* ================= EDIT ================= */
+  function editRow(btn) {
+    const row = btn.closest("tr");
+    row.dataset.edited = "true";
+
+    row.querySelector(".loc").innerText = USER_LOCATION;
+
+    // Date & Time
+    ["date", "time"].forEach((cls, i) => {
+      const td = row.children[2 + i];
+      const val = row.querySelector("." + cls).innerText;
+      td.innerHTML = "";
+      const input = document.createElement("input");
+      input.type = cls === "date" ? "date" : "time";
+      input.value = val;
+      td.appendChild(input);
+    });
+
+    // Text fields
+    [4, 5, 8, 10, 11].forEach(idx => {
+      const val = row.children[idx].innerText;
+      row.children[idx].innerHTML = "";
+      const input = document.createElement("input");
+      input.value = val;
+      row.children[idx].appendChild(input);
+    });
+
+    // Select fields (Type, Result)
+[6, 7].forEach(idx => {
+  const val = row.children[idx].innerText;
+  row.children[idx].innerHTML = "";
+
+  const select = document.createElement("select");
+
+  if (idx === 6) {
+    ["Employee", "Contractor", "Others"].forEach(v => {
+      const o = document.createElement("option");
+      o.value = v;
+      o.text = v;
+      if (v === val) o.selected = true;
+      select.appendChild(o);
+    });
+  }
+
+  if (idx === 7) {
+    ["Negative", "Positive"].forEach(v => {
+      const o = document.createElement("option");
+      o.value = v;
+      o.text = v;
+      if (v === val) o.selected = true;
+      select.appendChild(o);
+    });
+  }
+
+  row.children[idx].appendChild(select);
+});
+
+
+    btn.disabled = true;
+    btn.innerText = "Editing";
+  }
+
+  /* ================= SAVE ================= */
+  function saveTable() {
+    const rows = document.querySelectorAll("#bbaTable tbody tr");
+    let hasAction = false;
+
+    rows.forEach(row => {
+      const td = row.children;
+
+      const payload = {
+        s_location_code: USER_LOCATION,
+        d_test_date: td[2].querySelector("input")?.value,
+        t_test_time: td[3].querySelector("input")?.value,
+        s_test_record_no: td[4].querySelector("input")?.value,
+        s_individual_name: td[5].querySelector("input")?.value,
+        s_person_type: td[6].querySelector("select")?.value,
+        s_test_result: td[7].querySelector("select")?.value,
+        n_bac_count: td[8].querySelector("input")?.value,
+        s_security_personnel_name: td[10].querySelector("input")?.value,
+        s_remarks: td[11].querySelector("input")?.value
+      };
+
+      // INSERT
+      if (row.dataset.new === "true") {
+        hasAction = true;
+        $.post({
+          url: "/save_bba_test_data",
+          contentType: "application/json",
+          data: JSON.stringify(payload)
+        });
+      }
+
+      // UPDATE
+      if (row.dataset.edited === "true" && !row.dataset.new) {
+        hasAction = true;
+        payload.n_sr_no = row.dataset.id;
+        $.post({
+          url: "/update_bba_test_data",
+          contentType: "application/json",
+          data: JSON.stringify(payload)
+        });
+      }
+    });
+
+    if (!hasAction) {
+      alert("Nothing to save");
+      return;
+    }
+
+    alert("Saved successfully");
+    loadBbaData();
+  }
+
+  /* ================= LOAD ================= */
+  function loadBbaData() {
     $.get("/get_bba_test_data", res => {
-      if (!res.success) return;
+      if (!res.success) return alert("Load failed");
 
       allData = res.data.sort((a, b) => b.n_sr_no - a.n_sr_no);
       currentPage = 1;
@@ -131,31 +184,30 @@ function bbaTestApp() {
     });
   }
 
+  /* ================= RENDER + PAGINATION ================= */
   function renderPage() {
     const tbody = document.querySelector("#bbaTable tbody");
     tbody.innerHTML = "";
 
     const start = (currentPage - 1) * rowsPerPage;
     const end = start + rowsPerPage;
+    const pageData = allData.slice(start, end);
 
-    allData.slice(start, end).forEach(item => {
-      const tpl = cloneTemplate("bbaAddRowTemplate");
+    pageData.forEach(r => {
+      const tpl = cloneTemplate("bbaViewRowTemplate");
       const row = tpl.querySelector("tr");
 
-      row.dataset.id = item.n_sr_no;
-      delete row.dataset.new;
-
-      row.children[0].innerText = item.n_sr_no;
-      row.children[1].innerText = item.s_location_code;
-      row.children[2].querySelector("input").value = item.d_test_date;
-      row.children[3].querySelector("input").value = item.t_test_time;
-      row.children[4].innerText = item.s_test_record_no;
-      row.children[5].innerText = item.s_individual_name;
-      row.children[6].querySelector("select").value = item.s_person_type;
-      row.children[7].querySelector("select").value = item.s_test_result;
-      row.children[8].innerText = item.n_bac_count;
-      row.children[10].innerText = item.s_security_personnel_name;
-      row.children[11].innerText = item.s_remarks;
+      row.dataset.id = r.n_sr_no;
+      row.querySelector(".loc").innerText = r.s_location_code;
+      row.querySelector(".date").innerText = r.d_test_date;
+      row.querySelector(".time").innerText = r.t_test_time;
+      row.querySelector(".record").innerText = r.s_test_record_no;
+      row.querySelector(".name").innerText = r.s_individual_name;
+      row.querySelector(".type").innerText = r.s_person_type;
+      row.querySelector(".result").innerText = r.s_test_result;
+      row.querySelector(".bac").innerText = r.n_bac_count;
+      row.querySelector(".security").innerText = r.s_security_personnel_name;
+      row.querySelector(".remarks").innerText = r.s_remarks || "";
 
       tbody.appendChild(row);
     });
@@ -166,6 +218,7 @@ function bbaTestApp() {
 
   function updatePaginationButtons() {
     const totalPages = Math.ceil(allData.length / rowsPerPage) || 1;
+
     document.getElementById("pageInfo").innerText =
       `Page ${currentPage} of ${totalPages}`;
 
@@ -174,7 +227,8 @@ function bbaTestApp() {
   }
 
   function nextPage() {
-    if (currentPage < Math.ceil(allData.length / rowsPerPage)) {
+    const totalPages = Math.ceil(allData.length / rowsPerPage);
+    if (currentPage < totalPages) {
       currentPage++;
       renderPage();
     }
@@ -195,7 +249,8 @@ function bbaTestApp() {
   window.nextPage = nextPage;
   window.prevPage = prevPage;
 
-  document.addEventListener("DOMContentLoaded", loadData);
+  document.addEventListener("DOMContentLoaded", loadBbaData);
 }
 
+/* ================= START APP ================= */
 bbaTestApp();
