@@ -128,7 +128,7 @@ def delete_bba_test_data():
 # =====================================================
 def save_pipeline_mitra_data_fn():
     try:
-        data = request.get_json()
+        data = request.get_json(force=True)
         if not data:
             return error_response("No data received")
 

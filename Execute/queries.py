@@ -260,7 +260,7 @@ def insert_bba_test_record(cursor, data, n_sr_no, username):
         data.get("s_person_type"),
         data.get("s_test_result"),
         data.get("n_bac_count"),
-        None,  # attachment (handle later if needed)
+        data.get("img_attachment"),
         data.get("s_security_personnel_name"),
         data.get("s_remarks"),
         username
@@ -284,6 +284,7 @@ def get_bba_test_data():
                 s_person_type,
                 s_test_result,
                 n_bac_count,
+                img_attachment,
                 s_security_personnel_name,
                 s_remarks
             FROM dbo.BAA_Test_Record_Register
@@ -304,8 +305,10 @@ def get_bba_test_data():
                 "s_person_type": r[6],
                 "s_test_result": r[7],
                 "n_bac_count": r[8],
-                "s_security_personnel_name": r[9],
-                "s_remarks": r[10]
+                "img_attachment": r[9],
+
+                "s_security_personnel_name": r[10],
+                "s_remarks": r[11]
             })
 
         cursor.close()
@@ -319,6 +322,102 @@ def get_bba_test_data():
 
 # ----------- UPDATE ---------------
 def update_bba_test_data(data, username="system"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        sql = """
+        UPDATE dbo.BAA_Test_Record_Register
+        SET
+            s_location_code = ?,
+            d_test_date = ?,
+            t_test_time = ?,
+            s_test_record_no = ?,
+            s_individual_name = ?,
+            s_person_type = ?,
+            s_test_result = ?,
+            n_bac_count = ?,
+            img_attachment = ISNULL(?, img_attachment),
+            s_security_personnel_name = ?,
+            s_remarks = ?,
+            dt_updated_at = GETDATE(),
+            s_updated_by = ?
+        WHERE n_sr_no = ?
+        """
+
+        cursor.execute(sql, (
+            data["s_location_code"],
+            data["d_test_date"],
+            data["t_test_time"],
+            data["s_test_record_no"],
+            data["s_individual_name"],
+            data["s_person_type"],
+            data["s_test_result"],
+            data["n_bac_count"],
+            data.get("img_attachment"),
+            data["s_security_personnel_name"],
+            data["s_remarks"],
+            username,
+            data["n_sr_no"]
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "BBA Test record updated successfully"
+
+    except Exception as e:
+        return False, str(e)
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        sql = """
+        UPDATE dbo.BAA_Test_Record_Register
+        SET
+            s_location_code = ?,
+            d_test_date = ?,
+            t_test_time = ?,
+            s_test_record_no = ?,
+            s_individual_name = ?,
+            s_person_type = ?,
+            s_test_result = ?,
+            n_bac_count = ?,
+            img_attachment = ISNULL(?, img_attachment),
+            s_security_personnel_name = ?,
+            s_remarks = ?,
+            dt_updated_at = GETDATE(),
+            s_updated_by = ?
+        WHERE n_sr_no = ?
+        """
+
+        cursor.execute(sql, (
+            data["s_location_code"],
+            data["d_test_date"],
+            data["t_test_time"],
+            data["s_test_record_no"],
+            data["s_individual_name"],
+            data["s_person_type"],
+            data["s_test_result"],
+            data["n_bac_count"],
+            data.get("img_attachment"),   # NEW
+            data["s_security_personnel_name"],
+            data["s_remarks"],
+            username,
+            data["n_sr_no"]
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "BBA Test record updated successfully"
+
+    except Exception as e:
+        return False, str(e)
+
     try:
         conn = get_connection()
         cursor = conn.cursor()

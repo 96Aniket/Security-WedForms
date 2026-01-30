@@ -91,7 +91,11 @@
   </td>
 
   <td><input type="number"></td>
-  <td><input type="file"></td>
+  <td>
+  <input type="file" accept="image/*" onchange="previewImage(this)">
+  <div class="img-preview"></div>
+</td>
+
   <td><input type="text"></td>
   <td><input type="text"></td>
 
