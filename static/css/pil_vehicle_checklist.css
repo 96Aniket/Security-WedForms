@@ -1,0 +1,215 @@
+/* ================= RESET & BASE ================= */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  font-family: Arial, sans-serif;
+}
+
+/* ================= NAVBAR ================= */
+.header-dashboard {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  height: 60px;
+  width: 100%;
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background-color: #002244;
+  color: #fff;
+  margin-bottom: 30px;
+}
+
+.hamburger-dashboard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  font-size: 26px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.logo-dashboard {
+  height: 40px;
+  border-radius: 6px;
+}
+
+/* ================= PROFILE ================= */
+#profileAvatar {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 50px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#profileInitials {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #007bff;
+  color: #fff;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* ================= TOOLBAR ================= */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 20px 30px;
+}
+
+.toolbar button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+
+  font-weight: 600;
+  cursor: pointer;
+  color: #fff;
+}
+
+.btn-add  { background: #1976d2; }
+.btn-save { background: #2e7d32; }
+
+/* ================= TABLE SCROLL ================= */
+.table-wrapper {
+  width: 100%;
+  padding: 0 20px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* ================= TABLE ================= */
+#vehicleTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 14px;
+}
+
+#vehicleTable th,
+#vehicleTable td {
+  border: 1px solid #cfd6dd;
+  padding: 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Header */
+#vehicleTable th {
+  background: #1f3a5f;
+  color: #fff;
+  font-weight: 600;
+
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.3;
+}
+
+/* Body cells */
+#vehicleTable td {
+  white-space: nowrap;
+}
+
+/* ================= FORM ELEMENTS ================= */
+input, select, textarea {
+  width: 100%;
+  font-size: 13px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* ================= ICON BUTTONS ================= */
+.icon-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 6px;
+}
+
+.icon-btn.delete {
+  color: #dc3545;
+}
+
+.icon-btn:hover {
+  transform: scale(1.2);
+}
+
+/* ================= PAGINATION ================= */
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  background: #455a64;
+  color: #fff;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#pageInfo {
+  font-weight: 600;
+}
+
+/* ================= FOOTER ================= */
+.table-footer {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px 0 30px;
+}
+
+.table-footer button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 4px;
+
+  font-weight: 600;
+  cursor: pointer;
+  color: #fff;
+}
+
+/* ================= PRINT ================= */
+@media print {
+  .toolbar,
+  button {
+    display: none;
+  }
+
+  input, select, textarea {
+    border: none;
+  }
+}
