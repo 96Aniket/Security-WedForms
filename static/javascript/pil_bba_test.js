@@ -241,6 +241,30 @@ function bbaTestApp() {
     });
 
     updateSerialNumbers();
+    updatePaginationButtons();
+  }
+
+  /* ================= PAGINATION ================= */
+  function updatePaginationButtons() {
+    const totalPages = Math.ceil(allData.length / rowsPerPage) || 1;
+
+    pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages;
+  }
+
+  function nextPage() {
+    if (currentPage < Math.ceil(allData.length / rowsPerPage)) {
+      currentPage++;
+      renderPage();
+    }
+  }
+
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      renderPage();
+    }
   }
 
   /* ================= EXPOSE ================= */
@@ -250,6 +274,8 @@ function bbaTestApp() {
   window.deleteRow = deleteRow;
   window.previewImage = previewImage;
   window.showImage = showImage;
+  window.nextPage = nextPage;
+  window.prevPage = prevPage;
 
   document.addEventListener("DOMContentLoaded", loadBbaData);
 }
