@@ -237,9 +237,54 @@ function editRow(btn) {
   window.deleteRow = deleteRow;
   window.nextPage = nextPage;
   window.prevPage = prevPage;
+  window.downloadRow = downloadRow;
 
   document.addEventListener("DOMContentLoaded", loadVehicleData);
 }
+
+function downloadRow(btn) {
+  const row = btn.closest("tr");
+  let data = {};
+
+  if (row.dataset.id) {
+    data.n_sr_no = row.dataset.id;
+  } else {
+    const td = row.children;
+    data = {
+      s_location_code: USER_LOCATION,
+      dt_entry_datetime: td[2].querySelector("input")?.value,
+      s_vehicle_no: td[3].querySelector("input")?.value,
+      s_vehicle_type: td[4].querySelector("input")?.value,
+      s_driver_name: td[5].querySelector("input")?.value,
+      s_contact_no: td[6].querySelector("input")?.value,
+      s_purpose_of_entry: td[7].querySelector("textarea")?.value
+    };
+  }
+
+  $.ajax({
+    url: "/download_vehicle_checklist_pdf",
+    type: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(data),
+    xhrFields: {
+      responseType: "blob"   // 🔥 important for PDF
+    },
+    success: function (blob) {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Vehicle_Checklist.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    },
+    error: function () {
+      alert("Error downloading PDF");
+    }
+  });
+}
+
+
 
 /* ================= START APP ================= */
 vehicleChecklistApp();
