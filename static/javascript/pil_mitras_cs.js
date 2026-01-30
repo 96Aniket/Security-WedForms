@@ -18,25 +18,23 @@ function pipelineMitraApp() {
     });
   }
 
-  function getCellValue(row, index) {
-    const cell = row.children[index];
-    const input = cell.querySelector("input");
-    return input ? input.value : cell.innerText.trim();
-  }
-
   /* ================= ADD ROW ================= */
 
-  function addRow() {
-    const tbody = document.querySelector("#mitraTable tbody");
-    const tpl = cloneTemplate("mitraAddRowTemplate");
-    const row = tpl.querySelector("tr");
+function addRow() {
+  const tbody = document.querySelector("#mitraTable tbody");
+  const row = cloneTemplate("mitraAddRowTemplate").querySelector("tr");
 
-    row.dataset.new = "true";
-    row.dataset.edited = "true";
+  row.dataset.new = "true";
+  row.dataset.edited = "true";
 
-    tbody.prepend(row);
-    updateSerialNumbers();
-  }
+  row.querySelector(".loc").innerText = USER_LOCATION;
+
+  tbody.prepend(row);
+  updateSerialNumbers();
+}
+
+
+
 
   /* ================= LOAD ================= */
 
@@ -44,12 +42,14 @@ function pipelineMitraApp() {
     $.get("/get_pipeline_mitra_data", res => {
       if (!res.success) return;
 
-      // latest first
+      // Show latest records first
       allData = res.data.sort((a, b) => b.n_sr_no - a.n_sr_no);
       currentPage = 1;
       renderPage();
     });
   }
+
+  /* ================= RENDER + PAGINATION ================= */
 
   function renderPage() {
     const tbody = document.querySelector("#mitraTable tbody");
@@ -57,24 +57,18 @@ function pipelineMitraApp() {
 
     const start = (currentPage - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-    const pageData = allData.slice(start, end);
 
-    pageData.forEach(item => {
-      const tpl = cloneTemplate("mitraAddRowTemplate");
-      const row = tpl.querySelector("tr");
+    allData.slice(start, end).forEach(r => {
+      const row = cloneTemplate("mitraViewRowTemplate").querySelector("tr");
 
-      row.dataset.id = item.n_sr_no;
-      delete row.dataset.new;
-      delete row.dataset.edited;
-
-      row.children[0].innerText = item.n_sr_no;
-      row.children[1].innerText = item.s_location_code;
-      row.children[2].querySelector("input").value = item.d_entry_date;
-      row.children[3].innerText = item.s_chainage_no;
-      row.children[4].innerText = item.s_pm_name;
-      row.children[5].innerText = item.s_pm_village_name;
-      row.children[6].innerText = item.s_pm_mobile_no;
-      row.children[7].innerText = item.s_remarks;
+      row.dataset.id = r.n_sr_no;
+      row.querySelector(".loc").innerText = r.s_location_code;
+      row.querySelector(".date").innerText = r.d_entry_date;
+      row.querySelector(".chainage").innerText = r.s_chainage_no;
+      row.querySelector(".name").innerText = r.s_pm_name;
+      row.querySelector(".village").innerText = r.s_pm_village_name;
+      row.querySelector(".mobile").innerText = r.s_pm_mobile_no;
+      row.querySelector(".remarks").innerText = r.s_remarks || "";
 
       tbody.appendChild(row);
     });
@@ -84,23 +78,15 @@ function pipelineMitraApp() {
   }
 
   function updatePaginationButtons() {
-    const totalPages = Math.ceil(allData.length / rowsPerPage);
+    const totalPages = Math.ceil(allData.length / rowsPerPage) || 1;
 
-    const pageInfo = document.getElementById("pageInfo");
-    if (pageInfo) {
-      pageInfo.innerText = `Page ${currentPage} of ${totalPages || 1}`;
-    }
-
-    const prevBtn = document.getElementById("prevBtn");
-    const nextBtn = document.getElementById("nextBtn");
-
-    if (prevBtn) prevBtn.disabled = currentPage === 1;
-    if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+    pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages;
   }
 
   function nextPage() {
-    const totalPages = Math.ceil(allData.length / rowsPerPage);
-    if (currentPage < totalPages) {
+    if (currentPage < Math.ceil(allData.length / rowsPerPage)) {
       currentPage++;
       renderPage();
     }
@@ -115,34 +101,46 @@ function pipelineMitraApp() {
 
   /* ================= EDIT ================= */
 
-  function editRow(btn) {
-    const row = btn.closest("tr");
-    row.dataset.edited = "true";
-    row.querySelectorAll("[contenteditable]").forEach(td => td.focus());
-  }
+function editRow(btn) {
+  const row = btn.closest("tr");
+  row.dataset.edited = "true";
+
+  row.querySelector(".loc").innerText = USER_LOCATION;
+
+  const d = row.children[2].innerText;
+  row.children[2].innerHTML = `<input type="date" value="${d}">`;
+
+  [3, 4, 5, 6, 7].forEach(i => {
+    const val = row.children[i].innerText;
+    row.children[i].innerHTML = `<input type="text" value="${val}">`;
+  });
+
+  btn.disabled = true;
+  btn.innerText = "Editing";
+}
+
+
 
   /* ================= SAVE ================= */
 
   function saveTable() {
-    const rows = document.querySelectorAll("#mitraTable tbody tr");
     let hasAction = false;
 
-    rows.forEach(row => {
-
-      if (!row.dataset.new && !row.dataset.edited) return;
+    document.querySelectorAll("#mitraTable tbody tr").forEach(row => {
+      const td = row.children;
 
       const payload = {
-        s_location_code: getCellValue(row, 1),
-        d_entry_date: getCellValue(row, 2),
-        s_chainage_no: getCellValue(row, 3),
-        s_pm_name: getCellValue(row, 4),
-        s_pm_village_name: getCellValue(row, 5),
-        s_pm_mobile_no: getCellValue(row, 6),
-        s_remarks: getCellValue(row, 7)
+        s_location_code: USER_LOCATION,
+        d_entry_date: td[2].querySelector("input")?.value,
+        s_chainage_no: td[3].querySelector("input")?.value,
+        s_pm_name: td[4].querySelector("input")?.value,
+        s_pm_village_name: td[5].querySelector("input")?.value,
+        s_pm_mobile_no: td[6].querySelector("input")?.value,
+        s_remarks: td[7].querySelector("input")?.value
       };
 
       // INSERT
-      if (row.dataset.new === "true") {
+      if (row.dataset.new) {
         hasAction = true;
         $.post({
           url: "/save_pipeline_mitra_data",
@@ -152,7 +150,7 @@ function pipelineMitraApp() {
       }
 
       // UPDATE
-      if (row.dataset.edited === "true" && !row.dataset.new) {
+      if (row.dataset.edited && !row.dataset.new) {
         hasAction = true;
         payload.n_sr_no = row.dataset.id;
         $.post({
@@ -168,7 +166,7 @@ function pipelineMitraApp() {
       return;
     }
 
-    alert("Pipeline Mitra data saved successfully");
+    alert("Saved successfully");
     loadData();
   }
 
@@ -177,23 +175,19 @@ function pipelineMitraApp() {
   function deleteRow(btn) {
     const row = btn.closest("tr");
 
-    if (row.dataset.new === "true") {
+    if (row.dataset.new) {
       row.remove();
       updateSerialNumbers();
       return;
     }
 
-    if (!confirm("Are you sure you want to delete this record?")) return;
+    if (!confirm("Delete this record?")) return;
 
     $.post({
       url: "/delete_pipeline_mitra_data",
       contentType: "application/json",
       data: JSON.stringify({ n_sr_no: row.dataset.id }),
-      success: res => {
-        if (res.success) {
-          loadData();
-        }
-      }
+      success: () => loadData()
     });
   }
 

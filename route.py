@@ -35,7 +35,12 @@ def casual_labour():
 
 @routes_bp.route('/pil-mitras')
 def pil_mitras():
-    return render_template('pil mitras cs.html')
+    user = session.get('user', {})
+    return render_template(
+        'pil mitras cs.html',
+        user=user,
+        user_location=user.get('location', '')
+    )
 
 
 @routes_bp.route('/pil-vehicle')

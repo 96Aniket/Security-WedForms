@@ -10,10 +10,8 @@
 
 <body>
 
-<!-- ================= HEADER (SAME AS PATROLLING) ================= -->
 <header class="header-dashboard">
-
-  <div class="hamburger-dashboard" id="hamburger">
+  <div class="hamburger-dashboard">
     ☰
     <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
   </div>
@@ -28,11 +26,8 @@
       {{ (session.get('user') or {}).get('name','Guest User') }}
     </span>
   </div>
-
 </header>
 
-
-<!-- ================= PAGINATION TOOLBAR ================= -->
 <div class="toolbar">
   <div class="pagination">
     <button id="prevBtn" onclick="prevPage()">◀ Back</button>
@@ -41,13 +36,11 @@
   </div>
 </div>
 
-
-<!-- ================= TABLE ================= -->
 <div class="table-wrapper">
 <table id="mitraTable">
   <thead>
     <tr>
-      <th>Sr. No</th>
+      <th>Sr No</th>
       <th>Location</th>
       <th>Date</th>
       <th>Chainage No</th>
@@ -55,30 +48,29 @@
       <th>Village</th>
       <th>Mobile No</th>
       <th>Remarks</th>
-      <th class="action-col">Action</th>
+      <th>Action</th>
     </tr>
   </thead>
   <tbody></tbody>
 </table>
 </div>
 
-<!-- ================= FOOTER BUTTONS ================= -->
 <div class="table-footer">
   <button class="btn-add" onclick="addRow()">Add Row</button>
   <button class="btn-save" onclick="saveTable()">Save</button>
 </div>
 
-<!-- ================= ADD ROW TEMPLATE ================= -->
+<!-- ADD ROW TEMPLATE -->
 <template id="mitraAddRowTemplate">
 <tr data-new="true">
   <td class="sr-no"></td>
-  <td contenteditable="true"></td>
+  <td class="loc"></td>
   <td><input type="date"></td>
-  <td contenteditable="true"></td>
-  <td contenteditable="true"></td>
-  <td contenteditable="true"></td>
-  <td contenteditable="true"></td>
-  <td contenteditable="true"></td>
+  <td><input type="text"></td>
+  <td><input type="text"></td>
+  <td><input type="text"></td>
+  <td><input type="text"></td>
+  <td><input type="text"></td>
 
   <td class="action-col">
     <button class="icon-btn edit" onclick="editRow(this)">
@@ -91,6 +83,29 @@
 </tr>
 </template>
 
+<!-- VIEW ROW TEMPLATE -->
+<template id="mitraViewRowTemplate">
+<tr>
+  <td class="sr-no"></td>
+  <td class="loc"></td>
+  <td class="date"></td>
+  <td class="chainage"></td>
+  <td class="name"></td>
+  <td class="village"></td>
+  <td class="mobile"></td>
+  <td class="remarks"></td>
+
+  <td class="action-col">
+    <button class="icon-btn edit" onclick="editRow(this)">
+      <i class="fa-solid fa-pen"></i>
+    </button>
+    <button class="icon-btn delete" onclick="deleteRow(this)">
+      <i class="fa-solid fa-trash"></i>
+    </button>
+  </td>
+</tr>
+</template>
+<script>const USER_LOCATION = "{{ user_location }}";</script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="{{ url_for('static', filename='javascript/pil_mitras_cs.js') }}"></script>
 
