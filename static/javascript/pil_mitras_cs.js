@@ -123,73 +123,110 @@ function editRow(btn) {
 
   /* ================= SAVE ================= */
 
-  function saveTable() {
-    let hasAction = false;
+function saveTable() {
+  const rows = document.querySelectorAll("#mitraTable tbody tr");
 
-    document.querySelectorAll("#mitraTable tbody tr").forEach(row => {
-      const td = row.children;
+  let hasNew = false;
+  let hasEdit = false;
 
-      const payload = {
-        s_location_code: USER_LOCATION,
-        d_entry_date: td[2].querySelector("input")?.value,
-        s_chainage_no: td[3].querySelector("input")?.value,
-        s_pm_name: td[4].querySelector("input")?.value,
-        s_pm_village_name: td[5].querySelector("input")?.value,
-        s_pm_mobile_no: td[6].querySelector("input")?.value,
-        s_remarks: td[7].querySelector("input")?.value
-      };
+  rows.forEach(row => {
+    if (row.dataset.new) hasNew = true;
+    if (row.dataset.edited && !row.dataset.new) hasEdit = true;
+  });
 
-      // INSERT
-      if (row.dataset.new) {
-        hasAction = true;
-        $.post({
-          url: "/save_pipeline_mitra_data",
-          contentType: "application/json",
-          data: JSON.stringify(payload)
-        });
-      }
+  if (!hasNew && !hasEdit) {
+    alert("Nothing to save");
+    return;
+  }
 
-      // UPDATE
-      if (row.dataset.edited && !row.dataset.new) {
-        hasAction = true;
-        payload.n_sr_no = row.dataset.id;
-        $.post({
-          url: "/update_pipeline_mitra_data",
-          contentType: "application/json",
-          data: JSON.stringify(payload)
-        });
-      }
-    });
+  // 🔔 Custom confirmation message
+  let confirmMsg = "Do you want to save changes?";
+  if (hasNew && !hasEdit) confirmMsg = "Do you want to add this record?";
+  if (!hasNew && hasEdit) confirmMsg = "Do you want to update this record?";
+  if (hasNew && hasEdit) confirmMsg = "Do you want to add and update records?";
 
-    if (!hasAction) {
-      alert("Nothing to save");
-      return;
+  if (!confirm(confirmMsg)) return;
+
+  let saved = false;
+  let updated = false;
+
+  rows.forEach(row => {
+    const td = row.children;
+
+    const payload = {
+      s_location_code: USER_LOCATION,
+      d_entry_date: td[2].querySelector("input")?.value,
+      s_chainage_no: td[3].querySelector("input")?.value,
+      s_pm_name: td[4].querySelector("input")?.value,
+      s_pm_village_name: td[5].querySelector("input")?.value,
+      s_pm_mobile_no: td[6].querySelector("input")?.value,
+      s_remarks: td[7].querySelector("input")?.value
+    };
+
+    // INSERT
+    if (row.dataset.new) {
+      saved = true;
+      $.post({
+        url: "/save_pipeline_mitra_data",
+        contentType: "application/json",
+        data: JSON.stringify(payload)
+      });
     }
 
-    alert("Saved successfully");
-    loadData();
+    // UPDATE
+    if (row.dataset.edited && !row.dataset.new) {
+      updated = true;
+      payload.n_sr_no = row.dataset.id;
+      $.post({
+        url: "/update_pipeline_mitra_data",
+        contentType: "application/json",
+        data: JSON.stringify(payload)
+      });
+    }
+  });
+
+  // ✅ Success popup
+  if (saved && updated) {
+    alert("Records added and updated successfully");
+  } else if (saved) {
+    alert("Record added successfully");
+  } else if (updated) {
+    alert("Record updated successfully");
   }
+
+  loadData();
+}
+
+
 
   /* ================= DELETE ================= */
 
-  function deleteRow(btn) {
-    const row = btn.closest("tr");
+function deleteRow(btn) {
+  const row = btn.closest("tr");
 
-    if (row.dataset.new) {
-      row.remove();
-      updateSerialNumbers();
-      return;
-    }
+  if (row.dataset.new) {
+    if (!confirm("Are you sure you want to delete this row?")) return;
 
-    if (!confirm("Delete this record?")) return;
-
-    $.post({
-      url: "/delete_pipeline_mitra_data",
-      contentType: "application/json",
-      data: JSON.stringify({ n_sr_no: row.dataset.id }),
-      success: () => loadData()
-    });
+    row.remove();
+    updateSerialNumbers();
+    alert("Deleted successfully");
+    return;
   }
+
+  if (!confirm("Are you sure you want to delete this record?")) return;
+
+  $.post({
+    url: "/delete_pipeline_mitra_data",
+    contentType: "application/json",
+    data: JSON.stringify({ n_sr_no: row.dataset.id }),
+    success: () => {
+      alert("Deleted successfully");
+      loadData();
+    },
+    error: () => alert("Delete failed")
+  });
+}
+
 
   /* ================= EXPOSE ================= */
 

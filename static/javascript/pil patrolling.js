@@ -33,32 +33,37 @@ function patrollingApp() {
 
   /* ================= DELETE ================= */
   function deleteRow(btn) {
-    const row = btn.closest("tr");
+  const row = btn.closest("tr");
 
-    if (row.dataset.new === "true") {
-      row.remove();
-      updateSerialNumbers();
-      return;
-    }
+  if (row.dataset.new === "true") {
+    if (!confirm("Are you sure you want to delete this row?")) return;
 
-    if (!confirm("Are you sure you want to delete this record?")) return;
-
-    $.ajax({
-      url: "/delete_patrolling_data",
-      type: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({ n_sr_no: row.dataset.id }),
-      success: res => {
-        if (res.success) {
-          row.remove();
-          updateSerialNumbers();
-        } else {
-          alert(res.message);
-        }
-      },
-      error: () => alert("Delete failed")
-    });
+    row.remove();
+    updateSerialNumbers();
+    alert("Deleted successfully");
+    return;
   }
+
+  if (!confirm("Are you sure you want to delete this record?")) return;
+
+  $.ajax({
+    url: "/delete_patrolling_data",
+    type: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({ n_sr_no: row.dataset.id }),
+    success: res => {
+      if (res.success) {
+        row.remove();
+        updateSerialNumbers();
+        alert("Deleted successfully");
+      } else {
+        alert(res.message);
+      }
+    },
+    error: () => alert("Delete failed")
+  });
+}
+
 
   /* ================= EDIT ================= */
   function editRow(btn) {
@@ -99,56 +104,87 @@ function patrollingApp() {
   }
 
   /* ================= SAVE ================= */
-  function saveTable() {
-    const rows = document.querySelectorAll("#patrolTable tbody tr");
-    let hasAction = false;
-    rows.forEach(row => {
-      const td = row.children;
-      const payload = {
-        s_location_code: USER_LOCATION,
-        d_patrol_date: td[2].querySelector("input")?.value,
-        t_from_time: td[3].querySelector("input")?.value,
-        t_to_time: td[4].querySelector("input")?.value,
-        s_boundary_wall_condition: td[5].querySelector("select")?.value,
-        s_patrolling_pathway_condition: td[6].querySelector("select")?.value,
-        s_suspicious_movement: td[7].querySelector("select")?.value,
-        s_wild_vegetation: td[8].querySelector("select")?.value,
-        s_illumination_status: td[9].querySelector("select")?.value,
-        s_workers_without_valid_permit: td[10].querySelector("select")?.value,
-        s_unknown_person_without_authorization: td[11].querySelector("select")?.value,
-        s_unattended_office_unlocked: td[12].querySelector("select")?.value,
-        s_other_observations_status: td[13].querySelector("select")?.value,
-        s_remarks: td[14].querySelector("textarea")?.value,
-        s_patrolling_guard_name: td[15].querySelector("input")?.value
-      };
+function saveTable() {
+  const rows = document.querySelectorAll("#patrolTable tbody tr");
 
-      if (row.dataset.new === "true") {
-        hasAction = true;
-        $.post({
-          url: "/save_patrolling_data",
-          contentType: "application/json",
-          data: JSON.stringify(payload)
-        });
-      }
+  let hasNew = false;
+  let hasEdit = false;
 
-      if (row.dataset.edited === "true" && !row.dataset.new) {
-        hasAction = true;
-        payload.n_sr_no = row.dataset.id;
-        $.post({
-          url: "/update_patrolling_data",
-          contentType: "application/json",
-          data: JSON.stringify(payload)
-        });
-      }
-    });
+  rows.forEach(row => {
+    if (row.dataset.new === "true") hasNew = true;
+    if (row.dataset.edited === "true" && !row.dataset.new) hasEdit = true;
+  });
 
-    if (!hasAction) {
-      alert("Nothing to save");
-      return;
-    }
-    alert("Saved successfully");
-    loadPatrollingData();
+  if (!hasNew && !hasEdit) {
+    alert("Nothing to save");
+    return;
   }
+
+  let confirmMsg = "Do you want to save changes?";
+  if (hasNew && !hasEdit) confirmMsg = "Do you want to add this record?";
+  if (!hasNew && hasEdit) confirmMsg = "Do you want to update this record?";
+  if (hasNew && hasEdit) confirmMsg = "Do you want to add and update records?";
+
+  if (!confirm(confirmMsg)) return;
+
+  let saved = false;
+  let updated = false;
+
+  rows.forEach(row => {
+    const td = row.children;
+    const payload = {
+      s_location_code: USER_LOCATION,
+      d_patrol_date: td[2].querySelector("input")?.value,
+      t_from_time: td[3].querySelector("input")?.value,
+      t_to_time: td[4].querySelector("input")?.value,
+      s_boundary_wall_condition: td[5].querySelector("select")?.value,
+      s_patrolling_pathway_condition: td[6].querySelector("select")?.value,
+      s_suspicious_movement: td[7].querySelector("select")?.value,
+      s_wild_vegetation: td[8].querySelector("select")?.value,
+      s_illumination_status: td[9].querySelector("select")?.value,
+      s_workers_without_valid_permit: td[10].querySelector("select")?.value,
+      s_unknown_person_without_authorization: td[11].querySelector("select")?.value,
+      s_unattended_office_unlocked: td[12].querySelector("select")?.value,
+      s_other_observations_status: td[13].querySelector("select")?.value,
+      s_remarks: td[14].querySelector("textarea")?.value,
+      s_patrolling_guard_name: td[15].querySelector("input")?.value
+    };
+
+    // INSERT
+    if (row.dataset.new === "true") {
+      saved = true;
+      $.post({
+        url: "/save_patrolling_data",
+        contentType: "application/json",
+        data: JSON.stringify(payload)
+      });
+    }
+
+    // UPDATE
+    if (row.dataset.edited === "true" && !row.dataset.new) {
+      updated = true;
+      payload.n_sr_no = row.dataset.id;
+      $.post({
+        url: "/update_patrolling_data",
+        contentType: "application/json",
+        data: JSON.stringify(payload)
+      });
+    }
+  });
+
+  // ✅ Success popup
+  if (saved && updated) {
+    alert("Records added and updated successfully");
+  } else if (saved) {
+    alert("Record added successfully");
+  } else if (updated) {
+    alert("Record updated successfully");
+  }
+
+  loadPatrollingData();
+}
+
+
 
   /* ================= LOAD ================= */
 function loadPatrollingData() {
