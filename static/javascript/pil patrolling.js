@@ -4,82 +4,149 @@ function patrollingApp() {
   let currentPage = 1;
   const rowsPerPage = 10;
 
+  const pageInfo = document.getElementById("pageInfo");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+
   /* ================= HELPERS ================= */
+
   function cloneTemplate(id) {
-    return document.getElementById(id).content.cloneNode(true);
+    const tpl = document.getElementById(id);
+    if (!tpl) {
+      console.error("Template not found:", id);
+      return null;
+    }
+    return tpl.content.cloneNode(true);
   }
 
   function updateSerialNumbers() {
     const rows = document.querySelectorAll("#patrolTable tbody tr");
     const total = rows.length;
     rows.forEach((row, i) => {
-      row.querySelector(".sr-no").innerText = total - i;
+      const cell = row.querySelector(".sr-no");
+      if (cell) cell.innerText = total - i;
     });
   }
 
-  /* ================= ADD ROW ================= */
+  /* ================= LOAD ================= */
+
+  function loadPatrollingData() {
+    $.get("/get_patrolling_data", res => {
+      console.log("PATROLLING API:", res);
+
+      if (!res.success || !Array.isArray(res.data)) return;
+
+      // 🔥 Same as Mitra – latest first
+      allData = res.data.sort((a, b) => b.n_sr_no - a.n_sr_no);
+      currentPage = 1;
+      renderPage();
+    });
+  }
+
+  /* ================= RENDER ================= */
+
+  function renderPage() {
+    const tbody = document.querySelector("#patrolTable tbody");
+    tbody.innerHTML = "";
+
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    const pageData = allData.slice(start, end);
+
+    pageData.forEach(r => {
+      const fragment = cloneTemplate("viewRowTemplate");
+      if (!fragment) return;
+
+      const row = fragment.querySelector("tr");
+      if (!row) return;
+
+      row.dataset.id = r.n_sr_no;
+
+      row.querySelector(".sr-no").innerText = r.n_sr_no;
+      row.querySelector(".loc").innerText = r.s_location_code || "";
+      row.querySelector(".date").innerText = r.d_patrol_date || "";
+      row.querySelector(".from").innerText = r.t_from_time || "";
+      row.querySelector(".to").innerText = r.t_to_time || "";
+
+      [
+        r.s_boundary_wall_condition,
+        r.s_patrolling_pathway_condition,
+        r.s_suspicious_movement,
+        r.s_wild_vegetation,
+        r.s_illumination_status,
+        r.s_workers_without_valid_permit,
+        r.s_unknown_person_without_authorization,
+        r.s_unattended_office_unlocked,
+        r.s_other_observations_status
+      ].forEach((v, idx) => {
+        row.children[5 + idx].innerText = v || "";
+      });
+
+      row.querySelector(".remarks").innerText = r.s_remarks || "";
+      row.querySelector(".guard").innerText = r.s_patrolling_guard_name || "";
+
+      tbody.appendChild(row);
+    });
+
+    updateSerialNumbers();
+    updatePaginationButtons();
+  }
+
+  /* ================= PAGINATION ================= */
+
+  function updatePaginationButtons() {
+    const totalPages = Math.ceil(allData.length / rowsPerPage) || 1;
+    pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages;
+  }
+
+  function nextPage() {
+    if (currentPage < Math.ceil(allData.length / rowsPerPage)) {
+      currentPage++;
+      renderPage();
+    }
+  }
+
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      renderPage();
+    }
+  }
+
+  /* ================= ADD ================= */
+
   function addRow() {
     const tbody = document.querySelector("#patrolTable tbody");
-    const tpl = cloneTemplate("addRowTemplate");
-    const row = tpl.querySelector("tr");
+    const fragment = cloneTemplate("addRowTemplate");
+    const row = fragment.querySelector("tr");
 
+    row.dataset.new = "true";
+    row.dataset.edited = "true";
     row.querySelector(".location").innerText = USER_LOCATION;
+
     row.querySelectorAll(".ok").forEach(td => {
       td.appendChild(cloneTemplate("okNotOkTemplate"));
     });
+
     tbody.prepend(row);
     updateSerialNumbers();
   }
 
-  /* ================= DELETE ================= */
-  function deleteRow(btn) {
-  const row = btn.closest("tr");
-
-  if (row.dataset.new === "true") {
-    if (!confirm("Are you sure you want to delete this row?")) return;
-
-    row.remove();
-    updateSerialNumbers();
-    alert("Deleted successfully");
-    return;
-  }
-
-  if (!confirm("Are you sure you want to delete this record?")) return;
-
-  $.ajax({
-    url: "/delete_patrolling_data",
-    type: "POST",
-    contentType: "application/json",
-    data: JSON.stringify({ n_sr_no: row.dataset.id }),
-    success: res => {
-      if (res.success) {
-        row.remove();
-        updateSerialNumbers();
-        alert("Deleted successfully");
-      } else {
-        alert(res.message);
-      }
-    },
-    error: () => alert("Delete failed")
-  });
-}
-
-
   /* ================= EDIT ================= */
+
   function editRow(btn) {
     const row = btn.closest("tr");
     row.dataset.edited = "true";
 
-    row.children[1].innerText = USER_LOCATION;
+    row.querySelector(".loc").innerText = USER_LOCATION;
 
     ["date", "from", "to"].forEach((cls, i) => {
       const td = row.children[2 + i];
       const val = row.querySelector("." + cls).innerText;
-      td.innerHTML = "";
-      const input = document.createElement("input");
-      input.type = cls === "date" ? "date" : "time";
-      input.value = val;
-      td.appendChild(input);
+      td.innerHTML = `<input type="${cls === "date" ? "date" : "time"}" value="${val}">`;
     });
 
     for (let i = 5; i <= 13; i++) {
@@ -89,184 +156,105 @@ function patrollingApp() {
       sel.querySelector("select").value = val;
       row.children[i].appendChild(sel);
     }
-    const rVal = row.querySelector(".remarks").innerText;
-    row.children[14].innerHTML = "";
-    const ta = document.createElement("textarea");
-    ta.value = rVal;
-    row.children[14].appendChild(ta);
-    const gVal = row.querySelector(".guard").innerText;
-    row.children[15].innerHTML = "";
-    const gi = document.createElement("input");
-    gi.value = gVal;
-    row.children[15].appendChild(gi);
+
+    row.children[14].innerHTML = `<textarea>${row.querySelector(".remarks").innerText}</textarea>`;
+    row.children[15].innerHTML = `<input value="${row.querySelector(".guard").innerText}">`;
+
     btn.disabled = true;
-    btn.innerText = "Editing";
   }
 
   /* ================= SAVE ================= */
-function saveTable() {
-  const rows = document.querySelectorAll("#patrolTable tbody tr");
 
-  let hasNew = false;
-  let hasEdit = false;
+  function saveTable() {
+    const rows = document.querySelectorAll("#patrolTable tbody tr");
 
-  rows.forEach(row => {
-    if (row.dataset.new === "true") hasNew = true;
-    if (row.dataset.edited === "true" && !row.dataset.new) hasEdit = true;
-  });
+    let hasNew = false;
+    let hasEdit = false;
 
-  if (!hasNew && !hasEdit) {
-    alert("Nothing to save");
-    return;
-  }
-
-  let confirmMsg = "Do you want to save changes?";
-  if (hasNew && !hasEdit) confirmMsg = "Do you want to add this record?";
-  if (!hasNew && hasEdit) confirmMsg = "Do you want to update this record?";
-  if (hasNew && hasEdit) confirmMsg = "Do you want to add and update records?";
-
-  if (!confirm(confirmMsg)) return;
-
-  let saved = false;
-  let updated = false;
-
-  rows.forEach(row => {
-    const td = row.children;
-    const payload = {
-      s_location_code: USER_LOCATION,
-      d_patrol_date: td[2].querySelector("input")?.value,
-      t_from_time: td[3].querySelector("input")?.value,
-      t_to_time: td[4].querySelector("input")?.value,
-      s_boundary_wall_condition: td[5].querySelector("select")?.value,
-      s_patrolling_pathway_condition: td[6].querySelector("select")?.value,
-      s_suspicious_movement: td[7].querySelector("select")?.value,
-      s_wild_vegetation: td[8].querySelector("select")?.value,
-      s_illumination_status: td[9].querySelector("select")?.value,
-      s_workers_without_valid_permit: td[10].querySelector("select")?.value,
-      s_unknown_person_without_authorization: td[11].querySelector("select")?.value,
-      s_unattended_office_unlocked: td[12].querySelector("select")?.value,
-      s_other_observations_status: td[13].querySelector("select")?.value,
-      s_remarks: td[14].querySelector("textarea")?.value,
-      s_patrolling_guard_name: td[15].querySelector("input")?.value
-    };
-
-    // INSERT
-    if (row.dataset.new === "true") {
-      saved = true;
-      $.post({
-        url: "/save_patrolling_data",
-        contentType: "application/json",
-        data: JSON.stringify(payload)
-      });
-    }
-
-    // UPDATE
-    if (row.dataset.edited === "true" && !row.dataset.new) {
-      updated = true;
-      payload.n_sr_no = row.dataset.id;
-      $.post({
-        url: "/update_patrolling_data",
-        contentType: "application/json",
-        data: JSON.stringify(payload)
-      });
-    }
-  });
-
-  // ✅ Success popup
-  if (saved && updated) {
-    alert("Records added and updated successfully");
-  } else if (saved) {
-    alert("Record added successfully");
-  } else if (updated) {
-    alert("Record updated successfully");
-  }
-
-  loadPatrollingData();
-}
-
-
-
-  /* ================= LOAD ================= */
-function loadPatrollingData() {
-  $.get("/get_patrolling_data", res => {
-    if (!res.success) return alert("Load failed");
-
-    // ✅ latest record first (descending)
-    allData = res.data.sort((a, b) => b.n_sr_no - a.n_sr_no);
-
-    currentPage = 1;
-    renderPage();
-  });
-}
-
-function renderPage() {
-  const tbody = document.querySelector("#patrolTable tbody");
-  tbody.innerHTML = "";
-
-  const start = (currentPage - 1) * rowsPerPage;
-  const end = start + rowsPerPage;
-  const pageData = allData.slice(start, end);
-
-  pageData.forEach(r => {
-    const tpl = cloneTemplate("viewRowTemplate");
-    const row = tpl.querySelector("tr");
-
-    row.dataset.id = r.n_sr_no;
-    row.querySelector(".loc").innerText = r.s_location_code;
-    row.querySelector(".date").innerText = r.d_patrol_date;
-    row.querySelector(".from").innerText = r.t_from_time;
-    row.querySelector(".to").innerText = r.t_to_time;
-
-    [
-      r.s_boundary_wall_condition,
-      r.s_patrolling_pathway_condition,
-      r.s_suspicious_movement,
-      r.s_wild_vegetation,
-      r.s_illumination_status,
-      r.s_workers_without_valid_permit,
-      r.s_unknown_person_without_authorization,
-      r.s_unattended_office_unlocked,
-      r.s_other_observations_status
-    ].forEach((v, idx) => {
-      row.children[5 + idx].innerText = v || "";
+    rows.forEach(row => {
+      if (row.dataset.new) hasNew = true;
+      if (row.dataset.edited && !row.dataset.new) hasEdit = true;
     });
 
-    row.querySelector(".remarks").innerText = r.s_remarks || "";
-    row.querySelector(".guard").innerText = r.s_patrolling_guard_name;
+    if (!hasNew && !hasEdit) {
+      alert("Nothing to save");
+      return;
+    }
 
-    tbody.appendChild(row);
-  });
+    // 🔁 DOUBLE CONFIRM (same as Mitra)
+    if (!confirm("Do you want to proceed with saving changes?")) return;
+    if (!confirm("This action will permanently update records. Continue?")) return;
 
-  updateSerialNumbers();
-  updatePaginationButtons();
-}
-function updatePaginationButtons() {
-  const totalPages = Math.ceil(allData.length / rowsPerPage);
+    let requests = [];
 
-  document.getElementById("pageInfo").innerText =
-    `Page ${currentPage} of ${totalPages}`;
+    rows.forEach(row => {
+      const td = row.children;
 
-  document.getElementById("prevBtn").disabled = currentPage === 1;
-  document.getElementById("nextBtn").disabled = currentPage === totalPages;
-}
+      const payload = {
+        s_location_code: USER_LOCATION,
+        d_patrol_date: td[2].querySelector("input")?.value,
+        t_from_time: td[3].querySelector("input")?.value,
+        t_to_time: td[4].querySelector("input")?.value,
+        s_boundary_wall_condition: td[5].querySelector("select")?.value,
+        s_patrolling_pathway_condition: td[6].querySelector("select")?.value,
+        s_suspicious_movement: td[7].querySelector("select")?.value,
+        s_wild_vegetation: td[8].querySelector("select")?.value,
+        s_illumination_status: td[9].querySelector("select")?.value,
+        s_workers_without_valid_permit: td[10].querySelector("select")?.value,
+        s_unknown_person_without_authorization: td[11].querySelector("select")?.value,
+        s_unattended_office_unlocked: td[12].querySelector("select")?.value,
+        s_other_observations_status: td[13].querySelector("select")?.value,
+        s_remarks: td[14].querySelector("textarea")?.value,
+        s_patrolling_guard_name: td[15].querySelector("input")?.value
+      };
 
-function nextPage() {
-  const totalPages = Math.ceil(allData.length / rowsPerPage);
-  if (currentPage < totalPages) {
-    currentPage++;
-    renderPage();
+      if (row.dataset.new) {
+        requests.push($.ajax({
+          url: "/save_patrolling_data",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify(payload)
+        }));
+      }
+
+      if (row.dataset.edited && !row.dataset.new) {
+        payload.n_sr_no = row.dataset.id;
+        requests.push($.ajax({
+          url: "/update_patrolling_data",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify(payload)
+        }));
+      }
+    });
+
+    Promise.all(requests).then(() => {
+      alert("Changes saved successfully");
+      loadPatrollingData();
+    });
   }
-}
 
-function prevPage() {
-  if (currentPage > 1) {
-    currentPage--;
-    renderPage();
+  /* ================= DELETE ================= */
+
+  function deleteRow(btn) {
+    const row = btn.closest("tr");
+
+    if (!confirm("Are you sure you want to delete this record?")) return;
+    if (!confirm("This action cannot be undone. Continue?")) return;
+
+    row.remove();
+    updateSerialNumbers();
+
+    $.ajax({
+      url: "/delete_patrolling_data",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ n_sr_no: row.dataset.id })
+    });
   }
-}
 
+  /* ================= EXPOSE ================= */
 
- /* ================= EXPOSE TO HTML ================= */
   window.addRow = addRow;
   window.saveTable = saveTable;
   window.editRow = editRow;
@@ -274,10 +262,7 @@ function prevPage() {
   window.nextPage = nextPage;
   window.prevPage = prevPage;
 
-
-  document.addEventListener("DOMContentLoaded", loadPatrollingData);
-
-
+  loadPatrollingData();
 }
-/* ================= START APP ================= */
+
 patrollingApp();

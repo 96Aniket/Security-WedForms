@@ -76,25 +76,27 @@ def get_patrolling_data():
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT
-                n_sr_no,
-                s_location_code,
-                d_patrol_date,
-                t_from_time,
-                t_to_time,
-                s_boundary_wall_condition,
-                s_patrolling_pathway_condition,
-                s_suspicious_movement,
-                s_wild_vegetation,
-                s_illumination_status,
-                s_workers_without_valid_permit,
-                s_unknown_person_without_authorization,
-                s_unattended_office_unlocked,
-                s_other_observations_status,
-                s_remarks,
-                s_patrolling_guard_name
-            FROM dbo.Patrolling_Observation_Register
-            ORDER BY n_sr_no DESC
+           SELECT
+    n_sr_no,
+    s_location_code,
+    d_patrol_date,
+    t_from_time,
+    t_to_time,
+    s_boundary_wall_condition,
+    s_patrolling_pathway_condition,
+    s_suspicious_movement,
+    s_wild_vegetation,
+    s_illumination_status,
+    s_workers_without_valid_permit,
+    s_unknown_person_without_authorization,
+    s_unattended_office_unlocked,
+    s_other_observations_status,
+    s_remarks,
+    s_patrolling_guard_name
+FROM dbo.Patrolling_Observation_Register
+WHERE ISNULL(delete_flag, 0) = 0
+ORDER BY n_sr_no DESC
+
         """)
 
         rows = cursor.fetchall()
@@ -186,12 +188,73 @@ def update_patrolling_data(data, username="system"):
     except Exception as e:
         return False, str(e)
 #----------------delete-----------------------
-def delete_patrolling_data(data):
+def delete_patrolling_data(data, username):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        sql = "DELETE FROM dbo.Patrolling_Observation_Register WHERE n_sr_no = ?"
+        sql = """
+        UPDATE dbo.Patrolling_Observation_Register
+        SET
+            delete_flag = 1,
+            deleted_at = GETDATE(),
+            deleted_by = ?
+        WHERE n_sr_no = ?
+        """
+
+        cursor.execute(sql, (
+            username,
+            data["n_sr_no"]
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Record deleted successfully"
+
+    except Exception as e:
+        return False, str(e)
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        sql = """
+        UPDATE dbo.Patrolling_Observation_Register
+        SET
+            delete_flag = 1,
+            deleted_at = GETDATE(),
+            deleted_by = ?
+        WHERE n_sr_no = ?
+        """
+
+        cursor.execute(sql, (
+            username,
+            data["n_sr_no"]
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Record deleted successfully"
+
+    except Exception as e:
+        return False, str(e)
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        sql = """
+UPDATE dbo.Patrolling_Observation_Register
+SET
+    delete_flag = 1,
+    deleted_at = GETDATE(),
+    deleted_by = ?
+WHERE n_sr_no = ?
+"""
         cursor.execute(sql, (data["n_sr_no"],))
 
         conn.commit()
@@ -288,6 +351,7 @@ def get_bba_test_data():
                 s_security_personnel_name,
                 s_remarks
             FROM dbo.BAA_Test_Record_Register
+            WHERE ISNULL(delete_flag, 0) = 0
             ORDER BY n_sr_no DESC
         """)
 
@@ -306,7 +370,6 @@ def get_bba_test_data():
                 "s_test_result": r[7],
                 "n_bac_count": r[8],
                 "img_attachment": r[9],
-
                 "s_security_personnel_name": r[10],
                 "s_remarks": r[11]
             })
@@ -471,10 +534,19 @@ def delete_bba_test_data(data):
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            "DELETE FROM dbo.BAA_Test_Record_Register WHERE n_sr_no = ?",
-            (data["n_sr_no"],)
-        )
+        sql = """
+        UPDATE dbo.BAA_Test_Record_Register
+        SET
+            delete_flag = 1,
+            deleted_at = GETDATE(),
+            deleted_by = ?
+        WHERE n_sr_no = ?
+        """
+
+        cursor.execute(sql, (
+            data.get("deleted_by", "system"),
+            data["n_sr_no"]
+        ))
 
         conn.commit()
         cursor.close()
@@ -484,7 +556,6 @@ def delete_bba_test_data(data):
 
     except Exception as e:
         return False, str(e)
-
 
 # ------------ START PIPELINE MITRA REGISTER -----------------
 
@@ -544,6 +615,48 @@ def insert_pipeline_mitra_record(cursor, data, n_sr_no, username):
 
 # ------------ READ -----------------
 def get_pipeline_mitra_data():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                n_sr_no,
+                s_location_code,
+                d_entry_date,
+                s_chainage_no,
+                s_pm_name,
+                s_pm_village_name,
+                s_pm_mobile_no,
+                s_remarks
+            FROM dbo.PIPELINE_MITRA_REGISTER
+            WHERE ISNULL(delete_flag, 0) = 0
+            ORDER BY n_sr_no DESC
+        """)
+
+        rows = cursor.fetchall()
+
+        result = []
+        for r in rows:
+            result.append({
+                "n_sr_no": r[0],
+                "s_location_code": r[1],
+                "d_entry_date": str(r[2]),
+                "s_chainage_no": r[3],
+                "s_pm_name": r[4],
+                "s_pm_village_name": r[5],
+                "s_pm_mobile_no": r[6],
+                "s_remarks": r[7]
+            })
+
+        cursor.close()
+        conn.close()
+
+        return True, result
+
+    except Exception as e:
+        return False, str(e)
+
     try:
         conn = get_connection()
         cursor = conn.cursor()
@@ -631,6 +744,34 @@ def update_pipeline_mitra_data(data, username="system"):
 
 # ------------ DELETE -----------------
 def delete_pipeline_mitra_data(data):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        sql = """
+        UPDATE dbo.PIPELINE_MITRA_REGISTER
+        SET
+            delete_flag = 1,
+            deleted_at = GETDATE(),
+            deleted_by = ?
+        WHERE n_sr_no = ?
+        """
+
+        # deleted_by → session user email will be passed from function layer
+        cursor.execute(sql, (
+            data.get("deleted_by", "system"),
+            data["n_sr_no"]
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Pipeline Mitra record deleted successfully"
+
+    except Exception as e:
+        return False, str(e)
+
     try:
         conn = get_connection()
         cursor = conn.cursor()
@@ -815,10 +956,19 @@ def delete_vehicle_data(data):
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            "DELETE FROM dbo.VEHICLE_CHECK_LIST WHERE n_sr_no = ?",
-            (data["n_sr_no"],)
-        )
+        sql = """
+        UPDATE dbo.VEHICLE_CHECK_LIST
+        SET
+            delete_flag = 1,
+            deleted_at = GETDATE(),
+            deleted_by = ?
+        WHERE n_sr_no = ?
+        """
+
+        cursor.execute(sql, (
+            data.get("deleted_by", "system"),
+            data["n_sr_no"]
+        ))
 
         conn.commit()
         cursor.close()
@@ -828,6 +978,7 @@ def delete_vehicle_data(data):
 
     except Exception as e:
         return False, str(e)
+
 
 #------------- visitor start --------------
 # ------------ CREATE -----------------
@@ -891,6 +1042,8 @@ def get_visitor_data():
                 s_visitor_pass_no,
                 s_whom_to_meet
             FROM dbo.VISITOR_DECLARATION_SLIP
+                       WHERE ISNULL(delete_flag,0) = 0
+
             ORDER BY n_sr_no DESC
         """)
 

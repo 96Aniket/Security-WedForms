@@ -2,7 +2,7 @@ from flask import request, jsonify, session
 from Execute import queries
 
 # =====================================================
-# COMMON RESPONSE HELPERS (IMPORTANT)
+# COMMON RESPONSE HELPERS
 # =====================================================
 def success_response(message="", data=None, status=200):
     res = {"success": True, "message": message}
@@ -28,7 +28,6 @@ def save_patrolling_data_fn():
         success, msg = queries.save_patrolling_data(data, username)
 
         return success_response(msg) if success else error_response(msg)
-
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -51,7 +50,6 @@ def update_patrolling_data():
         success, msg = queries.update_patrolling_data(data, username)
 
         return success_response(msg) if success else error_response(msg)
-
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -62,7 +60,9 @@ def delete_patrolling_data():
         if not data or "n_sr_no" not in data:
             return error_response("Invalid delete request")
 
-        success, msg = queries.delete_patrolling_data(data)
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.delete_patrolling_data(data, username)
+
         return success_response(msg) if success else error_response(msg)
 
     except Exception as e:
@@ -82,7 +82,6 @@ def save_bba_test_data_fn():
         success, msg = queries.save_bba_test_data(data, username)
 
         return success_response(msg) if success else error_response(msg)
-
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -105,7 +104,6 @@ def update_bba_test_data():
         success, msg = queries.update_bba_test_data(data, username)
 
         return success_response(msg) if success else error_response(msg)
-
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -116,9 +114,11 @@ def delete_bba_test_data():
         if not data or "n_sr_no" not in data:
             return error_response("Invalid delete request")
 
+        # 🔥 ADD deleted_by
+        data["deleted_by"] = session.get("user", {}).get("email", "system")
+
         success, msg = queries.delete_bba_test_data(data)
         return success_response(msg) if success else error_response(msg)
-
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -136,7 +136,6 @@ def save_pipeline_mitra_data_fn():
         success, msg = queries.save_pipeline_mitra_data(data, username)
 
         return success_response(msg) if success else error_response(msg)
-
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -159,7 +158,6 @@ def update_pipeline_mitra_data():
         success, msg = queries.update_pipeline_mitra_data(data, username)
 
         return success_response(msg) if success else error_response(msg)
-
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -170,9 +168,11 @@ def delete_pipeline_mitra_data():
         if not data or "n_sr_no" not in data:
             return error_response("Invalid delete request")
 
+        # 🔥 ADD deleted_by (CRITICAL)
+        data["deleted_by"] = session.get("user", {}).get("email", "system")
+
         success, msg = queries.delete_pipeline_mitra_data(data)
         return success_response(msg) if success else error_response(msg)
-
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -190,7 +190,6 @@ def save_vehicle_data_fn():
         success, msg = queries.save_vehicle_data(data, username)
 
         return success_response(msg) if success else error_response(msg)
-
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -213,7 +212,6 @@ def update_vehicle_data():
         success, msg = queries.update_vehicle_data(data, username)
 
         return success_response(msg) if success else error_response(msg)
-
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -224,9 +222,11 @@ def delete_vehicle_data():
         if not data or "n_sr_no" not in data:
             return error_response("Invalid delete request")
 
+        # 🔥 ADD deleted_by
+        data["deleted_by"] = session.get("user", {}).get("email", "system")
+
         success, msg = queries.delete_vehicle_data(data)
         return success_response(msg) if success else error_response(msg)
-
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -244,7 +244,6 @@ def save_visitor_data_fn():
         success, msg = queries.save_visitor_data(data, username)
 
         return success_response(msg) if success else error_response(msg)
-
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -267,7 +266,6 @@ def update_visitor_data():
         success, msg = queries.update_visitor_data(data, username)
 
         return success_response(msg) if success else error_response(msg)
-
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -278,8 +276,10 @@ def delete_visitor_data():
         if not data or "n_sr_no" not in data:
             return error_response("Invalid delete request")
 
+        # 🔥 ADD deleted_by
+        data["deleted_by"] = session.get("user", {}).get("email", "system")
+
         success, msg = queries.delete_visitor_data(data)
         return success_response(msg) if success else error_response(msg)
-
     except Exception as e:
         return error_response(str(e), 500)
