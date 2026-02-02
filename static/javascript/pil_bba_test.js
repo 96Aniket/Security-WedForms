@@ -123,32 +123,36 @@ function bbaTestApp() {
   }
 
   /* ================= DELETE ================= */
-  function deleteRow(btn) {
-    const row = btn.closest("tr");
+function deleteRow(btn) {
+  const row = btn.closest("tr");
 
-    if (row.dataset.new === "true") {
-      row.remove();
-      updateSerialNumbers();
-      return;
-    }
+  if (row.dataset.new === "true") {
+    if (!confirm("Do you want to delete this row?")) return;
 
-    if (!confirm("Are you sure you want to delete this record?")) return;
-
-    $.ajax({
-      url: "/delete_bba_test_data",
-      type: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({ n_sr_no: row.dataset.id }),
-      success: res => {
-        if (res.success) {
-          row.remove();
-          updateSerialNumbers();
-        } else {
-          alert(res.message || "Delete failed");
-        }
-      }
-    });
+    row.remove();
+    updateSerialNumbers();
+    alert("Deleted successfully");
+    return;
   }
+
+  if (!confirm("Do you want to delete this record?")) return;
+
+  $.ajax({
+    url: "/delete_bba_test_data",
+    type: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({ n_sr_no: row.dataset.id }),
+    success: res => {
+      if (res.success) {
+        alert("Deleted successfully");
+        loadBbaData();
+      } else {
+        alert(res.message || "Delete failed");
+      }
+    }
+  });
+}
+
 
   /* ================= EDIT ================= */
   function editRow(btn) {
@@ -205,54 +209,86 @@ function bbaTestApp() {
   }
 
   /* ================= SAVE ================= */
-  function saveTable() {
-    const rows = document.querySelectorAll("#bbaTable tbody tr");
-    let hasAction = false;
+function saveTable() {
+  const rows = document.querySelectorAll("#bbaTable tbody tr");
 
-    rows.forEach(row => {
-      const td = row.children;
+  let hasNew = false;
+  let hasEdit = false;
 
-      const payload = {
-        s_location_code: USER_LOCATION,
-        d_test_date: td[2].querySelector("input")?.value,
-        t_test_time: td[3].querySelector("input")?.value,
-        s_test_record_no: td[4].querySelector("input")?.value,
-        s_individual_name: td[5].querySelector("input")?.value,
-        s_person_type: td[6].querySelector("select")?.value,
-        s_test_result: td[7].querySelector("select")?.value,
-        n_bac_count: td[8].querySelector("input")?.value,
-        img_attachment: td[9].querySelector("input")?.dataset.base64 || null,
-        s_security_personnel_name: td[10].querySelector("input")?.value,
-        s_remarks: td[11].querySelector("input")?.value
-      };
+  rows.forEach(row => {
+    if (row.dataset.new === "true") hasNew = true;
+    if (row.dataset.edited === "true" && !row.dataset.new) hasEdit = true;
+  });
 
-      if (row.dataset.new === "true") {
-        hasAction = true;
-        $.ajax({
-          url: "/save_bba_test_data",
-          type: "POST",
-          contentType: "application/json",
-          data: JSON.stringify(payload)
-        });
-      }
-
-      if (row.dataset.edited === "true" && !row.dataset.new) {
-        hasAction = true;
-        payload.n_sr_no = row.dataset.id;
-        $.ajax({
-          url: "/update_bba_test_data",
-          type: "POST",
-          contentType: "application/json",
-          data: JSON.stringify(payload)
-        });
-      }
-    });
-
-    if (!hasAction) return alert("Nothing to save");
-
-    alert("Saved successfully");
-    loadBbaData();
+  if (!hasNew && !hasEdit) {
+    alert("Nothing to save");
+    return;
   }
+
+  // 🔔 Smart confirmation message
+  let confirmMsg = "Do you want to save changes?";
+  if (hasNew && !hasEdit) confirmMsg = "Do you want to add this record?";
+  if (!hasNew && hasEdit) confirmMsg = "Do you want to update this record?";
+  if (hasNew && hasEdit) confirmMsg = "Do you want to add and update records?";
+
+  if (!confirm(confirmMsg)) return;
+
+  let saved = false;
+  let updated = false;
+
+  rows.forEach(row => {
+    const td = row.children;
+
+    const payload = {
+      s_location_code: USER_LOCATION,
+      d_test_date: td[2].querySelector("input")?.value,
+      t_test_time: td[3].querySelector("input")?.value,
+      s_test_record_no: td[4].querySelector("input")?.value,
+      s_individual_name: td[5].querySelector("input")?.value,
+      s_person_type: td[6].querySelector("select")?.value,
+      s_test_result: td[7].querySelector("select")?.value,
+      n_bac_count: td[8].querySelector("input")?.value,
+      img_attachment: td[9].querySelector("input")?.dataset.base64 || null,
+      s_security_personnel_name: td[10].querySelector("input")?.value,
+      s_remarks: td[11].querySelector("input")?.value
+    };
+
+    // INSERT
+    if (row.dataset.new === "true") {
+      saved = true;
+      $.ajax({
+        url: "/save_bba_test_data",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(payload)
+      });
+    }
+
+    // UPDATE
+    if (row.dataset.edited === "true" && !row.dataset.new) {
+      updated = true;
+      payload.n_sr_no = row.dataset.id;
+      $.ajax({
+        url: "/update_bba_test_data",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(payload)
+      });
+    }
+  });
+
+  // ✅ Success popup
+  if (saved && updated) {
+    alert("Records added and updated successfully");
+  } else if (saved) {
+    alert("Record added successfully");
+  } else if (updated) {
+    alert("Record updated successfully");
+  }
+
+  loadBbaData();
+}
+
 
   /* ================= LOAD ================= */
   function loadBbaData() {

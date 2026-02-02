@@ -3,7 +3,7 @@ def get_connection():
     try:
         conn = pyodbc.connect(
             r'DRIVER={ODBC Driver 17 for SQL Server};'
-            r'SERVER=localhost\SQLEXPRESS;'
+            r'SERVER=DESKTOP-PE7348D\SQLEXPRESS;'
             r'DATABASE=Security_WebForms;'
             r'Trusted_Connection=yes;'
         )
