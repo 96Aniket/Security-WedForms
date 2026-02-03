@@ -10,15 +10,63 @@ body {
 }
 
 /* ================= HEADER ================= */
+/* ================= NAVBAR ================= */
 .header-dashboard {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
   height: 60px;
-  background: #002244;
-  color: #fff;
+  width: 100%;
+  padding: 0 20px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+
+  background-color: #002244;
+  color: #fff;
+  margin-bottom: 30px;
 }
+
+.hamburger-dashboard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 26px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.logo-dashboard {
+  height: 40px;
+  border-radius: 6px;
+}
+
+/* ================= PROFILE ================= */
+#profileAvatar {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 50px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#profileInitials {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #007bff;
+  color: #fff;
+  font-weight: bold;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 
 .logo-dashboard {
   height: 40px;
@@ -79,3 +127,19 @@ button {
 .btn-save { background: #2e7d32; color: #fff; }
 .secondary { background: #6c757d; color: #fff; }
 .danger { background: #dc3545; color: #fff; }
+
+.icon-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 6px;
+}
+
+.icon-btn.delete {
+  color: #dc3545;
+}
+
+.icon-btn:hover {
+  transform: scale(1.2);
+}

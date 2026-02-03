@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Casual Labour Register</title>
@@ -10,122 +11,128 @@
 
 <body>
 
-<header class="header-dashboard">
-  <div class="hamburger-dashboard">
-    ☰
-    <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
-  </div>
-
-  <h2>Casual Labour Register</h2>
-
-  <div id="profileAvatar">
-    <div id="profileInitials">
-      {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+  <header class="header-dashboard">
+    <div class="hamburger-dashboard" id="hamburger" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+      ☰
+      <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
     </div>
-    <span id="username">
-      {{ (session.get('user') or {}).get('name','Guest User') }}
-    </span>
+
+    <h2 style="text-align:center;">Casual Labour Register</h2>
+
+    <div id="profileAvatar" style="display:flex;align-items:center;cursor:pointer;background:#fff;
+        padding:6px 10px;border-radius:50px;">
+
+      <div id="profileInitials" style="background:#007bff;color:#fff;width:32px;height:32px;border-radius:50%;
+            display:flex;align-items:center;justify-content:center;font-weight:bold;">
+        {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+      </div>
+
+      <span style="margin-left:8px;font-weight:bold;color:black;">
+        {{ (session.get('user') or {}).get('name','Guest User') }}
+      </span>
+    </div>
+  </header>
+
+
+  <div class="container">
+
+    <!-- ================= LIST VIEW ================= -->
+    <div id="listView">
+      <div class="header">
+        <h3>Casual Labour Records</h3>
+        <button class="btn-add" onclick="openAddForm()">Add Data</button>
+      </div>
+
+      <table id="masterTable">
+        <thead>
+          <tr>
+            <th>Location</th>
+            <th>Contractor</th>
+            <th>Nature of Work</th>
+            <th>Date / Time</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- ================= STEP 1 ================= -->
+    <div id="step1" class="form-box">
+      <h3>Work Details</h3>
+
+      <div class="row">
+        <input id="s_location" placeholder="Location">
+        <input id="s_contractor_name" placeholder="Contractor Name">
+      </div>
+
+      <div class="row">
+        <input id="s_nature_of_work" placeholder="Nature of Work">
+        <input id="s_place_of_work" placeholder="Place of Work">
+      </div>
+
+      <div class="row">
+        <input type="datetime-local" id="dt_work_datetime">
+      </div>
+
+      <button onclick="nextStep()">Next</button>
+      <button class="secondary" onclick="cancel()">Cancel</button>
+    </div>
+
+    <!-- ================= STEP 2 ================= -->
+    <div id="step2" class="form-box">
+      <h3>Labour Details</h3>
+
+      <div class="row">
+        <input id="labour_name" placeholder="Name">
+        <input id="labour_age" type="number" placeholder="Age">
+        <select id="labour_sex">
+          <option value="">Sex</option>
+          <option>Male</option>
+          <option>Female</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <input id="labour_address" placeholder="Address">
+        <input id="labour_card" placeholder="Temp Card No">
+      </div>
+
+      <div class="row">
+        <input id="labour_mobile" placeholder="Mobile">
+        <select id="labour_id_type">
+          <option value="">ID Type</option>
+          <option>Aadhar</option>
+          <option>PAN</option>
+          <option>Driving License</option>
+        </select>
+        <input id="labour_id_no" placeholder="Govt ID No">
+      </div>
+
+      <button onclick="addLabour()">Add Labour</button>
+
+      <table id="labourTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Mobile</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <br>
+      <button class="secondary" onclick="backStep()">Back</button>
+      <button class="btn-save" onclick="saveData()">Save</button>
+    </div>
+
   </div>
-</header>
-
-<div class="container">
-
-<!-- ================= LIST VIEW ================= -->
-<div id="listView">
-  <div class="header">
-    <h3>Casual Labour Records</h3>
-    <button class="btn-add" onclick="openAddForm()">➕ Add Data</button>
-  </div>
-
-  <table id="masterTable">
-    <thead>
-      <tr>
-        <th>Location</th>
-        <th>Contractor</th>
-        <th>Nature of Work</th>
-        <th>Date / Time</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-<!-- ================= STEP 1 ================= -->
-<div id="step1" class="form-box">
-  <h3>Work Details</h3>
-
-  <div class="row">
-    <input id="s_location" placeholder="Location">
-    <input id="s_contractor_name" placeholder="Contractor Name">
-  </div>
-
-  <div class="row">
-    <input id="s_nature_of_work" placeholder="Nature of Work">
-    <input id="s_place_of_work" placeholder="Place of Work">
-  </div>
-
-  <div class="row">
-    <input type="datetime-local" id="dt_work_datetime">
-  </div>
-
-  <button onclick="nextStep()">Next</button>
-  <button class="secondary" onclick="cancel()">Cancel</button>
-</div>
-
-<!-- ================= STEP 2 ================= -->
-<div id="step2" class="form-box">
-  <h3>Labour Details</h3>
-
-  <div class="row">
-    <input id="labour_name" placeholder="Name">
-    <input id="labour_age" type="number" placeholder="Age">
-    <select id="labour_sex">
-      <option value="">Sex</option>
-      <option>Male</option>
-      <option>Female</option>
-    </select>
-  </div>
-
-  <div class="row">
-    <input id="labour_address" placeholder="Address">
-    <input id="labour_card" placeholder="Temp Card No">
-  </div>
-
-  <div class="row">
-    <input id="labour_mobile" placeholder="Mobile">
-    <select id="labour_id_type">
-      <option value="">ID Type</option>
-      <option>Aadhar</option>
-      <option>PAN</option>
-      <option>Driving License</option>
-    </select>
-    <input id="labour_id_no" placeholder="Govt ID No">
-  </div>
-
-  <button onclick="addLabour()">Add Labour</button>
-
-  <table id="labourTable">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Age</th>
-        <th>Mobile</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <br>
-  <button class="secondary" onclick="backStep()">Back</button>
-  <button class="btn-save" onclick="saveData()">Save</button>
-</div>
-
-</div>
-
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="{{ url_for('static', filename='javascript/casual_labour.js') }}"></script>
+  <script>const USER_LOCATION = "{{ user_location }}";</script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="{{ url_for('static', filename='javascript/casual_labour.js') }}"></script>
 
 </body>
+
 </html>

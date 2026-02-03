@@ -1,73 +1,117 @@
 function casualLabourApp() {
-
+  let allData = [];
   let labours = [];
+  let isEdit = false;
+  let editId = null;
 
-  /* ================= INIT ================= */
-  document.addEventListener("DOMContentLoaded", loadMasterList);
+  /* ================= LOAD ================= */
 
-  /* ================= LOAD LIST ================= */
-  function loadMasterList() {
-    fetch("/get_casual_labour_data")
-      .then(r => r.json())
-      .then(res => {
-        const tbody = document.querySelector("#masterTable tbody");
-        tbody.innerHTML = "";
-        res.data.forEach(r => {
-          tbody.innerHTML += `
-            <tr>
-              <td>${r.s_location}</td>
-              <td>${r.s_contractor_name}</td>
-              <td>${r.s_nature_of_work}</td>
-              <td>${r.dt_work_datetime}</td>
-              <td>
-                <button class="danger" onclick="deleteRecord(${r.n_sl_no})">
-                  <i class="fa-solid fa-trash"></i>
-                </button>
-              </td>
-            </tr>`;
-        });
-      });
+  function loadData() {
+    $.get("/get_casual_labour_data", (res) => {
+      if (!res.success || !Array.isArray(res.data)) return;
+      allData = res.data;
+      renderTable();
+    });
   }
 
+  /* ================= RENDER ================= */
+
+  function renderTable() {
+  const tbody = $("#masterTable tbody");
+  tbody.empty();
+
+  allData.forEach(r => {
+    const tr = $(`
+      <tr>
+        <td>${r.s_location}</td>
+        <td>${r.s_contractor_name}</td>
+        <td>${r.s_nature_of_work}</td>
+        <td>${r.dt_work_datetime}</td>
+        <td class="action-col">
+          <button class="icon-btn edit">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button class="icon-btn delete">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `);
+
+    tr.data("record", r);
+    tbody.append(tr);
+  });
+}
+
+
   /* ================= VIEW SWITCH ================= */
+
   window.openAddForm = () => {
-    listView.style.display = "none";
-    step1.style.display = "block";
+    isEdit = false;
+    editId = null;
+    labours = [];
+
+    $("#listView").hide();
+    $("#step1").show();
   };
 
   window.nextStep = () => {
-    step1.style.display = "none";
-    step2.style.display = "block";
+    $("#step1").hide();
+    $("#step2").show();
   };
 
   window.backStep = () => {
-    step2.style.display = "none";
-    step1.style.display = "block";
+    $("#step2").hide();
+    $("#step1").show();
   };
 
   window.cancel = () => location.reload();
 
+  /* ================= EDIT ================= */
+
+  $("#masterTable").on("click", ".icon-btn.edit", function () {
+    const record = $(this).closest("tr").data("record");
+
+    isEdit = true;
+    editId = record.n_sl_no;
+
+    $("#listView").hide();
+    $("#step1").show();
+
+    $("#s_location").val(record.s_location);
+    $("#s_contractor_name").val(record.s_contractor_name);
+    $("#s_nature_of_work").val(record.s_nature_of_work);
+    $("#s_place_of_work").val(record.s_place_of_work);
+    $("#dt_work_datetime").val(record.dt_work_datetime.replace(" ", "T"));
+
+    labours = record.labours || [];
+    renderLabours();
+  });
+
   /* ================= LABOUR ================= */
+
   window.addLabour = () => {
     labours.push({
-      s_labour_name: labour_name.value,
-      n_age: labour_age.value,
-      s_sex: labour_sex.value,
-      s_address: labour_address.value,
-      s_temp_access_card_no: labour_card.value,
-      s_mobile_no: labour_mobile.value,
-      s_id_type: labour_id_type.value,
-      s_govt_id_no: labour_id_no.value
+      s_labour_name: $("#labour_name").val(),
+      n_age: $("#labour_age").val(),
+      s_sex: $("#labour_sex").val(),
+      s_address: $("#labour_address").val(),
+      s_temp_access_card_no: $("#labour_card").val(),
+      s_mobile_no: $("#labour_mobile").val(),
+      s_id_type: $("#labour_id_type").val(),
+      s_govt_id_no: $("#labour_id_no").val(),
     });
+
     renderLabours();
     clearLabour();
   };
 
   function renderLabours() {
-    const tbody = document.querySelector("#labourTable tbody");
-    tbody.innerHTML = "";
+    const tbody = $("#labourTable tbody");
+    tbody.empty();
+
     labours.forEach((l, i) => {
-      tbody.innerHTML += `
+      tbody.append(`
         <tr>
           <td>${l.s_labour_name}</td>
           <td>${l.n_age}</td>
@@ -75,61 +119,80 @@ function casualLabourApp() {
           <td>
             <button class="danger" onclick="removeLabour(${i})">X</button>
           </td>
-        </tr>`;
+        </tr>
+      `);
     });
   }
 
-  window.removeLabour = i => {
+  window.removeLabour = (i) => {
     labours.splice(i, 1);
     renderLabours();
   };
 
   function clearLabour() {
-    labour_name.value = labour_age.value = labour_mobile.value = "";
-    labour_sex.value = labour_address.value = labour_card.value = "";
-    labour_id_type.value = labour_id_no.value = "";
+    $("#labour_name,#labour_age,#labour_mobile,#labour_id_no").val("");
+    $("#labour_sex,#labour_address,#labour_card,#labour_id_type").val("");
   }
 
   /* ================= SAVE ================= */
+
   window.saveData = () => {
     const payload = {
       master: {
-        s_location: s_location.value,
-        s_contractor_name: s_contractor_name.value,
-        s_nature_of_work: s_nature_of_work.value,
-        s_place_of_work: s_place_of_work.value,
-        dt_work_datetime: dt_work_datetime.value
+        n_sl_no: editId,
+        s_location: $("#s_location").val(),
+        s_contractor_name: $("#s_contractor_name").val(),
+        s_nature_of_work: $("#s_nature_of_work").val(),
+        s_place_of_work: $("#s_place_of_work").val(),
+        dt_work_datetime: $("#dt_work_datetime").val(),
       },
-      labours
+      labours,
     };
 
-    fetch("/save_casual_labour_data", {
+    const url = isEdit
+      ? "/update_casual_labour_data"
+      : "/save_casual_labour_data";
+
+    if (!confirm(isEdit ? "Update this record?" : "Add this record?")) return;
+
+    $.ajax({
+      url,
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    })
-    .then(r => r.json())
-    .then(res => {
-      alert(res.message);
-      location.reload();
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+      success: (res) => {
+        alert(res.message);
+        location.reload();
+      },
+      error: (err) => {
+        console.error(err);
+        alert("Save failed");
+      },
     });
   };
 
   /* ================= DELETE ================= */
-  window.deleteRecord = id => {
+
+  $("#masterTable").on("click", ".icon-btn.delete", function () {
+    const record = $(this).closest("tr").data("record");
+
     if (!confirm("Delete this record?")) return;
 
-    fetch("/delete_casual_labour_data", {
+    $.ajax({
+      url: "/delete_casual_labour_data",
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ n_sl_no: id })
-    })
-    .then(r => r.json())
-    .then(res => {
-      alert(res.message);
-      loadMasterList();
+      contentType: "application/json",
+      data: JSON.stringify({ n_sl_no: record.n_sl_no }),
+      success: (res) => {
+        alert(res.message);
+        loadData();
+      },
     });
-  };
+  });
+
+  /* ================= INIT ================= */
+
+  loadData();
 }
 
 casualLabourApp();
