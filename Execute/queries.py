@@ -895,6 +895,7 @@ def get_vehicle_data():
                 s_contact_no,
                 s_purpose_of_entry
             FROM dbo.VEHICLE_CHECK_LIST
+                       WHERE ISNULL(delete_flag, 0) = 0
             ORDER BY n_sr_no DESC
         """)
 
@@ -972,6 +973,31 @@ def update_vehicle_data(data, username="system"):
 
 # ------------ DELETE -----------------
 def delete_vehicle_data(data):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            UPDATE dbo.VEHICLE_CHECK_LIST
+            SET
+                delete_flag = 1,
+                deleted_on = GETDATE(),
+                deleted_by = ?
+            WHERE n_sr_no = ?
+        """, (
+            data.get("deleted_by", "system"),
+            data["n_sr_no"]
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Vehicle record deleted successfully"
+
+    except Exception as e:
+        return False, str(e)
+
     try:
         conn = get_connection()
         cursor = conn.cursor()
@@ -1130,7 +1156,32 @@ def update_visitor_data(data, username="system"):
 
 
 # ------------ DELETE -----------------
-def delete_visitor_data(data):
+def delete_visitor_data(data, username="system"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            UPDATE dbo.VISITOR_DECLARATION_SLIP
+            SET
+                delete_flag = 1,
+                deleted_on = GETDATE(),
+                deleted_by = ?
+            WHERE n_sr_no = ?
+        """, (
+            username,
+            data["n_sr_no"]
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return True, "Visitor record deleted successfully"
+
+    except Exception as e:
+        return False, str(e)
+
     try:
         conn = get_connection()
         cursor = conn.cursor()

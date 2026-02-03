@@ -290,6 +290,19 @@ def delete_visitor_data():
         if not data or "n_sr_no" not in data:
             return error_response("Invalid delete request")
 
+        username = session.get("user", {}).get("email", "system")
+        success, msg = queries.delete_visitor_data(data, username)
+
+        return success_response(msg) if success else error_response(msg)
+
+    except Exception as e:
+        return error_response(str(e), 500)
+
+    try:
+        data = request.get_json()
+        if not data or "n_sr_no" not in data:
+            return error_response("Invalid delete request")
+
         # 🔥 ADD deleted_by
         data["deleted_by"] = session.get("user", {}).get("email", "system")
 
