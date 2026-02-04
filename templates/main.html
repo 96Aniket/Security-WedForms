@@ -21,7 +21,10 @@
         <div class="hamburger-dashboard" id="hamburger"
             style="display:flex;align-items:center;gap:10px;cursor:pointer;">
             ☰
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="logo-dashboard">
+            <a href="{{ url_for('routes_bp.home') }}">
+  <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
+</a>
+
         </div>
 
         <div id="profileAvatar"
