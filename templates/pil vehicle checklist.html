@@ -1,127 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>PIL Vehicle Checklist</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pil_vehicle_checklist.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <meta charset="UTF-8">
+  <title>PIL Vehicle Checklist</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pil_vehicle_checklist.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
 
 <header class="header-dashboard">
-    <div class="hamburger-dashboard" id="hamburger"
-        style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-        ☰
-        <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
-    </div>
-
-    <h2 style="text-align:center;">Vehicle Checklist</h2>
-
-    <div id="profileAvatar"
-    style="display:flex;align-items:center;cursor:pointer;background:#fff;
-    padding:6px 10px;border-radius:50px;">
-
-    <div id="profileInitials"
-        style="background:#007bff;color:#fff;width:32px;height:32px;border-radius:50%;
-        display:flex;align-items:center;justify-content:center;font-weight:bold;">
-        {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
-    </div>
-
-    <span style="margin-left:8px;font-weight:bold;color: black;">
-        {{ (session.get('user') or {}).get('name','Guest User') }}
-    </span>
-    </div>
+  <div class="hamburger-dashboard" style="display:flex;gap:10px;">
+    ☰
+    <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
+  </div>
+  <h2>Vehicle Checklist</h2>
 </header>
 
-<!-- Pagination -->
-<div class="toolbar" style="justify-content:flex-end;">
-    <div class="pagination">
-        <button id="prevBtn" onclick="prevPage()">◀ Back</button>
-        <span id="pageInfo"></span>
-        <button id="nextBtn" onclick="nextPage()">Next ▶</button>
+<div class="container">
+
+  <!-- ===== LIST VIEW ===== -->
+  <div id="listView">
+    <div class="header">
+      <h3>Vehicle Records</h3>
+      <button class="btn-add" onclick="openAddForm()">Add Data</button>
     </div>
-</div>
+  </div>
 
-<!-- TABLE -->
-<div class="table-wrapper">
-<table id="vehicleTable">
-    <thead>
+  <!-- ===== STEP 1 : VEHICLE DETAILS ===== -->
+  <div id="step1" class="form-box">
+
+    <h3>Vehicle Details</h3>
+
+    <!-- REQUIRED by DB -->
+    <input type="hidden" id="s_location_code" value="LOC1">
+
+    <div class="row">
+      <input id="s_vehicle_no" placeholder="Vehicle No" required>
+      <input id="s_vehicle_type" placeholder="Vehicle Type">
+    </div>
+
+    <div class="row">
+      <input id="s_driver_name" placeholder="Driver Name">
+      <input id="s_contact_no" placeholder="Contact No">
+    </div>
+
+    <!-- 🔥 MISSING FIELD (NOW ADDED) -->
+    <div class="row">
+      <input id="s_occupants_name" placeholder="Occupants Name">
+    </div>
+
+    <div class="row">
+      <input type="datetime-local" id="dt_entry_datetime" required>
+    </div>
+
+    <textarea
+      id="s_purpose_of_entry"
+      placeholder="Purpose of Entry"
+      rows="3"></textarea>
+
+    <div class="btn-row">
+      <button onclick="nextStep()">Next</button>
+      <button class="secondary" onclick="cancel()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 2 : CHECKLIST ===== -->
+  <div id="step2" class="form-box">
+
+    <h3>Checklist</h3>
+
+    <table id="checkTable">
+      <thead>
         <tr>
-            <th>Sr. No</th>
-            <th>Location</th>
-            <th>Date & Time</th>
-            <th>Vehicle No</th>
-            <th>Vehicle Type</th>
-            <th>Driver Name</th>
-            <th>Contact No</th>
-            <th>Purpose of Entry</th>
-            <th class="action-col">Action</th>
+          <th>Check Item</th>
+          <th style="width:80px;">Yes</th>
+          <th style="width:80px;">No</th>
+          <th>Remark</th>
         </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <br>
+
+    <div class="btn-row">
+      <button class="secondary" onclick="backStep()">Back</button>
+      <button class="btn-save" onclick="saveData()">Save</button>
+    </div>
+  </div>
+
 </div>
 
-<div class="table-footer">
-    <button class="btn-add" onclick="addRow()">Add Row</button>
-    <button class="btn-save" onclick="saveTable()">Save</button>
-</div>
-
-<!-- ADD ROW TEMPLATE -->
-<template id="addRowTemplate">
-<tr data-new="true">
-    <td class="sr-no"></td>
-    <td class="location"></td>
-    <td><input type="datetime-local"></td>
-    <td><input type="text"></td>
-    <td><input type="text"></td>
-    <td><input type="text"></td>
-    <td><input type="text"></td>
-    <td><textarea></textarea></td>
-    <td class="action-col">
-    <button class="icon-btn download" onclick="downloadRow(this)">
-        <i class="fa-solid fa-download"></i>
-    </button>
-    <button class="icon-btn edit" onclick="editRow(this)">
-        <i class="fa-solid fa-pen"></i>
-    </button>
-    <button class="icon-btn delete" onclick="deleteRow(this)">
-        <i class="fa-solid fa-trash"></i>
-    </button>
-</td>
-
-</tr>
-</template>
-
-<!-- VIEW ROW TEMPLATE -->
-<template id="viewRowTemplate">
-<tr>
-    <td class="sr-no"></td>
-    <td class="loc"></td>
-    <td class="dt"></td>
-    <td class="vno"></td>
-    <td class="vtype"></td>
-    <td class="driver"></td>
-    <td class="contact"></td>
-    <td class="purpose"></td>
-    <td class="action-col">
-    <button class="icon-btn download" onclick="downloadRow(this)">
-        <i class="fa-solid fa-download"></i>
-    </button>
-    <button class="icon-btn edit" onclick="editRow(this)">
-        <i class="fa-solid fa-pen"></i>
-    </button>
-    <button class="icon-btn delete" onclick="deleteRow(this)">
-        <i class="fa-solid fa-trash"></i>
-    </button>
-</td>
-
-</tr>
-</template>
-
-<script>const USER_LOCATION = "{{ user_location }}";</script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="{{ url_for('static', filename='javascript/pil_vehicle_checklist.js') }}"></script>
 

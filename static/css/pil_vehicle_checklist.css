@@ -1,215 +1,177 @@
-/* ================= RESET & BASE ================= */
+/* ================= RESET ================= */
 * {
   box-sizing: border-box;
-}
-
-html, body {
-  margin: 0;
-  max-width: 100%;
-  overflow-x: hidden;
   font-family: Arial, sans-serif;
 }
 
-/* ================= NAVBAR ================= */
+body {
+  margin: 0;
+  background: #f4f6f9;
+}
+
+/* ================= HEADER ================= */
 .header-dashboard {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 1000;
-
-  height: 60px;
+  left: 0;
   width: 100%;
-  padding: 0 20px;
-
+  height: 60px;
+  background-color: #002244;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  background-color: #002244;
-  color: #fff;
-  margin-bottom: 30px;
-}
-
-.hamburger-dashboard {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  font-size: 26px;
-  cursor: pointer;
-  user-select: none;
+  padding: 0 20px;
+  z-index: 1000;
 }
 
 .logo-dashboard {
-  height: 40px;
-  border-radius: 6px;
+  height: 35px;
 }
 
-/* ================= PROFILE ================= */
-#profileAvatar {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-
-  background: #fff;
-  padding: 6px 10px;
-  border-radius: 50px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.header-dashboard h2 {
+  margin: 0;
+  font-size: 20px;
 }
 
-#profileInitials {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+/* ================= CONTAINER ================= */
+.container {
+  padding: 90px 30px 30px;
+}
 
+/* ================= LIST VIEW ================= */
+.header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
+  margin-bottom: 20px;
+}
 
+.header h3 {
+  margin: 0;
+}
+
+.btn-add {
   background: #007bff;
   color: #fff;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-/* ================= TOOLBAR ================= */
-.toolbar {
-  display: flex;
-  gap: 10px;
-  margin: 0 0 20px 30px;
-}
-
-.toolbar button {
-  padding: 8px 14px;
   border: none;
+  padding: 8px 14px;
   border-radius: 4px;
-
-  font-weight: 600;
   cursor: pointer;
-  color: #fff;
 }
 
-.btn-add  { background: #1976d2; }
-.btn-save { background: #2e7d32; }
+.btn-add:hover {
+  background: #0056b3;
+}
 
-/* ================= TABLE SCROLL ================= */
-.table-wrapper {
+/* ================= FORM BOX ================= */
+.form-box {
+  display: none;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  max-width: 900px;
+  margin: auto;
+}
+
+.form-box h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 8px;
+}
+
+/* ================= FORM ROWS ================= */
+.row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 12px;
+}
+
+.row input {
+  flex: 1;
+}
+
+/* ================= INPUTS ================= */
+input, textarea {
   width: 100%;
-  padding: 0 20px;
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
-/* ================= TABLE ================= */
-#vehicleTable {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  font-size: 14px;
-}
-
-#vehicleTable th,
-#vehicleTable td {
-  border: 1px solid #cfd6dd;
   padding: 8px;
-  text-align: center;
-  vertical-align: middle;
-}
-
-/* Header */
-#vehicleTable th {
-  background: #1f3a5f;
-  color: #fff;
-  font-weight: 600;
-
-  white-space: normal;
-  word-break: break-word;
-  line-height: 1.3;
-}
-
-/* Body cells */
-#vehicleTable td {
-  white-space: nowrap;
-}
-
-/* ================= FORM ELEMENTS ================= */
-input, select, textarea {
-  width: 100%;
-  font-size: 13px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 textarea {
   resize: vertical;
+  min-height: 70px;
 }
 
-/* ================= ICON BUTTONS ================= */
-.icon-btn {
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 4px 6px;
-}
-
-.icon-btn.delete {
-  color: #dc3545;
-}
-
-.icon-btn:hover {
-  transform: scale(1.2);
-}
-
-/* ================= PAGINATION ================= */
-.pagination {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.pagination button {
-  padding: 6px 12px;
-  border: none;
+/* ================= BUTTONS ================= */
+button {
+  padding: 8px 16px;
   border-radius: 4px;
+  border: none;
   cursor: pointer;
-  font-weight: 600;
-  background: #455a64;
+}
+
+button.secondary {
+  background: #6c757d;
   color: #fff;
 }
 
-.pagination button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+button.secondary:hover {
+  background: #5a6268;
 }
 
-#pageInfo {
-  font-weight: 600;
-}
-
-/* ================= FOOTER ================= */
-.table-footer {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin: 20px 0 30px;
-}
-
-.table-footer button {
-  padding: 10px 18px;
-  border: none;
-  border-radius: 4px;
-
-  font-weight: 600;
-  cursor: pointer;
+button.btn-save {
+  background: #28a745;
   color: #fff;
 }
 
-/* ================= PRINT ================= */
-@media print {
-  .toolbar,
-  button {
-    display: none;
+button.btn-save:hover {
+  background: #218838;
+}
+
+/* ================= CHECKLIST TABLE ================= */
+#checkTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+#checkTable th,
+#checkTable td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+#checkTable th {
+  background: #f1f1f1;
+}
+
+#checkTable td:first-child {
+  text-align: left;
+}
+
+/* ================= RADIO ALIGN ================= */
+#checkTable input[type="radio"] {
+  transform: scale(1.1);
+}
+
+/* ================= REMARK INPUT ================= */
+#checkTable .remark {
+  width: 100%;
+  padding: 5px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
   }
 
-  input, select, textarea {
-    border: none;
+  .header-dashboard h2 {
+    font-size: 16px;
   }
 }
