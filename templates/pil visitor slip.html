@@ -6,106 +6,110 @@
   <title>Visitor Declaration Slip</title>
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/pil visitor slip.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
 
-<header class="header-dashboard">
-  <div class="hamburger-dashboard">
-    ☰
-    <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
-  </div>
+  <header class="header-dashboard">
+    <div class="hamburger-dashboard">
+      ☰
+      <a href="{{ url_for('routes_bp.home') }}">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
+      </a>
 
-  <h2>Visitor Declaration Slip</h2>
-
-  <div id="profileAvatar">
-    <div id="profileInitials">
-      {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
     </div>
-    <span style="margin-left:8px;font-weight:bold;color:black;">
+
+    <h2>Visitor Declaration Slip</h2>
+
+    <div id="profileAvatar">
+      <div id="profileInitials">
+        {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+      </div>
+      <span style="margin-left:8px;font-weight:bold;color:black;">
         {{ (session.get('user') or {}).get('name','Guest User') }}</span>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- =============== LIST VIEW =============== -->
+    <div id="listView">
+      <div class="header">
+        <h3>Visitor Records</h3>
+        <button class="btn-add" onclick="openAddForm()">Add Data</button>
+      </div>
+
+      <table id="masterTable">
+        <thead>
+          <tr>
+            <th>Location</th>
+            <th>Visitor Name</th>
+            <th>Pass No</th>
+            <th>Date / Time</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- =============== STEP 1 =============== -->
+    <div id="step1" class="form-box">
+      <h3>Visitor Details</h3>
+
+      <div class="row">
+        <input id="s_location" placeholder="Location">
+        <input id="s_visitor_name" placeholder="Visitor Name">
+      </div>
+
+      <div class="row">
+        <input id="s_visitor_pass_no" placeholder="Visitor Pass No">
+        <input id="s_whom_to_meet" placeholder="Whom To Meet">
+      </div>
+
+      <div class="row">
+        <input type="datetime-local" id="dt_visit_datetime">
+      </div>
+
+      <button onclick="nextStep()">Next</button>
+      <button class="secondary" onclick="cancel()">Cancel</button>
+    </div>
+
+    <!-- =============== STEP 2 =============== -->
+    <div id="step2" class="form-box">
+      <h3>Item Details</h3>
+
+      <div class="row">
+        <input id="item_desc" placeholder="Item Code / Description">
+        <input id="item_uom" placeholder="UOM">
+        <input id="item_qty" type="number" placeholder="Quantity">
+      </div>
+
+      <button onclick="addItem()">Add Item</button>
+
+      <table id="itemTable">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>UOM</th>
+            <th>Qty</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <br>
+      <button class="secondary" onclick="backStep()">Back</button>
+      <button class="btn-save" onclick="saveData()">Save</button>
+    </div>
+
   </div>
-</header>
-
-<div class="container">
-
-  <!-- =============== LIST VIEW =============== -->
-  <div id="listView">
-    <div class="header">
-      <h3>Visitor Records</h3>
-      <button class="btn-add" onclick="openAddForm()">Add Data</button>
-    </div>
-
-    <table id="masterTable">
-      <thead>
-        <tr>
-          <th>Location</th>
-          <th>Visitor Name</th>
-          <th>Pass No</th>
-          <th>Date / Time</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <!-- =============== STEP 1 =============== -->
-  <div id="step1" class="form-box">
-    <h3>Visitor Details</h3>
-
-    <div class="row">
-      <input id="s_location" placeholder="Location">
-      <input id="s_visitor_name" placeholder="Visitor Name">
-    </div>
-
-    <div class="row">
-      <input id="s_visitor_pass_no" placeholder="Visitor Pass No">
-      <input id="s_whom_to_meet" placeholder="Whom To Meet">
-    </div>
-
-    <div class="row">
-      <input type="datetime-local" id="dt_visit_datetime">
-    </div>
-
-    <button onclick="nextStep()">Next</button>
-    <button class="secondary" onclick="cancel()">Cancel</button>
-  </div>
-
-  <!-- =============== STEP 2 =============== -->
-  <div id="step2" class="form-box">
-    <h3>Item Details</h3>
-
-    <div class="row">
-      <input id="item_desc" placeholder="Item Code / Description">
-      <input id="item_uom" placeholder="UOM">
-      <input id="item_qty" type="number" placeholder="Quantity">
-    </div>
-
-    <button onclick="addItem()">Add Item</button>
-
-    <table id="itemTable">
-      <thead>
-        <tr>
-          <th>Description</th>
-          <th>UOM</th>
-          <th>Qty</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <br>
-    <button class="secondary" onclick="backStep()">Back</button>
-    <button class="btn-save" onclick="saveData()">Save</button>
-  </div>
-
-</div>
-<script>const USER_LOCATION = "{{ user_location }}";</script>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="{{ url_for('static', filename='javascript/visitor_declaration.js') }}"></script>
+  <script>const USER_LOCATION = "{{ user_location }}";</script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="{{ url_for('static', filename='javascript/visitor_declaration.js') }}"></script>
 
 </body>
+
 </html>

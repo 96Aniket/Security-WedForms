@@ -1,114 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Vehicle Checklist</title>
 
-  <!-- 🔥 use SAME CSS style philosophy -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/pil_vehicle_checklist.css') }}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<head>
+    <meta charset="UTF-8">
+    <title>Vehicle Checklist</title>
+
+    <!-- 🔥 use SAME CSS style philosophy -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pil_vehicle_checklist.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
 
-<header class="header-dashboard">
-  <div class="hamburger-dashboard">
-    ☰
-    <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
-  </div>
+    <header class="header-dashboard">
+        <div class="hamburger-dashboard">
+            ☰
+            <a href="{{ url_for('routes_bp.home') }}">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
+            </a>
 
-  <h2>Vehicle Checklist</h2>
+        </div>
 
-  <div id="profileAvatar">
-    <div id="profileInitials">
-      {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+        <h2>Vehicle Checklist</h2>
+
+        <div id="profileAvatar">
+            <div id="profileInitials">
+                {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+            </div>
+            <span>
+                {{ (session.get('user') or {}).get('name','Guest User') }}
+            </span>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- =============== LIST VIEW =============== -->
+        <div id="listView">
+            <div class="header">
+                <h3>Vehicle Records</h3>
+                <button class="btn-add" onclick="openAddForm()">Add Data</button>
+            </div>
+
+            <table id="masterTable">
+                <thead>
+                    <tr>
+                        <th>Vehicle No</th>
+                        <th>Driver</th>
+                        <th>Date / Time</th>
+                        <th style="width:120px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- =============== STEP 1 =============== -->
+        <div id="step1" class="form-box">
+            <h3>Vehicle Details</h3>
+
+            <input type="hidden" id="n_vc_id">
+            <input type="hidden" id="s_location_code" value="{{ user_location }}">
+
+            <div class="row">
+                <input id="s_vehicle_no" placeholder="Vehicle No">
+                <input id="s_vehicle_type" placeholder="Vehicle Type">
+            </div>
+
+            <div class="row">
+                <input id="s_driver_name" placeholder="Driver Name">
+                <input id="s_contact_no" placeholder="Contact No">
+            </div>
+
+            <div class="row">
+                <input id="s_occupants_name" placeholder="Occupants Name">
+            </div>
+
+            <div class="row">
+                <input type="datetime-local" id="dt_entry_datetime">
+            </div>
+
+            <textarea id="s_purpose_of_entry" placeholder="Purpose of Entry"></textarea>
+
+            <div class="btn-row">
+                <button onclick="nextStep()">Next</button>
+                <button class="secondary" onclick="cancel()">Cancel</button>
+            </div>
+        </div>
+
+        <!-- =============== STEP 2 =============== -->
+        <div id="step2" class="form-box">
+            <h3>Checklist</h3>
+
+            <table id="checkTable">
+                <thead>
+                    <tr>
+                        <th>Check</th>
+                        <th style="width:80px;">Yes</th>
+                        <th style="width:80px;">No</th>
+                        <th>Remark</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <div class="btn-row">
+                <button class="secondary" onclick="backStep()">Back</button>
+                <button class="btn-save" onclick="saveData()">Save</button>
+            </div>
+        </div>
+
     </div>
-    <span>
-      {{ (session.get('user') or {}).get('name','Guest User') }}
-    </span>
-  </div>
-</header>
 
-<div class="container">
-
-  <!-- =============== LIST VIEW =============== -->
-  <div id="listView">
-    <div class="header">
-      <h3>Vehicle Records</h3>
-      <button class="btn-add" onclick="openAddForm()">Add Data</button>
-    </div>
-
-    <table id="masterTable">
-      <thead>
-        <tr>
-          <th>Vehicle No</th>
-          <th>Driver</th>
-          <th>Date / Time</th>
-          <th style="width:120px;">Action</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <!-- =============== STEP 1 =============== -->
-  <div id="step1" class="form-box">
-    <h3>Vehicle Details</h3>
-
-    <input type="hidden" id="n_vc_id">
-    <input type="hidden" id="s_location_code" value="{{ user_location }}">
-
-    <div class="row">
-      <input id="s_vehicle_no" placeholder="Vehicle No">
-      <input id="s_vehicle_type" placeholder="Vehicle Type">
-    </div>
-
-    <div class="row">
-      <input id="s_driver_name" placeholder="Driver Name">
-      <input id="s_contact_no" placeholder="Contact No">
-    </div>
-
-    <div class="row">
-      <input id="s_occupants_name" placeholder="Occupants Name">
-    </div>
-
-    <div class="row">
-      <input type="datetime-local" id="dt_entry_datetime">
-    </div>
-
-    <textarea id="s_purpose_of_entry" placeholder="Purpose of Entry"></textarea>
-
-    <div class="btn-row">
-      <button onclick="nextStep()">Next</button>
-      <button class="secondary" onclick="cancel()">Cancel</button>
-    </div>
-  </div>
-
-  <!-- =============== STEP 2 =============== -->
-  <div id="step2" class="form-box">
-    <h3>Checklist</h3>
-
-    <table id="checkTable">
-      <thead>
-        <tr>
-          <th>Check</th>
-          <th style="width:80px;">Yes</th>
-          <th style="width:80px;">No</th>
-          <th>Remark</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <div class="btn-row">
-      <button class="secondary" onclick="backStep()">Back</button>
-      <button class="btn-save" onclick="saveData()">Save</button>
-    </div>
-  </div>
-
-</div>
-
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="{{ url_for('static', filename='javascript/pil_vehicle_checklist.js') }}"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ url_for('static', filename='javascript/pil_vehicle_checklist.js') }}"></script>
 </body>
+
 </html>

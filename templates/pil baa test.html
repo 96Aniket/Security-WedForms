@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>BBA Test Record Register</title>
@@ -10,136 +11,140 @@
 
 <body>
 
-<header class="header-dashboard">
-  <div class="hamburger-dashboard">
-    ☰
-    <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
-  </div>
+  <header class="header-dashboard">
+    <div class="hamburger-dashboard">
+      ☰
+      <a href="{{ url_for('routes_bp.home') }}">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
+      </a>
 
-  <h2>BBA Test Record Register</h2>
-
-  <div id="profileAvatar">
-    <div id="profileInitials">
-      {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
     </div>
-    <span id="username">
-      {{ (session.get('user') or {}).get('name','Guest User') }}
-    </span>
-  </div>
-</header>
 
-<!-- PAGINATION -->
-<div class="toolbar">
-  <div class="pagination">
-    <button id="prevBtn" onclick="prevPage()">◀ Back</button>
-    <span id="pageInfo"></span>
-    <button id="nextBtn" onclick="nextPage()">Next ▶</button>
-  </div>
-</div>
+    <h2>BBA Test Record Register</h2>
 
-<div class="table-wrapper">
-<table id="bbaTable">
-  <thead>
-    <tr>
-      <th>Sr No</th>
-      <th>Location</th>
-      <th>Date</th>
-      <th>Time</th>
-      <th>Test Record No</th>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Result</th>
-      <th>BAC</th>
-      <th>Attachment</th>
-      <th>Security</th>
-      <th>Remarks</th>
-      <th class="action-col">Action</th>
+    <div id="profileAvatar">
+      <div id="profileInitials">
+        {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+      </div>
+      <span id="username">
+        {{ (session.get('user') or {}).get('name','Guest User') }}
+      </span>
+    </div>
+  </header>
+
+  <!-- PAGINATION -->
+  <div class="toolbar">
+    <div class="pagination">
+      <button id="prevBtn" onclick="prevPage()">◀ Back</button>
+      <span id="pageInfo"></span>
+      <button id="nextBtn" onclick="nextPage()">Next ▶</button>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table id="bbaTable">
+      <thead>
+        <tr>
+          <th>Sr No</th>
+          <th>Location</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Test Record No</th>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Result</th>
+          <th>BAC</th>
+          <th>Attachment</th>
+          <th>Security</th>
+          <th>Remarks</th>
+          <th class="action-col">Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="table-footer">
+    <button class="btn-add" onclick="addRow()">Add Row</button>
+    <button class="btn-save" onclick="saveTable()">Save</button>
+  </div>
+
+  <!-- ADD ROW TEMPLATE -->
+  <template id="bbaAddRowTemplate">
+    <tr data-new="true">
+      <td class="sr-no"></td>
+      <td class="loc"></td>
+      <td><input type="date"></td>
+      <td><input type="time"></td>
+      <td><input type="text"></td>
+      <td><input type="text"></td>
+
+      <td>
+        <select>
+          <option>Employee</option>
+          <option>Contractor</option>
+          <option>Others</option>
+        </select>
+      </td>
+
+      <td>
+        <select>
+          <option>Negative</option>
+          <option>Positive</option>
+        </select>
+      </td>
+
+      <td><input type="number"></td>
+      <td>
+        <input type="file" accept="image/*" onchange="previewFile(this)">
+        <div class="img-preview"></div>
+      </td>
+
+      <td><input type="text"></td>
+      <td><input type="text"></td>
+
+      <td class="action-col">
+        <button class="icon-btn edit" onclick="editRow(this)">
+          <i class="fa-solid fa-pen"></i>
+        </button>
+        <button class="icon-btn delete" onclick="deleteRow(this)">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </td>
     </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-</div>
+  </template>
 
-<div class="table-footer">
-  <button class="btn-add" onclick="addRow()">Add Row</button>
-  <button class="btn-save" onclick="saveTable()">Save</button>
-</div>
+  <!-- VIEW ROW TEMPLATE -->
+  <template id="bbaViewRowTemplate">
+    <tr>
+      <td class="sr-no"></td>
+      <td class="loc"></td>
+      <td class="date"></td>
+      <td class="time"></td>
+      <td class="record"></td>
+      <td class="name"></td>
+      <td class="type"></td>
+      <td class="result"></td>
+      <td class="bac"></td>
+      <td></td>
+      <td class="security"></td>
+      <td class="remarks"></td>
 
-<!-- ADD ROW TEMPLATE -->
-<template id="bbaAddRowTemplate">
-<tr data-new="true">
-  <td class="sr-no"></td>
-  <td class="loc"></td>
-  <td><input type="date"></td>
-  <td><input type="time"></td>
-  <td><input type="text"></td>
-  <td><input type="text"></td>
+      <td class="action-col">
+        <button class="icon-btn edit" onclick="editRow(this)">
+          <i class="fa-solid fa-pen"></i>
+        </button>
+        <button class="icon-btn delete" onclick="deleteRow(this)">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </td>
+    </tr>
+  </template>
 
-  <td>
-    <select>
-      <option>Employee</option>
-      <option>Contractor</option>
-      <option>Others</option>
-    </select>
-  </td>
-
-  <td>
-    <select>
-      <option>Negative</option>
-      <option>Positive</option>
-    </select>
-  </td>
-
-  <td><input type="number"></td>
-  <td>
-  <input type="file" accept="image/*" onchange="previewFile(this)">
-  <div class="img-preview"></div>
-</td>
-
-  <td><input type="text"></td>
-  <td><input type="text"></td>
-
-  <td class="action-col">
-    <button class="icon-btn edit" onclick="editRow(this)">
-      <i class="fa-solid fa-pen"></i>
-    </button>
-    <button class="icon-btn delete" onclick="deleteRow(this)">
-      <i class="fa-solid fa-trash"></i>
-    </button>
-  </td>
-</tr>
-</template>
-
-<!-- VIEW ROW TEMPLATE -->
-<template id="bbaViewRowTemplate">
-<tr>
-  <td class="sr-no"></td>
-  <td class="loc"></td>
-  <td class="date"></td>
-  <td class="time"></td>
-  <td class="record"></td>
-  <td class="name"></td>
-  <td class="type"></td>
-  <td class="result"></td>
-  <td class="bac"></td>
-  <td></td>
-  <td class="security"></td>
-  <td class="remarks"></td>
-
-  <td class="action-col">
-    <button class="icon-btn edit" onclick="editRow(this)">
-      <i class="fa-solid fa-pen"></i>
-    </button>
-    <button class="icon-btn delete" onclick="deleteRow(this)">
-      <i class="fa-solid fa-trash"></i>
-    </button>
-  </td>
-</tr>
-</template>
-
-<script>const USER_LOCATION = "{{ user_location }}";</script>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="{{ url_for('static', filename='javascript/pil_bba_test.js') }}"></script>
+  <script>const USER_LOCATION = "{{ user_location }}";</script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="{{ url_for('static', filename='javascript/pil_bba_test.js') }}"></script>
 
 </body>
+
 </html>

@@ -15,15 +15,17 @@
         <div class="hamburger-dashboard" id="hamburger"
             style="display:flex;align-items:center;gap:10px;cursor:pointer;">
             ☰
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="logo-dashboard">
+            <a href="{{ url_for('routes_bp.home') }}">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
+            </a>
+
         </div>
         <h2 style="text-align:center; position: sticky;">Patrolling Observation Register</h2>
 
         <div id="profileAvatar"
             style="display:flex;align-items:center;cursor:pointer;background:#fff;padding:6px 10px;border-radius:50px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
 
-            <div id="profileInitials"
-                style="background:#007bff;color:#fff;width:32px;height:32px;border-radius:50%;
+            <div id="profileInitials" style="background:#007bff;color:#fff;width:32px;height:32px;border-radius:50%;
                 display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1rem;">
                 {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
             </div>
@@ -34,8 +36,7 @@
         </div>
 
         <!-- Hamburger Menu -->
-        <div id="hamburgerMenu"
-            style="display:none;position:absolute;left:10px;top:60px;background:#fff;
+        <div id="hamburgerMenu" style="display:none;position:absolute;left:10px;top:60px;background:#fff;
             border-radius:8px;box-shadow:0 8px 16px rgba(0,0,0,0.1);
             overflow:hidden;min-width:220px;">
             <a href="{{ url_for('routes_bp.home') }}"
@@ -46,7 +47,7 @@
 
     </header>
 
-    
+
 
     <div class="toolbar" style="justify-content: flex-end;">
         <div class="pagination">
@@ -58,33 +59,33 @@
 
 
     <div class="table-wrapper">
-    <table id="patrolTable">
-        <thead>
-            <tr>
-                <th>Sr. No</th>
-                <th>Location</th>
-                <th>Date</th>
-                <th>From Time</th>
-                <th>To Time</th>
+        <table id="patrolTable">
+            <thead>
+                <tr>
+                    <th>Sr. No</th>
+                    <th>Location</th>
+                    <th>Date</th>
+                    <th>From Time</th>
+                    <th>To Time</th>
 
-                <th>Condition of boundary wall / fencing / gates / infrastructure</th>
-                <th>Condition of patrolling pathway</th>
-                <th>Any Suspicious Movement</th>
-                <th>Wild vegetation</th>
-                <th>Illumination status</th>
-                <th>Workers working without valid work permit</th>
-                <th>Any unknown person without authorized entry permits</th>
-                <th>Any unattended office in unlocked condition (Silent Hours)</th>
-                <th>Any other observations</th>
+                    <th>Condition of boundary wall / fencing / gates / infrastructure</th>
+                    <th>Condition of patrolling pathway</th>
+                    <th>Any Suspicious Movement</th>
+                    <th>Wild vegetation</th>
+                    <th>Illumination status</th>
+                    <th>Workers working without valid work permit</th>
+                    <th>Any unknown person without authorized entry permits</th>
+                    <th>Any unattended office in unlocked condition (Silent Hours)</th>
+                    <th>Any other observations</th>
 
-                <th>Remarks</th>
-                <th>Name of patrolling guard</th>
-                <th class="action-col">Action</th>
-            </tr>
-        </thead>
+                    <th>Remarks</th>
+                    <th>Name of patrolling guard</th>
+                    <th class="action-col">Action</th>
+                </tr>
+            </thead>
 
-        <tbody></tbody>
-    </table>
+            <tbody></tbody>
+        </table>
     </div>
     <div class="table-footer">
         <button class="btn-add" onclick="addRow()">Add Row</button>
@@ -123,12 +124,12 @@
             <td><textarea></textarea></td>
             <td><input type="text"></td>
             <td class="action-col">
-            <button class="icon-btn edit" onclick="editRow(this)">
-                <i class="fa-solid fa-pen"></i>
-            </button>
-            <button class="icon-btn delete" onclick="deleteRow(this)">
-                <i class="fa-solid fa-trash"></i>
-            </button>
+                <button class="icon-btn edit" onclick="editRow(this)">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="icon-btn delete" onclick="deleteRow(this)">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
             </td>
         </tr>
     </template>
@@ -155,12 +156,12 @@
             <td class="remarks"></td>
             <td class="guard"></td>
             <td class="action-col">
-            <button class="icon-btn edit" onclick="editRow(this)">
-                <i class="fa-solid fa-pen"></i>
-            </button>
-            <button class="icon-btn delete" onclick="deleteRow(this)">
-                <i class="fa-solid fa-trash"></i>
-            </button>
+                <button class="icon-btn edit" onclick="editRow(this)">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="icon-btn delete" onclick="deleteRow(this)">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
             </td>
         </tr>
     </template>
@@ -168,7 +169,7 @@
     <script>const USER_LOCATION = "{{ user_location }}";</script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{{ url_for('static', filename='javascript/pil patrolling.js') }}"></script>
-    
+
 </body>
 
 </html>
