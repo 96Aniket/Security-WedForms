@@ -175,3 +175,7 @@ button {
     flex-direction: column;
   }
 }
+.remark-required {
+  border: 2px solid #e74c3c;
+  background-color: #fff3f3;
+}

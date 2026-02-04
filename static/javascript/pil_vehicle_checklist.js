@@ -77,6 +77,30 @@ function vehicleChecklistApp() {
     } else {
       renderChecklist();
     }
+
+    /* ============ REMARK ENFORCEMENT ON NO ============ */
+$("#checkTable").on("change", "input[type=radio]", function () {
+  const tr = $(this).closest("tr");
+  const status = $(this).val();
+  const remarkInput = tr.find(".remark");
+
+  if (status === "N") {
+    
+    alert("Enter remark for 'No' status.");
+
+    
+    remarkInput
+      .prop("required", true)
+      .addClass("remark-required")
+      .focus();
+  } else {
+    
+    remarkInput
+      .prop("required", false)
+      .removeClass("remark-required");
+  }
+});
+
   };
 
   window.backStep = () => {
