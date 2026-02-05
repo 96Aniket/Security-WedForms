@@ -1,6 +1,13 @@
 function vehicleChecklistApp() {
 
   let allData = [];
+  let currentPage = 1;
+  const rowsPerPage = 10;
+
+  const pageInfo = document.getElementById("pageInfo");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+
   let isEdit = false;
   let editId = null;
   window._editChecklist = null;
@@ -27,35 +34,76 @@ function vehicleChecklistApp() {
     { code: "OTHER", label: "Any Other" }
   ];
 
+  function showPagination() {
+  $("#paginationBar").show();
+}
+
+function hidePagination() {
+  $("#paginationBar").hide();
+}
+
   /* ============ LOAD LIST ============ */
   function loadData() {
-    $.get("/get_vehicle_checklist_data", res => {
-      if (!res.success) return;
-      allData = res.data;
-      renderTable();
-    });
-  }
+  $.get("/get_vehicle_checklist_data", res => {
+    if (!res.success) return;
+    allData = res.data;
+    renderPage();
 
-  function renderTable() {
+   
+    showPagination();
+  });
+}
+
+
+  function renderPage() {
     const tbody = $("#masterTable tbody").empty();
 
-    allData.forEach(r => {
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    const pageData = allData.slice(start, end);
+
+    pageData.forEach(r => {
       const tr = $(`
-        <tr>
-          <td>${r.s_vehicle_no}</td>
-          <td>${r.s_driver_name || ""}</td>
-          <td>${r.dt_entry_datetime}</td>
-          <td>
-            <button class="icon-btn edit"><i class="fa fa-pen"></i></button>
-            <button class="icon-btn delete"><i class="fa fa-trash"></i></button>
-          </td>
-        </tr>
-      `);
+      <tr>
+        <td>${r.s_vehicle_no}</td>
+        <td>${r.s_driver_name || ""}</td>
+        <td>${r.dt_entry_datetime}</td>
+        <td>
+          <button class="icon-btn edit"><i class="fa fa-pen"></i></button>
+          <button class="icon-btn delete"><i class="fa fa-trash"></i></button>
+        </td>
+      </tr>
+    `);
 
       tr.data("record", r);
       tbody.append(tr);
     });
+
+    updatePaginationButtons();
   }
+
+  function updatePaginationButtons() {
+    const totalPages = Math.ceil(allData.length / rowsPerPage) || 1;
+    pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages;
+  }
+
+  function nextPage() {
+    if (currentPage < Math.ceil(allData.length / rowsPerPage)) {
+      currentPage++;
+      renderPage();
+    }
+  }
+
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      renderPage();
+    }
+  }
+
 
   /* ============ VIEW SWITCH ============ */
   window.openAddForm = () => {
@@ -66,11 +114,15 @@ function vehicleChecklistApp() {
     $("#listView").hide();
     $("#step2").hide();
     $("#step1").show();
+
+    hidePagination();
   };
 
   window.nextStep = () => {
     $("#step1").hide();
     $("#step2").show();
+
+    hidePagination();
 
     if (isEdit && window._editChecklist) {
       renderChecklist(window._editChecklist);
@@ -79,33 +131,35 @@ function vehicleChecklistApp() {
     }
 
     /* ============ REMARK ENFORCEMENT ON NO ============ */
-$("#checkTable").on("change", "input[type=radio]", function () {
-  const tr = $(this).closest("tr");
-  const status = $(this).val();
-  const remarkInput = tr.find(".remark");
+    $("#checkTable").on("change", "input[type=radio]", function () {
+      const tr = $(this).closest("tr");
+      const status = $(this).val();
+      const remarkInput = tr.find(".remark");
 
-  if (status === "N") {
-    
-    alert("Enter remark for 'No' status.");
+      if (status === "N") {
 
-    
-    remarkInput
-      .prop("required", true)
-      .addClass("remark-required")
-      .focus();
-  } else {
-    
-    remarkInput
-      .prop("required", false)
-      .removeClass("remark-required");
-  }
-});
+        alert("Enter remark for 'No' status.");
+
+
+        remarkInput
+          .prop("required", true)
+          .addClass("remark-required")
+          .focus();
+      } else {
+
+        remarkInput
+          .prop("required", false)
+          .removeClass("remark-required");
+      }
+    });
 
   };
 
   window.backStep = () => {
     $("#step2").hide();
     $("#step1").show();
+
+    hidePagination();
   };
 
   window.cancel = () => location.reload();
@@ -146,6 +200,8 @@ $("#checkTable").on("change", "input[type=radio]", function () {
     $("#step2").hide();
     $("#step1").show();
 
+     hidePagination();
+
     $("#s_vehicle_no").val(r.s_vehicle_no);
     $("#s_vehicle_type").val(r.s_vehicle_type);
     $("#s_driver_name").val(r.s_driver_name);
@@ -158,7 +214,7 @@ $("#checkTable").on("change", "input[type=radio]", function () {
   /* ============ SAVE / UPDATE ============ */
   window.saveData = () => {
 
-    
+
     if ($("#step2").is(":hidden") || $("#checkTable tbody tr").length === 0) {
       alert("Please complete checklist before saving.");
       return;
@@ -243,6 +299,9 @@ $("#checkTable").on("change", "input[type=radio]", function () {
       }
     });
   });
+  window.nextPage = nextPage;
+  window.prevPage = prevPage;
+
 
   loadData();
 }
