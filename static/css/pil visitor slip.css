@@ -268,3 +268,10 @@ button {
     border: none;
   }
 }
+
+/* ================= TABLE FOOTER ================= */
+.table-footer {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
