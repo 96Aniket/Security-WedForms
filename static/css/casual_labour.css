@@ -74,12 +74,23 @@ body {
 
 /* ================= CONTAINER ================= */
 .container {
+  width: 100%;
+  max-width: none;        
+  margin: 0;
+  padding: 20px;
+  background: transparent;
+}
+
+
+/* Center form boxes only */
+.form-box {
   max-width: 1100px;
-  margin: 20px auto;
+  margin: 0 auto;
   background: #fff;
   padding: 20px;
   border-radius: 8px;
 }
+
 
 /* ================= TABLE ================= */
 table {
@@ -169,4 +180,10 @@ button {
 .pagination button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+/* ================= TABLE FOOTER ================= */
+.table-footer {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
 }

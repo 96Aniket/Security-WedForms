@@ -120,6 +120,7 @@ function prevPage() {
 
     $("#listView").hide();
     $("#step1").show();
+    
 
     $("#s_location")
       .val(USER_LOCATION)
