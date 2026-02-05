@@ -40,37 +40,37 @@
   <div class="container">
 
     <!-- ===== PAGINATION (LIST VIEW ONLY) ===== -->
-<div class="toolbar" id="paginationBar">
-  <div class="pagination">
-    <button id="prevBtn" onclick="prevPage()">◀ Back</button>
-    <span id="pageInfo"></span>
-    <button id="nextBtn" onclick="nextPage()">Next ▶</button>
-  </div>
-</div>
+    <div class="toolbar" id="paginationBar">
+      <div class="pagination">
+        <button id="prevBtn" onclick="prevPage()">◀ Back</button>
+        <span id="pageInfo"></span>
+        <button id="nextBtn" onclick="nextPage()">Next ▶</button>
+      </div>
+    </div>
 
-    
-  <!-- ================= LIST VIEW ================= -->
-<div id="listView">
 
-  <table id="masterTable">
-    <thead>
-      <tr>
-        <th>Location</th>
-        <th>Contractor</th>
-        <th>Nature of Work</th>
-        <th>Date / Time</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    <!-- ================= LIST VIEW ================= -->
+    <div id="listView">
 
-  <!-- Add button at bottom center -->
-  <div class="table-footer">
-    <button class="btn-add" onclick="openAddForm()">Add Data</button>
-  </div>
+      <table id="masterTable">
+        <thead>
+          <tr>
+            <th>Location</th>
+            <th>Contractor</th>
+            <th>Nature of Work</th>
+            <th>Date / Time</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
 
-</div>
+      <!-- Add button at bottom center -->
+      <div class="table-footer">
+        <button class="btn-add" onclick="openAddForm()">Add Data</button>
+      </div>
+
+    </div>
 
 
     <!-- ================= STEP 1 ================= -->
@@ -91,7 +91,7 @@
         <input type="datetime-local" id="dt_work_datetime">
       </div>
 
-      
+
     </div>
 
     <!-- ================= STEP 2 ================= -->
@@ -99,9 +99,9 @@
       <h3>Labour Details</h3>
 
       <div class="row">
-        <input id="labour_name" placeholder="Name">
-        <input id="labour_age" type="number" placeholder="Age">
-        <select id="labour_sex">
+        <input id="labour_name" placeholder="Name" required>
+        <input id="labour_age" type="number" placeholder="Age" required>
+        <select id="labour_sex" required>
           <option value="">Sex</option>
           <option>Male</option>
           <option>Female</option>
@@ -109,19 +109,20 @@
       </div>
 
       <div class="row">
-        <input id="labour_address" placeholder="Address">
-        <input id="labour_card" placeholder="Temp Card No">
+        <input id="labour_address" placeholder="Address" required>
+        <input id="labour_card" placeholder="Temp Card No" required>
       </div>
 
       <div class="row">
-        <input id="labour_mobile" placeholder="Mobile">
-        <select id="labour_id_type">
+        <input id="labour_mobile" placeholder="Mobile" type="text" maxlength="10" pattern="[0-9]{10}"
+          inputmode="numeric" required>
+        <select id="labour_id_type" required >
           <option value="">ID Type</option>
           <option>Aadhar</option>
           <option>PAN</option>
           <option>Driving License</option>
         </select>
-        <input id="labour_id_no" placeholder="Govt ID No">
+        <input id="labour_id_no" placeholder="Govt ID No" required>
       </div>
 
       <button onclick="addLabour()">Add Labour</button>
@@ -137,10 +138,10 @@
         </thead>
         <tbody></tbody>
       </table>
-      
+
 
       <br>
-      
+
       <button class="btn-save" onclick="saveData()">Save</button>
     </div>
 
