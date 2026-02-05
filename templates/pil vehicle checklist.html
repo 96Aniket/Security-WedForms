@@ -32,8 +32,17 @@
             </span>
         </div>
     </header>
+    
 
     <div class="container">
+<!-- PAGINATION TOOLBAR -->
+<div class="toolbar" id="paginationBar">
+  <div class="pagination">
+    <button id="prevBtn" onclick="prevPage()">◀ Back</button>
+    <span id="pageInfo"></span>
+    <button id="nextBtn" onclick="nextPage()">Next ▶</button>
+  </div>
+</div>
 
         <!-- =============== LIST VIEW =============== -->
         <div id="listView">
@@ -111,7 +120,7 @@
         </div>
 
     </div>
-    <script>const USER_LOCATION = "{{ session['user']['location'] }}";</script>
+
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{{ url_for('static', filename='javascript/pil_vehicle_checklist.js') }}"></script>
 </body>
