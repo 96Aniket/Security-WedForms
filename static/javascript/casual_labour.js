@@ -12,6 +12,54 @@ const pageInfo = document.getElementById("pageInfo");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 
+function isValidMobile(mobile) {
+  return /^[0-9]{10}$/.test(mobile);
+}
+
+function isValidAadhar(aadhar) {
+  return /^[0-9]{12}$/.test(aadhar);
+}
+
+function isValidPAN(pan) {
+  return /^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan);
+}
+
+function isValidDrivingLicense(dl) {
+  if (!dl) return false;
+
+  const cleaned = dl.trim();
+
+  
+  return /^[A-Z0-9 -]{8,25}$/i.test(cleaned);
+}
+
+
+
+$("#labour_mobile").on("input", function () {
+  this.value = this.value.replace(/\D/g, "").slice(0, 10);
+});
+
+$("#labour_id_no").on("input", function () {
+  const type = $("#labour_id_type").val();
+
+  if (type === "Aadhar") {
+    this.value = this.value.replace(/\D/g, "").slice(0, 12);
+  }
+
+  else if (type === "PAN") {
+    // alphanumeric only, max 10, auto uppercase
+    this.value = this.value
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .slice(0, 10)
+      .toUpperCase();
+  }
+
+  else if (type === "Driving License") {
+  this.value = this.value
+    .replace(/[^a-zA-Z0-9 -]/g, "")
+    .slice(0, 25);   
+}
+});
 
   /* ================= LOAD ================= */
 
@@ -168,23 +216,80 @@ function prevPage() {
     renderLabours();
   });
 
+
+  
+
   /* ================= LABOUR ================= */
 
-  window.addLabour = () => {
-    labours.push({
-      s_labour_name: $("#labour_name").val(),
-      n_age: $("#labour_age").val(),
-      s_sex: $("#labour_sex").val(),
-      s_address: $("#labour_address").val(),
-      s_temp_access_card_no: $("#labour_card").val(),
-      s_mobile_no: $("#labour_mobile").val(),
-      s_id_type: $("#labour_id_type").val(),
-      s_govt_id_no: $("#labour_id_no").val(),
-    });
+window.addLabour = () => {
 
-    renderLabours();
-    clearLabour();
-  };
+  const name = $("#labour_name").val().trim();
+  const age = $("#labour_age").val().trim();
+  const sex = $("#labour_sex").val();
+  const address = $("#labour_address").val().trim();
+  const cardNo = $("#labour_card").val().trim();
+  const mobile = $("#labour_mobile").val().trim();
+  const idType = $("#labour_id_type").val();
+  const rawIdNo = $("#labour_id_no").val().trim();
+
+  /* ===== REQUIRED FIELDS ===== */
+  if (!name || !age || !sex || !mobile) {
+    alert("Please fill all mandatory labour details.");
+    return;
+  }
+
+  /* ===== MOBILE ===== */
+  if (!isValidMobile(mobile)) {
+    alert("Mobile number must be exactly 10 digits.");
+    return;
+  }
+
+  /* ===== ID TYPE SELECTED BUT NUMBER EMPTY ===== */
+  if (idType && !rawIdNo) {
+    alert("Please enter Govt ID number.");
+    return;
+  }
+
+  /* ===== ID VALIDATION ===== */
+  let idNo = rawIdNo;
+
+  if (idType === "Aadhar") {
+    if (!isValidAadhar(idNo)) {
+      alert("Aadhar number must be exactly 12 digits.");
+      return;
+    }
+  }
+
+  else if (idType === "PAN") {
+    idNo = idNo.toUpperCase();
+    if (!isValidPAN(idNo)) {
+      alert("PAN must be in format ABCDE1234F.");
+      return;
+    }
+  }
+
+  else if (idType === "Driving License") {
+    if (!isValidDrivingLicense(idNo)) {
+      alert("Driving License number is invalid.");
+      return;
+    }
+  }
+
+  /* ===== PUSH DATA ===== */
+  labours.push({
+    s_labour_name: name,
+    n_age: age,
+    s_sex: sex,
+    s_address: address,
+    s_temp_access_card_no: cardNo,
+    s_mobile_no: mobile,
+    s_id_type: idType,
+    s_govt_id_no: idNo,
+  });
+
+  renderLabours();
+  clearLabour();
+};
 
   function renderLabours() {
     const tbody = $("#labourTable tbody");
@@ -214,43 +319,80 @@ function prevPage() {
     $("#labour_sex,#labour_address,#labour_card,#labour_id_type").val("");
   }
 
+  
   /* ================= SAVE ================= */
 
-  window.saveData = () => {
+ window.saveData = () => {
 
-    const payload = {
-      master: {
-        n_sl_no: editId,
-        s_location: USER_LOCATION,
-        s_contractor_name: $("#s_contractor_name").val(),
-        s_nature_of_work: $("#s_nature_of_work").val(),
-        s_place_of_work: $("#s_place_of_work").val(),
-        dt_work_datetime: $("#dt_work_datetime").val(),
-      },
-      labours,
-    };
+  /* ========= MASTER VALIDATION ========= */
+  const contractor = $("#s_contractor_name").val().trim();
+  const nature = $("#s_nature_of_work").val().trim();
+  const place = $("#s_place_of_work").val().trim();
+  const datetime = $("#dt_work_datetime").val();
 
-    const url = isEdit
-      ? "/update_casual_labour_data"
-      : "/save_casual_labour_data";
+  if (!contractor || !nature || !place || !datetime) {
+    alert("Please fill all mandatory Work Details before saving.");
+    return;
+  }
 
-    if (!confirm(isEdit ? "Update this record?" : "Add this record?")) return;
+  /* ========= LABOUR VALIDATION ========= */
+  if (!labours || labours.length === 0) {
+    alert("Please add at least one Labour before saving.");
+    return;
+  }
 
-    $.ajax({
-      url,
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify(payload),
-      success: (res) => {
-        alert(res.message || "Saved successfully");
-        location.reload();
-      },
-      error: (err) => {
-        console.error(err);
-        alert("Save failed");
-      },
-    });
+  for (let i = 0; i < labours.length; i++) {
+    const l = labours[i];
+
+    if (
+      !l.s_labour_name ||
+      !l.n_age ||
+      !l.s_sex ||
+      !l.s_address ||
+      !l.s_temp_access_card_no ||
+      !l.s_mobile_no ||
+      !l.s_id_type ||
+      !l.s_govt_id_no
+    ) {
+      alert(`Please complete all details for Labour #${i + 1}.`);
+      return;
+    }
+  }
+
+  /* ========= ORIGINAL PAYLOAD (UNCHANGED) ========= */
+  const payload = {
+    master: {
+      n_sl_no: editId,
+      s_location: USER_LOCATION,
+      s_contractor_name: contractor,
+      s_nature_of_work: nature,
+      s_place_of_work: place,
+      dt_work_datetime: datetime,
+    },
+    labours,
   };
+
+  const url = isEdit
+    ? "/update_casual_labour_data"
+    : "/save_casual_labour_data";
+
+  if (!confirm(isEdit ? "Update this record?" : "Add this record?")) return;
+
+  $.ajax({
+    url: url,
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(payload),
+    success: (res) => {
+      alert(res.message || "Saved successfully");
+      window.location.reload();   // ✅ SAFE FIX
+    },
+    error: (err) => {
+      console.error(err);
+      alert("Save failed");
+    },
+  });
+};
 
   /* ================= DELETE ================= */
 
