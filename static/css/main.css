@@ -100,12 +100,14 @@ h2 {
 }
 
 .btn.btn-primary.w-100 {
-  background: #ba0606;
-background: linear-gradient(156deg, rgba(186, 6, 6, 1) 4%, rgba(247, 110, 12, 1) 61%, rgba(255, 228, 20, 1) 100%);
+background: #08026e;
+background: linear-gradient(171deg, rgba(8, 2, 110, 1) 0%, rgba(16, 16, 199, 1) 35%, rgba(0, 212, 255, 1) 100%);
   border: none;
   height: 70px;
   padding-top: 5%;
   box-shadow: 2px 2px 4px 2px gray;
+  font-weight: bolder;
+  font-size: 14pt;
 }
 
 .logo-dashboard {

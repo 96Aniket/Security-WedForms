@@ -1,4 +1,5 @@
 function casualLabourApp() {
+
   let allData = [];
   let labours = [];
   let isEdit = false;
@@ -17,32 +18,31 @@ function casualLabourApp() {
   /* ================= RENDER ================= */
 
   function renderTable() {
-  const tbody = $("#masterTable tbody");
-  tbody.empty();
+    const tbody = $("#masterTable tbody");
+    tbody.empty();
 
-  allData.forEach(r => {
-    const tr = $(`
-      <tr>
-        <td>${r.s_location}</td>
-        <td>${r.s_contractor_name}</td>
-        <td>${r.s_nature_of_work}</td>
-        <td>${r.dt_work_datetime}</td>
-        <td class="action-col">
-          <button class="icon-btn edit">
-            <i class="fa-solid fa-pen"></i>
-          </button>
-          <button class="icon-btn delete">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        </td>
-      </tr>
-    `);
+    allData.forEach(r => {
+      const tr = $(`
+        <tr>
+          <td>${r.s_location || ""}</td>
+          <td>${r.s_contractor_name || ""}</td>
+          <td>${r.s_nature_of_work || ""}</td>
+          <td>${r.dt_work_datetime || ""}</td>
+          <td class="action-col">
+            <button class="icon-btn edit">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button class="icon-btn delete">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `);
 
-    tr.data("record", r);
-    tbody.append(tr);
-  });
-}
-
+      tr.data("record", r);
+      tbody.append(tr);
+    });
+  }
 
   /* ================= VIEW SWITCH ================= */
 
@@ -53,6 +53,10 @@ function casualLabourApp() {
 
     $("#listView").hide();
     $("#step1").show();
+
+    $("#s_location")
+      .val(USER_LOCATION)
+      .prop("readonly", true);
   };
 
   window.nextStep = () => {
@@ -78,11 +82,18 @@ function casualLabourApp() {
     $("#listView").hide();
     $("#step1").show();
 
-    $("#s_location").val(record.s_location);
-    $("#s_contractor_name").val(record.s_contractor_name);
-    $("#s_nature_of_work").val(record.s_nature_of_work);
-    $("#s_place_of_work").val(record.s_place_of_work);
-    $("#dt_work_datetime").val(record.dt_work_datetime.replace(" ", "T"));
+    $("#s_location")
+      .val(USER_LOCATION)
+      .prop("readonly", true);
+
+    $("#s_contractor_name").val(record.s_contractor_name || "");
+    $("#s_nature_of_work").val(record.s_nature_of_work || "");
+    $("#s_place_of_work").val(record.s_place_of_work || "");
+    $("#dt_work_datetime").val(
+      record.dt_work_datetime
+        ? record.dt_work_datetime.replace(" ", "T")
+        : ""
+    );
 
     labours = record.labours || [];
     renderLabours();
@@ -113,9 +124,9 @@ function casualLabourApp() {
     labours.forEach((l, i) => {
       tbody.append(`
         <tr>
-          <td>${l.s_labour_name}</td>
-          <td>${l.n_age}</td>
-          <td>${l.s_mobile_no}</td>
+          <td>${l.s_labour_name || ""}</td>
+          <td>${l.n_age || ""}</td>
+          <td>${l.s_mobile_no || ""}</td>
           <td>
             <button class="danger" onclick="removeLabour(${i})">X</button>
           </td>
@@ -137,10 +148,11 @@ function casualLabourApp() {
   /* ================= SAVE ================= */
 
   window.saveData = () => {
+
     const payload = {
       master: {
         n_sl_no: editId,
-        s_location: $("#s_location").val(),
+        s_location: USER_LOCATION,
         s_contractor_name: $("#s_contractor_name").val(),
         s_nature_of_work: $("#s_nature_of_work").val(),
         s_place_of_work: $("#s_place_of_work").val(),
@@ -161,7 +173,7 @@ function casualLabourApp() {
       contentType: "application/json",
       data: JSON.stringify(payload),
       success: (res) => {
-        alert(res.message);
+        alert(res.message || "Saved successfully");
         location.reload();
       },
       error: (err) => {
@@ -184,9 +196,10 @@ function casualLabourApp() {
       contentType: "application/json",
       data: JSON.stringify({ n_sl_no: record.n_sl_no }),
       success: (res) => {
-        alert(res.message);
+        alert(res.message || "Deleted successfully");
         loadData();
       },
+      error: () => alert("Delete failed"),
     });
   });
 
