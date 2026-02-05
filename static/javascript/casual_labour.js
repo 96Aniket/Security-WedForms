@@ -120,7 +120,7 @@ function prevPage() {
 
     $("#listView").hide();
     $("#step1").show();
-    
+    $("#step2").show();
 
     $("#s_location")
       .val(USER_LOCATION)
@@ -128,16 +128,15 @@ function prevPage() {
   };
 
   window.nextStep = () => {
-    $("#step1").hide();
-    $("#step2").show();
-  };
+  if ($("#step2").is(":visible")) return; 
 
-  window.backStep = () => {
-    $("#step2").hide();
-    $("#step1").show();
-  };
+  $("#step2").slideDown(200);
+  document.getElementById("step2").scrollIntoView({ behavior: "smooth" });
+};
 
-  window.cancel = () => location.reload();
+
+
+ 
 
   /* ================= EDIT ================= */
 
@@ -151,7 +150,7 @@ function prevPage() {
 
     $("#listView").hide();
     $("#step1").show();
-
+    $("#step2").show();
     $("#s_location")
       .val(USER_LOCATION)
       .prop("readonly", true);

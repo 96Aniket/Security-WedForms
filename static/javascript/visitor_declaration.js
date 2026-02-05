@@ -86,14 +86,16 @@ function visitorDeclarationApp() {
     $("#paginationBar").hide();
     $("#listView").hide();
     $("#step1").show();
-
+    $("#step2").show();
     $("#s_location")
     .val(USER_LOCATION)
     .prop("readonly", true);
+    document.getElementById("step1").scrollIntoView({ behavior: "smooth" });
+
 
   };
 
-  window.nextStep = () => { $("#step1").hide(); $("#step2").show(); };
+ 
   window.backStep = () => { $("#step2").hide(); $("#step1").show(); };
   window.cancel = () => location.reload();
 
@@ -108,6 +110,7 @@ function visitorDeclarationApp() {
     $("#paginationBar").hide();
     $("#listView").hide();
     $("#step1").show();
+    $("#step2").show();
 
     $("#s_location")
     .val(USER_LOCATION)
@@ -120,6 +123,7 @@ function visitorDeclarationApp() {
 
     items = r.items || [];
     renderItems();
+    document.getElementById("step1").scrollIntoView({ behavior: "smooth" });
   });
 
   /* ============ ITEMS ============ */

@@ -122,18 +122,20 @@ function hidePagination() {
     window._editChecklist = null;
 
     $("#listView").hide();
-    $("#step2").hide();
     $("#step1").show();
+    $("#step2").show();
+    
 
     hidePagination();
 
     $("#s_location_code")
     .val(USER_LOCATION)
     .prop("readonly", true);
+    renderChecklist();
   };
 
   window.nextStep = () => {
-    $("#step1").hide();
+    
     $("#step2").show();
 
     hidePagination();

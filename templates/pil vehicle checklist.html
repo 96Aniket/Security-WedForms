@@ -46,10 +46,7 @@
 
         <!-- =============== LIST VIEW =============== -->
         <div id="listView">
-            <div class="header">
-                <!-- <h3>Vehicle Records</h3> -->
-                <button class="btn-add" onclick="openAddForm()">Add Data</button>
-            </div>
+            
 
             <table id="masterTable">
             <thead>
@@ -67,6 +64,10 @@
             </thead>
             <tbody></tbody>
             </table>
+            <div class="table-footer">
+    <button class="btn-add" onclick="openAddForm()">Add Data</button>
+</div>
+
 
         </div>
 
@@ -97,10 +98,7 @@
 
             <textarea id="s_purpose_of_entry" placeholder="Purpose of Entry"></textarea>
 
-            <div class="btn-row">
-                <button onclick="nextStep()">Next</button>
-                <button class="secondary" onclick="cancel()">Cancel</button>
-            </div>
+           
         </div>
 
         <!-- =============== STEP 2 =============== -->
@@ -119,7 +117,7 @@
             <tbody></tbody>
             </table>
             <div class="btn-row">
-                <button class="secondary" onclick="backStep()">Back</button>
+                
                 <button class="btn-save" onclick="saveData()">Save</button>
             </div>
         </div>
