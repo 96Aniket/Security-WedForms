@@ -5,12 +5,22 @@ function visitorDeclarationApp() {
   let isEdit = false;
   let editId = null;
 
+  let currentPage = 1;
+  const rowsPerPage = 10;
+
+  const pageInfo = () => document.getElementById("pageInfo");
+  const prevBtn = () => document.getElementById("prevBtn");
+  const nextBtn = () => document.getElementById("nextBtn");
+
   /* ============ LOAD ============ */
   function loadData() {
     $.get("/get_visitor_declaration_data", res => {
       if (!res.success) return;
       allData = res.data;
+      currentPage = 1;
       renderTable();
+      $("#paginationBar").show();
+
     });
   }
 
@@ -19,23 +29,52 @@ function visitorDeclarationApp() {
     const tbody = $("#masterTable tbody");
     tbody.empty();
 
-    allData.forEach(r => {
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    const pageData = allData.slice(start, end);
+
+    pageData.forEach(r => {
       const tr = $(`
-        <tr>
-          <td>${r.s_location}</td>
-          <td>${r.s_visitor_name}</td>
-          <td>${r.s_visitor_pass_no}</td>
-          <td>${r.dt_visit_datetime}</td>
-          <td>
-            <button class="icon-btn edit"><i class="fa fa-pen"></i></button>
-            <button class="icon-btn delete"><i class="fa fa-trash"></i></button>
-          </td>
-        </tr>
-      `);
+      <tr>
+        <td>${r.s_location}</td>
+        <td>${r.s_visitor_name}</td>
+        <td>${r.s_visitor_pass_no}</td>
+        <td>${r.dt_visit_datetime}</td>
+        <td>
+          <button class="icon-btn edit"><i class="fa fa-pen"></i></button>
+          <button class="icon-btn delete"><i class="fa fa-trash"></i></button>
+        </td>
+      </tr>
+    `);
 
       tr.data("record", r);
       tbody.append(tr);
     });
+
+    updatePaginationButtons();
+  }
+
+  function updatePaginationButtons() {
+    const totalPages = Math.ceil(allData.length / rowsPerPage) || 1;
+
+    pageInfo().innerText = `Page ${currentPage} of ${totalPages}`;
+    prevBtn().disabled = currentPage === 1;
+    nextBtn().disabled = currentPage === totalPages;
+  }
+
+  function nextPage() {
+    if (currentPage < Math.ceil(allData.length / rowsPerPage)) {
+      currentPage++;
+      renderTable();
+    }
+  }
+
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      renderTable();
+    }
   }
 
   /* ============ VIEW SWITCH ============ */
@@ -43,6 +82,8 @@ function visitorDeclarationApp() {
     isEdit = false;
     editId = null;
     items = [];
+
+    $("#paginationBar").hide();
     $("#listView").hide();
     $("#step1").show();
   };
@@ -58,6 +99,8 @@ function visitorDeclarationApp() {
     isEdit = true;
     editId = r.n_sl_no;
 
+
+    $("#paginationBar").hide();
     $("#listView").hide();
     $("#step1").show();
 
@@ -151,6 +194,9 @@ function visitorDeclarationApp() {
       }
     });
   });
+  window.nextPage = nextPage;
+  window.prevPage = prevPage;
+
 
   loadData();
 }

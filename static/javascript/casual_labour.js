@@ -5,13 +5,23 @@ function casualLabourApp() {
   let isEdit = false;
   let editId = null;
 
+  let currentPage = 1;
+const rowsPerPage = 10;
+
+const pageInfo = document.getElementById("pageInfo");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+
+
   /* ================= LOAD ================= */
 
   function loadData() {
     $.get("/get_casual_labour_data", (res) => {
       if (!res.success || !Array.isArray(res.data)) return;
       allData = res.data;
-      renderTable();
+      currentPage = 1;
+renderPage();
+
     });
   }
 
@@ -44,12 +54,69 @@ function casualLabourApp() {
     });
   }
 
+
+  function renderPage() {
+  const tbody = $("#masterTable tbody");
+  tbody.empty();
+
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
+
+  const pageData = allData.slice(start, end);
+
+  pageData.forEach(r => {
+    const tr = $(`
+      <tr>
+        <td>${r.s_location || ""}</td>
+        <td>${r.s_contractor_name || ""}</td>
+        <td>${r.s_nature_of_work || ""}</td>
+        <td>${r.dt_work_datetime || ""}</td>
+        <td class="action-col">
+          <button class="icon-btn edit"><i class="fa-solid fa-pen"></i></button>
+          <button class="icon-btn delete"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      </tr>
+    `);
+
+    tr.data("record", r);
+    tbody.append(tr);
+  });
+
+  updatePaginationButtons();
+}
+
+/* pagination control functions */
+function updatePaginationButtons() {
+  const totalPages = Math.ceil(allData.length / rowsPerPage) || 1;
+  pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
+
+  prevBtn.disabled = currentPage === 1;
+  nextBtn.disabled = currentPage === totalPages;
+}
+
+function nextPage() {
+  if (currentPage < Math.ceil(allData.length / rowsPerPage)) {
+    currentPage++;
+    renderPage();
+  }
+}
+
+function prevPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    renderPage();
+  }
+}
+
+
   /* ================= VIEW SWITCH ================= */
 
   window.openAddForm = () => {
     isEdit = false;
     editId = null;
     labours = [];
+    $("#paginationBar").hide();
+
 
     $("#listView").hide();
     $("#step1").show();
@@ -78,6 +145,8 @@ function casualLabourApp() {
 
     isEdit = true;
     editId = record.n_sl_no;
+    $("#paginationBar").hide();
+
 
     $("#listView").hide();
     $("#step1").show();
@@ -204,7 +273,8 @@ function casualLabourApp() {
   });
 
   /* ================= INIT ================= */
-
+window.nextPage = nextPage;
+window.prevPage = prevPage;
   loadData();
 }
 
