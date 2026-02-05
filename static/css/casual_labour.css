@@ -143,3 +143,30 @@ button {
 .icon-btn:hover {
   transform: scale(1.2);
 }
+
+/* ================= PAGINATION ================= */
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+}
+
+.pagination {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: #455a64;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
