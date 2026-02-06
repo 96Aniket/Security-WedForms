@@ -131,24 +131,24 @@ function visitorDeclarationApp() {
   /* ============ ITEMS ============ */
   window.addItem = () => {
 
-  const itemObj = {
-    s_item_code_description: $("#item_desc").val(),
-    s_uom: $("#item_uom").val(),
-    n_quantity: $("#item_qty").val()
+    const itemObj = {
+      s_item_code_description: $("#item_desc").val(),
+      s_uom: $("#item_uom").val(),
+      n_quantity: $("#item_qty").val()
+    };
+
+    if (editingItemIndex !== null) {
+      // UPDATE existing item
+      items[editingItemIndex] = itemObj;
+      editingItemIndex = null;
+    } else {
+      // ADD new item
+      items.push(itemObj);
+    }
+
+    renderItems();
+    $("#item_desc,#item_uom,#item_qty").val("");
   };
-
-  if (editingItemIndex !== null) {
-    // UPDATE existing item
-    items[editingItemIndex] = itemObj;
-    editingItemIndex = null;
-  } else {
-    // ADD new item
-    items.push(itemObj);
-  }
-
-  renderItems();
-  $("#item_desc,#item_uom,#item_qty").val("");
-};
 
 
   function renderItems() {
@@ -164,34 +164,35 @@ function visitorDeclarationApp() {
           <td>
   <button class="icon-btn edit" onclick="editItem(${idx})">
     <i class="fa fa-pen"></i>
-  </button>
-  <button class="danger" onclick="removeItem(${idx})">X</button>
-</td>
+  <button class="icon-btn delete" onclick="removeItem(${idx})" title="Delete">
+  <i class="fa-solid fa-trash"></i>
+</button>
+
 
         </tr>
       `);
     });
   }
   window.editItem = (index) => {
-  const i = items[index];
+    const i = items[index];
 
-  editingItemIndex = index;
+    editingItemIndex = index;
 
-  $("#item_desc").val(i.s_item_code_description);
-  $("#item_uom").val(i.s_uom);
-  $("#item_qty").val(i.n_quantity);
+    $("#item_desc").val(i.s_item_code_description);
+    $("#item_uom").val(i.s_uom);
+    $("#item_qty").val(i.n_quantity);
 
-  // Optional UX improvement
-  $("html, body").animate({
-    scrollTop: $("#item_desc").offset().top - 100
-  }, 300);
-};
+    // Optional UX improvement
+    $("html, body").animate({
+      scrollTop: $("#item_desc").offset().top - 100
+    }, 300);
+  };
 
-window.removeItem = i => {
-  items.splice(i, 1);
-  editingItemIndex = null;
-  renderItems();
-};
+  window.removeItem = i => {
+    items.splice(i, 1);
+    editingItemIndex = null;
+    renderItems();
+  };
 
 
   /* ============ SAVE ============ */

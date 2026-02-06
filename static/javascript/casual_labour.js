@@ -318,9 +318,10 @@ if (editingLabourIndex !== null) {
           <td>
   <button class="icon-btn edit" onclick="editLabour(${i})">
     <i class="fa-solid fa-pen"></i>
-  </button>
-  <button class="danger" onclick="removeLabour(${i})">X</button>
-</td>
+  <button class="icon-btn delete" onclick="removeLabour(${i})" title="Delete">
+  <i class="fa-solid fa-trash"></i>
+</button>
+
 
         </tr>
       `);
