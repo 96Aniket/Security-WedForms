@@ -118,6 +118,7 @@ renderPage();
         <td>${r.s_location || ""}</td>
         <td>${r.s_contractor_name || ""}</td>
         <td>${r.s_nature_of_work || ""}</td>
+        <td>${r.s_place_of_work || ""}</td>
         <td>${r.dt_work_datetime || ""}</td>
         <td class="action-col">
           <button class="icon-btn edit"><i class="fa-solid fa-pen"></i></button>
@@ -300,6 +301,8 @@ window.addLabour = () => {
         <tr>
           <td>${l.s_labour_name || ""}</td>
           <td>${l.n_age || ""}</td>
+          <td>${l.s_sex || ""}</td>
+          <td>${l.s_address || ""}</td>
           <td>${l.s_mobile_no || ""}</td>
           <td>
             <button class="danger" onclick="removeLabour(${i})">X</button>
@@ -322,7 +325,7 @@ window.addLabour = () => {
   
   /* ================= SAVE ================= */
 
- window.saveData = () => {
+window.saveData = () => {
 
   /* ========= MASTER VALIDATION ========= */
   const contractor = $("#s_contractor_name").val().trim();
@@ -343,7 +346,6 @@ window.addLabour = () => {
 
   for (let i = 0; i < labours.length; i++) {
     const l = labours[i];
-
     if (
       !l.s_labour_name ||
       !l.n_age ||
@@ -359,7 +361,7 @@ window.addLabour = () => {
     }
   }
 
-  /* ========= ORIGINAL PAYLOAD (UNCHANGED) ========= */
+  /* ========= PAYLOAD ========= */
   const payload = {
     master: {
       n_sl_no: editId,
@@ -376,7 +378,12 @@ window.addLabour = () => {
     ? "/update_casual_labour_data"
     : "/save_casual_labour_data";
 
-  if (!confirm(isEdit ? "Update this record?" : "Add this record?")) return;
+  /* ===== SAME CONFIRM STYLE AS MITRA ===== */
+  const confirmMsg = isEdit
+    ? "Do you want to update this record?"
+    : "Do you want to add this record?";
+
+  if (!confirm(confirmMsg)) return;
 
   $.ajax({
     url: url,
@@ -384,8 +391,12 @@ window.addLabour = () => {
     contentType: "application/json",
     data: JSON.stringify(payload),
     success: (res) => {
-      alert(res.message || "Saved successfully");
-      window.location.reload();   // ✅ SAFE FIX
+      if (isEdit) {
+        alert("Record updated successfully");
+      } else {
+        alert("Record added successfully");
+      }
+      window.location.reload();   // safe refresh
     },
     error: (err) => {
       console.error(err);
@@ -394,25 +405,29 @@ window.addLabour = () => {
   });
 };
 
+
   /* ================= DELETE ================= */
 
-  $("#masterTable").on("click", ".icon-btn.delete", function () {
-    const record = $(this).closest("tr").data("record");
+$("#masterTable").on("click", ".icon-btn.delete", function () {
+  const record = $(this).closest("tr").data("record");
 
-    if (!confirm("Delete this record?")) return;
+  if (!confirm("Are you sure you want to delete this record?")) return;
 
-    $.ajax({
-      url: "/delete_casual_labour_data",
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({ n_sl_no: record.n_sl_no }),
-      success: (res) => {
-        alert(res.message || "Deleted successfully");
-        loadData();
-      },
-      error: () => alert("Delete failed"),
-    });
+  $.ajax({
+    url: "/delete_casual_labour_data",
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({ n_sl_no: record.n_sl_no }),
+    success: (res) => {
+      alert("Deleted successfully");
+      loadData();
+    },
+    error: () => {
+      alert("Delete failed at server");
+    },
   });
+});
+
 
   /* ================= INIT ================= */
 window.nextPage = nextPage;

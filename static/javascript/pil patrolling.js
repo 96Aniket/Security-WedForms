@@ -166,90 +166,125 @@ function patrollingApp() {
   /* ================= SAVE ================= */
 
   function saveTable() {
-    const rows = document.querySelectorAll("#patrolTable tbody tr");
+  const rows = document.querySelectorAll("#patrolTable tbody tr");
 
-    let hasNew = false;
-    let hasEdit = false;
+  let hasNew = false;
+  let hasEdit = false;
 
-    rows.forEach(row => {
-      if (row.dataset.new) hasNew = true;
-      if (row.dataset.edited && !row.dataset.new) hasEdit = true;
-    });
+  rows.forEach(row => {
+    if (row.dataset.new) hasNew = true;
+    if (row.dataset.edited && !row.dataset.new) hasEdit = true;
+  });
 
-    if (!hasNew && !hasEdit) {
-      alert("Nothing to save");
-      return;
+  if (!hasNew && !hasEdit) {
+    alert("Nothing to save");
+    return;
+  }
+
+  // SAME confirm logic as pipeline mitra
+  let confirmMsg = "Do you want to save changes?";
+  if (hasNew && !hasEdit) confirmMsg = "Do you want to add this record?";
+  if (!hasNew && hasEdit) confirmMsg = "Do you want to update this record?";
+  if (hasNew && hasEdit) confirmMsg = "Do you want to add and update records?";
+
+  if (!confirm(confirmMsg)) return;
+
+  let requests = [];
+
+  rows.forEach(row => {
+    const td = row.children;
+
+    const payload = {
+      s_location_code: USER_LOCATION,
+      d_patrol_date: td[2].querySelector("input")?.value,
+      t_from_time: td[3].querySelector("input")?.value,
+      t_to_time: td[4].querySelector("input")?.value,
+      s_boundary_wall_condition: td[5].querySelector("select")?.value,
+      s_patrolling_pathway_condition: td[6].querySelector("select")?.value,
+      s_suspicious_movement: td[7].querySelector("select")?.value,
+      s_wild_vegetation: td[8].querySelector("select")?.value,
+      s_illumination_status: td[9].querySelector("select")?.value,
+      s_workers_without_valid_permit: td[10].querySelector("select")?.value,
+      s_unknown_person_without_authorization: td[11].querySelector("select")?.value,
+      s_unattended_office_unlocked: td[12].querySelector("select")?.value,
+      s_other_observations_status: td[13].querySelector("select")?.value,
+      s_remarks: td[14].querySelector("textarea")?.value,
+      s_patrolling_guard_name: td[15].querySelector("input")?.value
+    };
+
+    // INSERT
+    if (row.dataset.new) {
+      requests.push($.ajax({
+        url: "/save_patrolling_data",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(payload)
+      }));
     }
 
-    
-    if (!confirm("Are you sure you want to save the changes?")) return;
+    // UPDATE
+    if (row.dataset.edited && !row.dataset.new) {
+      payload.n_sr_no = row.dataset.id;
+      requests.push($.ajax({
+        url: "/update_patrolling_data",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(payload)
+      }));
+    }
+  });
 
-    let requests = [];
+  Promise.all(requests).then(() => {
+    if (hasNew && hasEdit) {
+      alert("Records added and updated successfully");
+    } else if (hasNew) {
+      alert("Record added successfully");
+    } else {
+      alert("Record updated successfully");
+    }
 
-    rows.forEach(row => {
-      const td = row.children;
+    loadPatrollingData();
+  });
+}
 
-      const payload = {
-        s_location_code: USER_LOCATION,
-        d_patrol_date: td[2].querySelector("input")?.value,
-        t_from_time: td[3].querySelector("input")?.value,
-        t_to_time: td[4].querySelector("input")?.value,
-        s_boundary_wall_condition: td[5].querySelector("select")?.value,
-        s_patrolling_pathway_condition: td[6].querySelector("select")?.value,
-        s_suspicious_movement: td[7].querySelector("select")?.value,
-        s_wild_vegetation: td[8].querySelector("select")?.value,
-        s_illumination_status: td[9].querySelector("select")?.value,
-        s_workers_without_valid_permit: td[10].querySelector("select")?.value,
-        s_unknown_person_without_authorization: td[11].querySelector("select")?.value,
-        s_unattended_office_unlocked: td[12].querySelector("select")?.value,
-        s_other_observations_status: td[13].querySelector("select")?.value,
-        s_remarks: td[14].querySelector("textarea")?.value,
-        s_patrolling_guard_name: td[15].querySelector("input")?.value
-      };
-
-      if (row.dataset.new) {
-        requests.push($.ajax({
-          url: "/save_patrolling_data",
-          method: "POST",
-          contentType: "application/json",
-          data: JSON.stringify(payload)
-        }));
-      }
-
-      if (row.dataset.edited && !row.dataset.new) {
-        payload.n_sr_no = row.dataset.id;
-        requests.push($.ajax({
-          url: "/update_patrolling_data",
-          method: "POST",
-          contentType: "application/json",
-          data: JSON.stringify(payload)
-        }));
-      }
-    });
-
-    Promise.all(requests).then(() => {
-      alert("Changes saved successfully");
-      loadPatrollingData();
-    });
-  }
 
   /* ================= DELETE ================= */
 
-  function deleteRow(btn) {
-    const row = btn.closest("tr");
+ function deleteRow(btn) {
+  const row = btn.closest("tr");
 
-    if (!confirm("Are you sure you want to delete this record?")) return;
-
+  if (row.dataset.new) {
+    if (!confirm("Are you sure you want to delete this row?")) return;
     row.remove();
     updateSerialNumbers();
-
-    $.ajax({
-      url: "/delete_patrolling_data",
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({ n_sr_no: row.dataset.id })
-    });
+    return;
   }
+
+  if (!confirm("Are you sure you want to delete this record?")) return;
+
+  $.ajax({
+    url: "/delete_patrolling_data",
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({
+      n_sr_no: row.dataset.id
+    }),
+    success: res => {
+      if (res.success) {
+        row.remove();
+        updateSerialNumbers();
+        alert("Deleted successfully");
+      } else {
+        alert(res.message || "Delete failed");
+      }
+    },
+    error: err => {
+      console.error("Delete error:", err);
+      alert("Delete failed at server");
+    }
+  });
+}
+
 
   /* ================= EXPOSE ================= */
 
