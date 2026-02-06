@@ -35,36 +35,36 @@ function vehicleChecklistApp() {
   ];
 
   function showPagination() {
-  $("#paginationBar").show();
-}
+    $("#paginationBar").show();
+  }
 
-function hidePagination() {
-  $("#paginationBar").hide();
-}
+  function hidePagination() {
+    $("#paginationBar").hide();
+  }
 
   /* ============ LOAD LIST ============ */
   function loadData() {
-  $.get("/get_vehicle_checklist_data", res => {
-    if (!res.success) return;
-    allData = res.data;
-    renderPage();
-
-   
-    showPagination();
-  });
-}
+    $.get("/get_vehicle_checklist_data", res => {
+      if (!res.success) return;
+      allData = res.data;
+      renderPage();
 
 
- function renderPage() {
-  const tbody = $("#masterTable tbody").empty();
+      showPagination();
+    });
+  }
 
-  const start = (currentPage - 1) * rowsPerPage;
-  const end = start + rowsPerPage;
 
-  const pageData = allData.slice(start, end);
+  function renderPage() {
+    const tbody = $("#masterTable tbody").empty();
 
-  pageData.forEach((r, index) => {
-    const tr = $(`
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    const pageData = allData.slice(start, end);
+
+    pageData.forEach((r, index) => {
+      const tr = $(`
       <tr>
         <td>${start + index + 1}</td>
         <td>${r.s_location_code || ""}</td>
@@ -85,12 +85,12 @@ function hidePagination() {
       </tr>
     `);
 
-    tr.data("record", r);
-    tbody.append(tr);
-  });
+      tr.data("record", r);
+      tbody.append(tr);
+    });
 
-  updatePaginationButtons();
-}
+    updatePaginationButtons();
+  }
 
 
   function updatePaginationButtons() {
@@ -115,9 +115,9 @@ function hidePagination() {
   }
 
   // Contact number: only 10 digits
-$("#s_contact_no").on("input", function () {
-  this.value = this.value.replace(/[^0-9]/g, "").slice(0, 10);
-});
+  $("#s_contact_no").on("input", function () {
+    this.value = this.value.replace(/[^0-9]/g, "").slice(0, 10);
+  });
 
 
   /* ============ VIEW SWITCH ============ */
@@ -129,18 +129,18 @@ $("#s_contact_no").on("input", function () {
     $("#listView").hide();
     $("#step1").show();
     $("#step2").show();
-    
+
 
     hidePagination();
 
     $("#s_location_code")
-    .val(USER_LOCATION)
-    .prop("readonly", true);
+      .val(USER_LOCATION)
+      .prop("readonly", true);
     renderChecklist();
   };
 
   window.nextStep = () => {
-    
+
     $("#step2").show();
 
     hidePagination();
@@ -152,27 +152,26 @@ $("#s_contact_no").on("input", function () {
     }
 
     /* ============ REMARK ENFORCEMENT ON NO ============ */
-    $("#checkTable").on("change", "input[type=radio]", function () {
-      const tr = $(this).closest("tr");
-      const status = $(this).val();
-      const remarkInput = tr.find(".remark");
+  $("#checkTable").on("change", "input[type=radio]", function () {
+  const tr = $(this).closest("tr");
+  const status = $(this).val();
+  const remarkInput = tr.find(".remark");
 
-      if (status === "N") {
+  if (status === "N") {
+    remarkInput
+      .prop("required", true)
+      .addClass("remark-required")
+      .attr("placeholder", "Remark required for NO")
+      .focus();
+  } else {
+    remarkInput
+      .prop("required", false)
+      .removeClass("remark-required")
+      .val("")
+      .attr("placeholder", "");
+  }
+});
 
-        alert("Enter remark for 'No' status.");
-
-
-        remarkInput
-          .prop("required", true)
-          .addClass("remark-required")
-          .focus();
-      } else {
-
-        remarkInput
-          .prop("required", false)
-          .removeClass("remark-required");
-      }
-    });
 
   };
 
@@ -196,7 +195,11 @@ $("#s_contact_no").on("input", function () {
           <td>${item.label}</td>
           <td><input type="radio" name="${item.code}" value="Y"></td>
           <td><input type="radio" name="${item.code}" value="N"></td>
-          <td><input class="remark"></td>
+          <td>
+  <input class="remark" placeholder="">
+
+</td>
+
         </tr>
       `);
     });
@@ -211,55 +214,55 @@ $("#s_contact_no").on("input", function () {
 
   /* ============ EDIT ============ */
   $("#masterTable").on("click", ".edit", function () {
-  const r = $(this).closest("tr").data("record");
+    const r = $(this).closest("tr").data("record");
 
-  isEdit = true;
-  editId = r.n_vc_id;
+    isEdit = true;
+    editId = r.n_vc_id;
 
-  $("#paginationBar").hide();
-  $("#listView").hide();
-  $("#step1").show();
-  $("#step2").show();
+    $("#paginationBar").hide();
+    $("#listView").hide();
+    $("#step1").show();
+    $("#step2").show();
 
-  $("#s_location_code")
-    .val(USER_LOCATION)
-    .prop("readonly", true);
+    $("#s_location_code")
+      .val(USER_LOCATION)
+      .prop("readonly", true);
 
-  $("#s_vehicle_no").val(r.s_vehicle_no);
-  $("#s_vehicle_type").val(r.s_vehicle_type);
-  $("#s_driver_name").val(r.s_driver_name);
-  $("#s_contact_no").val(r.s_contact_no);
-  $("#s_occupants_name").val(r.s_occupants_name);
-  $("#dt_entry_datetime").val(
-    r.dt_entry_datetime ? r.dt_entry_datetime.replace(" ", "T") : ""
-  );
-  $("#s_purpose_of_entry").val(r.s_purpose_of_entry);
+    $("#s_vehicle_no").val(r.s_vehicle_no);
+    $("#s_vehicle_type").val(r.s_vehicle_type);
+    $("#s_driver_name").val(r.s_driver_name);
+    $("#s_contact_no").val(r.s_contact_no);
+    $("#s_occupants_name").val(r.s_occupants_name);
+    $("#dt_entry_datetime").val(
+      r.dt_entry_datetime ? r.dt_entry_datetime.replace(" ", "T") : ""
+    );
+    $("#s_purpose_of_entry").val(r.s_purpose_of_entry);
 
-  renderChecklist(r.checklist || []);
-});
+    renderChecklist(r.checklist || []);
+  });
 
 
   /* ============ SAVE / UPDATE ============ */
   window.saveData = () => {
 
 
-      if (
-    !$("#s_vehicle_no").val() ||
-    !$("#s_vehicle_type").val() ||
-    !$("#s_driver_name").val() ||
-    !$("#s_contact_no").val() ||
-    !$("#s_occupants_name").val() ||
-    !$("#dt_entry_datetime").val() ||
-    !$("#s_purpose_of_entry").val()
-  ) {
-    alert("Please fill all required fields");
-    return;
-  }
+    if (
+      !$("#s_vehicle_no").val() ||
+      !$("#s_vehicle_type").val() ||
+      !$("#s_driver_name").val() ||
+      !$("#s_contact_no").val() ||
+      !$("#s_occupants_name").val() ||
+      !$("#dt_entry_datetime").val() ||
+      !$("#s_purpose_of_entry").val()
+    ) {
+      alert("Please fill all required fields");
+      return;
+    }
 
-  if ($("#s_contact_no").val().length !== 10) {
-    alert("Contact number must be exactly 10 digits");
-    return;
-  }
+    if ($("#s_contact_no").val().length !== 10) {
+      alert("Contact number must be exactly 10 digits");
+      return;
+    }
 
 
     if ($("#step2").is(":hidden") || $("#checkTable tbody tr").length === 0) {
@@ -277,19 +280,32 @@ $("#s_contact_no").on("input", function () {
     let valid = true;
 
     rows.each(function () {
-      const status = $(this).find("input[type=radio]:checked").val();
-      const remark = $(this).find(".remark").val();
+      const tr = $(this);
+      const status = tr.find("input[type=radio]:checked").val();
+      const remarkInput = tr.find(".remark");
+      const remark = remarkInput.val();
 
-      if (!status) valid = false;
-      if (status === "N" && !remark) valid = false;
+      if (!status) {
+        valid = false;
+      }
+
+      if (status === "N" && !remark) {
+        remarkInput
+          .addClass("remark-required")
+          .attr("placeholder", "Remark required for NO");
+        valid = false;
+      } else {
+        remarkInput.removeClass("remark-required");
+      }
 
       checklist.push({
-        s_check_code: $(this).data("code"),
-        s_check_label: $(this).data("label"),
+        s_check_code: tr.data("code"),
+        s_check_label: tr.data("label"),
         s_status: status,
         s_remark: remark
       });
     });
+
 
     if (!valid) {
       alert("Please complete checklist properly");
