@@ -5,57 +5,88 @@ function bbaTestApp() {
   const rowsPerPage = 10;
 
   /* ================= IMAGE PREVIEW ================= */
- function previewFile(input) {
-  const file = input.files[0];
-  if (!file) return;
+  function previewFile(input) {
+    const file = input.files[0];
+    if (!file) return;
 
-  const reader = new FileReader();
+    const reader = new FileReader();
 
-  reader.onload = function (e) {
-    input.dataset.base64 = e.target.result;
-    input.dataset.type = file.type;
-    input.dataset.name = file.name;
+    reader.onload = function (e) {
+      input.dataset.base64 = e.target.result;
+      input.dataset.type = file.type;
+      input.dataset.name = file.name;
 
-    let previewDiv = input.closest("td").querySelector(".img-preview");
+      let previewDiv = input.closest("td").querySelector(".img-preview");
 
-    if (!previewDiv) {
-      previewDiv = document.createElement("div");
-      previewDiv.className = "img-preview";
-      input.closest("td").appendChild(previewDiv);
-    }
+      if (!previewDiv) {
+        previewDiv = document.createElement("div");
+        previewDiv.className = "img-preview";
+        input.closest("td").appendChild(previewDiv);
+      }
 
-    previewDiv.innerHTML = `
+      previewDiv.innerHTML = `
       <button type="button" onclick="openFromInput(this)">
         View Document
       </button>
     `;
-  };
+    };
 
-  reader.readAsDataURL(file);
-}
+    reader.readAsDataURL(file);
+  }
 
 
 
 
   function showFile(base64, type, name) {
-  const win = window.open("");
+    const win = window.open("");
 
-  // IMAGE
-  if (type.startsWith("image/")) {
-    win.document.write(`
-      <html>
-        <head><title>${name}</title></head>
-        <body style="margin:0; display:flex; justify-content:center; align-items:center; height:100vh;">
-          <img src="${base64}" style="max-width:100%; max-height:100%;">
-        </body>
-      </html>
-    `);
-    return;
-  }
+    // IMAGE
+   if (type.startsWith("image/")) {
+  win.document.write(`
+    <html>
+      <head>
+        <title>${name}</title>
+        <style>
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+          }
 
-  // PDF
-  if (type === "application/pdf") {
-    win.document.write(`
+          .wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: scale(0.67);
+            transform-origin: center center;
+          }
+
+          img {
+            max-width: 100vw;
+            max-height: 100vh;
+            object-fit: contain;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="wrapper">
+          <img src="${base64}">
+        </div>
+      </body>
+    </html>
+  `);
+  return;
+}
+
+
+    // PDF
+    if (type === "application/pdf") {
+      win.document.write(`
       <html>
         <head><title>${name}</title></head>
         <body style="margin:0">
@@ -63,11 +94,11 @@ function bbaTestApp() {
         </body>
       </html>
     `);
-    return;
-  }
+      return;
+    }
 
-  // OTHER FILE TYPES → DOWNLOAD
-  win.document.write(`
+    // OTHER FILE TYPES → DOWNLOAD
+    win.document.write(`
     <html>
       <head><title>${name}</title></head>
       <body style="display:flex; justify-content:center; align-items:center; height:100vh;">
@@ -77,7 +108,7 @@ function bbaTestApp() {
       </body>
     </html>
   `);
-}
+  }
 
 
   /* ================= HELPERS ================= */
@@ -95,19 +126,19 @@ function bbaTestApp() {
 
 
   function openFromInput(btn) {
-  const input = btn.closest("td").querySelector("input[type='file']");
+    const input = btn.closest("td").querySelector("input[type='file']");
 
-  if (!input || !input.dataset.base64) {
-    alert("No file attached");
-    return;
+    if (!input || !input.dataset.base64) {
+      alert("No file attached");
+      return;
+    }
+
+    showFile(
+      input.dataset.base64,
+      input.dataset.type || "application/octet-stream",
+      input.dataset.name || "Attachment"
+    );
   }
-
-  showFile(
-    input.dataset.base64,
-    input.dataset.type || "application/octet-stream",
-    input.dataset.name || "Attachment"
-  );
-}
 
   /* ================= ADD ROW ================= */
   function addRow() {
@@ -123,35 +154,35 @@ function bbaTestApp() {
   }
 
   /* ================= DELETE ================= */
-function deleteRow(btn) {
-  const row = btn.closest("tr");
+  function deleteRow(btn) {
+    const row = btn.closest("tr");
 
-  if (row.dataset.new === "true") {
-    if (!confirm("Do you want to delete this row?")) return;
+    if (row.dataset.new === "true") {
+      if (!confirm("Do you want to delete this row?")) return;
 
-    row.remove();
-    updateSerialNumbers();
-    alert("Deleted successfully");
-    return;
-  }
-
-  if (!confirm("Do you want to delete this record?")) return;
-
-  $.ajax({
-    url: "/delete_bba_test_data",
-    type: "POST",
-    contentType: "application/json",
-    data: JSON.stringify({ n_sr_no: row.dataset.id }),
-    success: res => {
-      if (res.success) {
-        alert("Deleted successfully");
-        loadBbaData();
-      } else {
-        alert(res.message || "Delete failed");
-      }
+      row.remove();
+      updateSerialNumbers();
+      alert("Deleted successfully");
+      return;
     }
-  });
-}
+
+    if (!confirm("Do you want to delete this record?")) return;
+
+    $.ajax({
+      url: "/delete_bba_test_data",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ n_sr_no: row.dataset.id }),
+      success: res => {
+        if (res.success) {
+          alert("Deleted successfully");
+          loadBbaData();
+        } else {
+          alert(res.message || "Delete failed");
+        }
+      }
+    });
+  }
 
 
   /* ================= EDIT ================= */
@@ -198,95 +229,105 @@ function deleteRow(btn) {
       row.children[idx].appendChild(select);
     });
 
-    row.children[9].innerHTML = `
-      <input type="file" onchange="window.previewFile(this)">
+    const existingBase64 = row.dataset.attachment || null;
+    const existingType = row.dataset.fileType || "application/pdf";
+    const existingName = row.dataset.fileName || "Attachment";
 
-      <div class="img-preview"></div>
-    `;
+    row.children[9].innerHTML = `
+  <input type="file" onchange="window.previewFile(this)">
+  <div class="img-preview">
+    ${existingBase64 ? `<button type="button" onclick="showFile('${existingBase64}','${existingType}','${existingName}')">View Document</button>` : ""}
+  </div>
+`;
+
 
     btn.disabled = true;
     btn.innerText = "Editing";
   }
 
   /* ================= SAVE ================= */
-function saveTable() {
-  const rows = document.querySelectorAll("#bbaTable tbody tr");
+  function saveTable() {
+    const rows = document.querySelectorAll("#bbaTable tbody tr");
 
-  let hasNew = false;
-  let hasEdit = false;
+    let hasNew = false;
+    let hasEdit = false;
 
-  rows.forEach(row => {
-    if (row.dataset.new === "true") hasNew = true;
-    if (row.dataset.edited === "true" && !row.dataset.new) hasEdit = true;
-  });
+    rows.forEach(row => {
+      if (row.dataset.new === "true") hasNew = true;
+      if (row.dataset.edited === "true" && !row.dataset.new) hasEdit = true;
+    });
 
-  if (!hasNew && !hasEdit) {
-    alert("Nothing to save");
-    return;
-  }
-
-  let confirmMsg = "Do you want to save changes?";
-  if (hasNew && !hasEdit) confirmMsg = "Do you want to add this record?";
-  if (!hasNew && hasEdit) confirmMsg = "Do you want to update this record?";
-  if (hasNew && hasEdit) confirmMsg = "Do you want to add and update records?";
-
-  if (!confirm(confirmMsg)) return;
-
-  let saved = false;
-  let updated = false;
-
-  rows.forEach(row => {
-    const td = row.children;
-
-    const payload = {
-      s_location_code: USER_LOCATION,
-      d_test_date: td[2].querySelector("input")?.value,
-      t_test_time: td[3].querySelector("input")?.value,
-      s_test_record_no: td[4].querySelector("input")?.value,
-      s_individual_name: td[5].querySelector("input")?.value,
-      s_person_type: td[6].querySelector("select")?.value,
-      s_test_result: td[7].querySelector("select")?.value,
-      n_bac_count: td[8].querySelector("input")?.value,
-      img_attachment: td[9].querySelector("input")?.dataset.base64 || null,
-      s_security_personnel_name: td[10].querySelector("input")?.value,
-      s_remarks: td[11].querySelector("input")?.value
-    };
-
-    // INSERT
-    if (row.dataset.new === "true") {
-      saved = true;
-      $.ajax({
-        url: "/save_bba_test_data",
-        type: "POST",
-        contentType: "application/json",
-        data: JSON.stringify(payload)
-      });
+    if (!hasNew && !hasEdit) {
+      alert("Nothing to save");
+      return;
     }
 
-    // UPDATE
-    if (row.dataset.edited === "true" && !row.dataset.new) {
-      updated = true;
-      payload.n_sr_no = row.dataset.id;
-      $.ajax({
-        url: "/update_bba_test_data",
-        type: "POST",
-        contentType: "application/json",
-        data: JSON.stringify(payload)
-      });
+    let confirmMsg = "Do you want to save changes?";
+    if (hasNew && !hasEdit) confirmMsg = "Do you want to add this record?";
+    if (!hasNew && hasEdit) confirmMsg = "Do you want to update this record?";
+    if (hasNew && hasEdit) confirmMsg = "Do you want to add and update records?";
+
+    if (!confirm(confirmMsg)) return;
+
+    let saved = false;
+    let updated = false;
+
+    rows.forEach(row => {
+      const td = row.children;
+
+      const payload = {
+        s_location_code: USER_LOCATION,
+        d_test_date: td[2].querySelector("input")?.value,
+        t_test_time: td[3].querySelector("input")?.value,
+        s_test_record_no: td[4].querySelector("input")?.value,
+        s_individual_name: td[5].querySelector("input")?.value,
+        s_person_type: td[6].querySelector("select")?.value,
+        s_test_result: td[7].querySelector("select")?.value,
+        n_bac_count: td[8].querySelector("input")?.value,
+        img_attachment:
+          td[9].querySelector("input")?.dataset.base64
+          || row.dataset.attachment
+          || null,
+
+        s_security_personnel_name: td[10].querySelector("input")?.value,
+        s_remarks: td[11].querySelector("input")?.value
+      };
+
+      // INSERT
+      if (row.dataset.new === "true") {
+        saved = true;
+        $.ajax({
+          url: "/save_bba_test_data",
+          type: "POST",
+          contentType: "application/json",
+          data: JSON.stringify(payload)
+        });
+      }
+
+      // UPDATE
+      if (row.dataset.edited === "true" && !row.dataset.new) {
+        updated = true;
+        payload.n_sr_no = row.dataset.id;
+        $.ajax({
+          url: "/update_bba_test_data",
+          type: "POST",
+          contentType: "application/json",
+          data: JSON.stringify(payload)
+        });
+      }
+    });
+
+
+    if (saved && updated) {
+      alert("Records added and updated successfully");
+    } else if (saved) {
+      alert("Record added successfully");
+    } else if (updated) {
+      alert("Record updated successfully");
     }
-  });
 
-  
-  if (saved && updated) {
-    alert("Records added and updated successfully");
-  } else if (saved) {
-    alert("Record added successfully");
-  } else if (updated) {
-    alert("Record updated successfully");
+    loadBbaData();
   }
-
-  loadBbaData();
-}
 
 
   /* ================= LOAD ================= */
@@ -312,6 +353,10 @@ function saveTable() {
       const row = tpl.querySelector("tr");
 
       row.dataset.id = r.n_sr_no;
+      row.dataset.attachment = r.img_attachment || null;
+      row.dataset.fileType = r.s_file_type || "application/pdf";
+      row.dataset.fileName = "Attachment";
+
       row.querySelector(".loc").innerText = r.s_location_code;
       row.querySelector(".date").innerText = r.d_test_date;
       row.querySelector(".time").innerText = r.t_test_time;
@@ -371,7 +416,7 @@ function saveTable() {
   window.editRow = editRow;
   window.deleteRow = deleteRow;
   window.previewFile = previewFile;
-window.showFile = showFile;
+  window.showFile = showFile;
 
   window.nextPage = nextPage;
   window.prevPage = prevPage;
