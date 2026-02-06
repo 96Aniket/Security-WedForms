@@ -1,3 +1,5 @@
+let editingItemIndex = null;
+
 function visitorDeclarationApp() {
 
   let allData = [];
@@ -88,14 +90,14 @@ function visitorDeclarationApp() {
     $("#step1").show();
     $("#step2").show();
     $("#s_location")
-    .val(USER_LOCATION)
-    .prop("readonly", true);
+      .val(USER_LOCATION)
+      .prop("readonly", true);
     document.getElementById("step1").scrollIntoView({ behavior: "smooth" });
 
 
   };
 
- 
+
   window.backStep = () => { $("#step2").hide(); $("#step1").show(); };
   window.cancel = () => location.reload();
 
@@ -113,8 +115,8 @@ function visitorDeclarationApp() {
     $("#step2").show();
 
     $("#s_location")
-    .val(USER_LOCATION)
-    .prop("readonly", true);
+      .val(USER_LOCATION)
+      .prop("readonly", true);
 
     $("#s_visitor_name").val(r.s_visitor_name);
     $("#s_visitor_pass_no").val(r.s_visitor_pass_no);
@@ -128,14 +130,26 @@ function visitorDeclarationApp() {
 
   /* ============ ITEMS ============ */
   window.addItem = () => {
-    items.push({
-      s_item_code_description: $("#item_desc").val(),
-      s_uom: $("#item_uom").val(),
-      n_quantity: $("#item_qty").val()
-    });
-    renderItems();
-    $("#item_desc,#item_uom,#item_qty").val("");
+
+  const itemObj = {
+    s_item_code_description: $("#item_desc").val(),
+    s_uom: $("#item_uom").val(),
+    n_quantity: $("#item_qty").val()
   };
+
+  if (editingItemIndex !== null) {
+    // UPDATE existing item
+    items[editingItemIndex] = itemObj;
+    editingItemIndex = null;
+  } else {
+    // ADD new item
+    items.push(itemObj);
+  }
+
+  renderItems();
+  $("#item_desc,#item_uom,#item_qty").val("");
+};
+
 
   function renderItems() {
     const tbody = $("#itemTable tbody");
@@ -147,16 +161,38 @@ function visitorDeclarationApp() {
           <td>${i.s_item_code_description}</td>
           <td>${i.s_uom}</td>
           <td>${i.n_quantity}</td>
-          <td><button class="danger" onclick="removeItem(${idx})">X</button></td>
+          <td>
+  <button class="icon-btn edit" onclick="editItem(${idx})">
+    <i class="fa fa-pen"></i>
+  </button>
+  <button class="danger" onclick="removeItem(${idx})">X</button>
+</td>
+
         </tr>
       `);
     });
   }
+  window.editItem = (index) => {
+  const i = items[index];
 
-  window.removeItem = i => {
-    items.splice(i, 1);
-    renderItems();
-  };
+  editingItemIndex = index;
+
+  $("#item_desc").val(i.s_item_code_description);
+  $("#item_uom").val(i.s_uom);
+  $("#item_qty").val(i.n_quantity);
+
+  // Optional UX improvement
+  $("html, body").animate({
+    scrollTop: $("#item_desc").offset().top - 100
+  }, 300);
+};
+
+window.removeItem = i => {
+  items.splice(i, 1);
+  editingItemIndex = null;
+  renderItems();
+};
+
 
   /* ============ SAVE ============ */
   window.saveData = () => {

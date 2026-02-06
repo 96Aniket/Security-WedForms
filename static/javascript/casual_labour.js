@@ -1,3 +1,5 @@
+
+let editingLabourIndex = null;
 function casualLabourApp() {
 
   let allData = [];
@@ -6,60 +8,60 @@ function casualLabourApp() {
   let editId = null;
 
   let currentPage = 1;
-const rowsPerPage = 10;
+  const rowsPerPage = 10;
 
-const pageInfo = document.getElementById("pageInfo");
-const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
+  const pageInfo = document.getElementById("pageInfo");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
 
-function isValidMobile(mobile) {
-  return /^[0-9]{10}$/.test(mobile);
-}
-
-function isValidAadhar(aadhar) {
-  return /^[0-9]{12}$/.test(aadhar);
-}
-
-function isValidPAN(pan) {
-  return /^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan);
-}
-
-function isValidDrivingLicense(dl) {
-  if (!dl) return false;
-
-  const cleaned = dl.trim();
-
-  
-  return /^[A-Z0-9 -]{8,25}$/i.test(cleaned);
-}
-
-
-
-$("#labour_mobile").on("input", function () {
-  this.value = this.value.replace(/\D/g, "").slice(0, 10);
-});
-
-$("#labour_id_no").on("input", function () {
-  const type = $("#labour_id_type").val();
-
-  if (type === "Aadhar") {
-    this.value = this.value.replace(/\D/g, "").slice(0, 12);
+  function isValidMobile(mobile) {
+    return /^[0-9]{10}$/.test(mobile);
   }
 
-  else if (type === "PAN") {
-    // alphanumeric only, max 10, auto uppercase
-    this.value = this.value
-      .replace(/[^a-zA-Z0-9]/g, "")
-      .slice(0, 10)
-      .toUpperCase();
+  function isValidAadhar(aadhar) {
+    return /^[0-9]{12}$/.test(aadhar);
   }
 
-  else if (type === "Driving License") {
-  this.value = this.value
-    .replace(/[^a-zA-Z0-9 -]/g, "")
-    .slice(0, 25);   
-}
-});
+  function isValidPAN(pan) {
+    return /^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan);
+  }
+
+  function isValidDrivingLicense(dl) {
+    if (!dl) return false;
+
+    const cleaned = dl.trim();
+
+
+    return /^[A-Z0-9 -]{8,25}$/i.test(cleaned);
+  }
+
+
+
+  $("#labour_mobile").on("input", function () {
+    this.value = this.value.replace(/\D/g, "").slice(0, 10);
+  });
+
+  $("#labour_id_no").on("input", function () {
+    const type = $("#labour_id_type").val();
+
+    if (type === "Aadhar") {
+      this.value = this.value.replace(/\D/g, "").slice(0, 12);
+    }
+
+    else if (type === "PAN") {
+      // alphanumeric only, max 10, auto uppercase
+      this.value = this.value
+        .replace(/[^a-zA-Z0-9]/g, "")
+        .slice(0, 10)
+        .toUpperCase();
+    }
+
+    else if (type === "Driving License") {
+      this.value = this.value
+        .replace(/[^a-zA-Z0-9 -]/g, "")
+        .slice(0, 25);
+    }
+  });
 
   /* ================= LOAD ================= */
 
@@ -68,7 +70,7 @@ $("#labour_id_no").on("input", function () {
       if (!res.success || !Array.isArray(res.data)) return;
       allData = res.data;
       currentPage = 1;
-renderPage();
+      renderPage();
 
     });
   }
@@ -104,16 +106,16 @@ renderPage();
 
 
   function renderPage() {
-  const tbody = $("#masterTable tbody");
-  tbody.empty();
+    const tbody = $("#masterTable tbody");
+    tbody.empty();
 
-  const start = (currentPage - 1) * rowsPerPage;
-  const end = start + rowsPerPage;
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
 
-  const pageData = allData.slice(start, end);
+    const pageData = allData.slice(start, end);
 
-  pageData.forEach(r => {
-    const tr = $(`
+    pageData.forEach(r => {
+      const tr = $(`
       <tr>
         <td>${r.s_location || ""}</td>
         <td>${r.s_contractor_name || ""}</td>
@@ -127,35 +129,35 @@ renderPage();
       </tr>
     `);
 
-    tr.data("record", r);
-    tbody.append(tr);
-  });
+      tr.data("record", r);
+      tbody.append(tr);
+    });
 
-  updatePaginationButtons();
-}
-
-/* pagination control functions */
-function updatePaginationButtons() {
-  const totalPages = Math.ceil(allData.length / rowsPerPage) || 1;
-  pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
-
-  prevBtn.disabled = currentPage === 1;
-  nextBtn.disabled = currentPage === totalPages;
-}
-
-function nextPage() {
-  if (currentPage < Math.ceil(allData.length / rowsPerPage)) {
-    currentPage++;
-    renderPage();
+    updatePaginationButtons();
   }
-}
 
-function prevPage() {
-  if (currentPage > 1) {
-    currentPage--;
-    renderPage();
+  /* pagination control functions */
+  function updatePaginationButtons() {
+    const totalPages = Math.ceil(allData.length / rowsPerPage) || 1;
+    pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
+
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages;
   }
-}
+
+  function nextPage() {
+    if (currentPage < Math.ceil(allData.length / rowsPerPage)) {
+      currentPage++;
+      renderPage();
+    }
+  }
+
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      renderPage();
+    }
+  }
 
 
   /* ================= VIEW SWITCH ================= */
@@ -177,15 +179,15 @@ function prevPage() {
   };
 
   window.nextStep = () => {
-  if ($("#step2").is(":visible")) return; 
+    if ($("#step2").is(":visible")) return;
 
-  $("#step2").slideDown(200);
-  document.getElementById("step2").scrollIntoView({ behavior: "smooth" });
-};
+    $("#step2").slideDown(200);
+    document.getElementById("step2").scrollIntoView({ behavior: "smooth" });
+  };
 
 
 
- 
+
 
   /* ================= EDIT ================= */
 
@@ -218,79 +220,88 @@ function prevPage() {
   });
 
 
-  
+
 
   /* ================= LABOUR ================= */
 
-window.addLabour = () => {
+  window.addLabour = () => {
 
-  const name = $("#labour_name").val().trim();
-  const age = $("#labour_age").val().trim();
-  const sex = $("#labour_sex").val();
-  const address = $("#labour_address").val().trim();
-  const cardNo = $("#labour_card").val().trim();
-  const mobile = $("#labour_mobile").val().trim();
-  const idType = $("#labour_id_type").val();
-  const rawIdNo = $("#labour_id_no").val().trim();
+    const name = $("#labour_name").val().trim();
+    const age = $("#labour_age").val().trim();
+    const sex = $("#labour_sex").val();
+    const address = $("#labour_address").val().trim();
+    const cardNo = $("#labour_card").val().trim();
+    const mobile = $("#labour_mobile").val().trim();
+    const idType = $("#labour_id_type").val();
+    const rawIdNo = $("#labour_id_no").val().trim();
 
-  /* ===== REQUIRED FIELDS ===== */
-  if (!name || !age || !sex || !mobile) {
-    alert("Please fill all mandatory labour details.");
-    return;
-  }
-
-  /* ===== MOBILE ===== */
-  if (!isValidMobile(mobile)) {
-    alert("Mobile number must be exactly 10 digits.");
-    return;
-  }
-
-  /* ===== ID TYPE SELECTED BUT NUMBER EMPTY ===== */
-  if (idType && !rawIdNo) {
-    alert("Please enter Govt ID number.");
-    return;
-  }
-
-  /* ===== ID VALIDATION ===== */
-  let idNo = rawIdNo;
-
-  if (idType === "Aadhar") {
-    if (!isValidAadhar(idNo)) {
-      alert("Aadhar number must be exactly 12 digits.");
+    /* ===== REQUIRED FIELDS ===== */
+    if (!name || !age || !sex || !mobile) {
+      alert("Please fill all mandatory labour details.");
       return;
     }
-  }
 
-  else if (idType === "PAN") {
-    idNo = idNo.toUpperCase();
-    if (!isValidPAN(idNo)) {
-      alert("PAN must be in format ABCDE1234F.");
+    /* ===== MOBILE ===== */
+    if (!isValidMobile(mobile)) {
+      alert("Mobile number must be exactly 10 digits.");
       return;
     }
-  }
 
-  else if (idType === "Driving License") {
-    if (!isValidDrivingLicense(idNo)) {
-      alert("Driving License number is invalid.");
+    /* ===== ID TYPE SELECTED BUT NUMBER EMPTY ===== */
+    if (idType && !rawIdNo) {
+      alert("Please enter Govt ID number.");
       return;
     }
-  }
 
-  /* ===== PUSH DATA ===== */
-  labours.push({
-    s_labour_name: name,
-    n_age: age,
-    s_sex: sex,
-    s_address: address,
-    s_temp_access_card_no: cardNo,
-    s_mobile_no: mobile,
-    s_id_type: idType,
-    s_govt_id_no: idNo,
-  });
+    /* ===== ID VALIDATION ===== */
+    let idNo = rawIdNo;
 
-  renderLabours();
-  clearLabour();
+    if (idType === "Aadhar") {
+      if (!isValidAadhar(idNo)) {
+        alert("Aadhar number must be exactly 12 digits.");
+        return;
+      }
+    }
+
+    else if (idType === "PAN") {
+      idNo = idNo.toUpperCase();
+      if (!isValidPAN(idNo)) {
+        alert("PAN must be in format ABCDE1234F.");
+        return;
+      }
+    }
+
+    else if (idType === "Driving License") {
+      if (!isValidDrivingLicense(idNo)) {
+        alert("Driving License number is invalid.");
+        return;
+      }
+    }
+
+    /* ===== PUSH DATA ===== */
+   const labourObj = {
+  s_labour_name: name,
+  n_age: age,
+  s_sex: sex,
+  s_address: address,
+  s_temp_access_card_no: cardNo,
+  s_mobile_no: mobile,
+  s_id_type: idType,
+  s_govt_id_no: idNo,
 };
+
+if (editingLabourIndex !== null) {
+  // UPDATE EXISTING
+  labours[editingLabourIndex] = labourObj;
+  editingLabourIndex = null;
+} else {
+  // ADD NEW
+  labours.push(labourObj);
+}
+
+    renderLabours();
+    clearLabour();
+  };
 
   function renderLabours() {
     const tbody = $("#labourTable tbody");
@@ -305,8 +316,12 @@ window.addLabour = () => {
           <td>${l.s_address || ""}</td>
           <td>${l.s_mobile_no || ""}</td>
           <td>
-            <button class="danger" onclick="removeLabour(${i})">X</button>
-          </td>
+  <button class="icon-btn edit" onclick="editLabour(${i})">
+    <i class="fa-solid fa-pen"></i>
+  </button>
+  <button class="danger" onclick="removeLabour(${i})">X</button>
+</td>
+
         </tr>
       `);
     });
@@ -317,121 +332,132 @@ window.addLabour = () => {
     renderLabours();
   };
 
-  function clearLabour() {
-    $("#labour_name,#labour_age,#labour_mobile,#labour_id_no").val("");
-    $("#labour_sex,#labour_address,#labour_card,#labour_id_type").val("");
-  }
+
+  window.editLabour = (index) => {
+  const l = labours[index];
+
+  editingLabourIndex = index;
+
+  $("#labour_name").val(l.s_labour_name);
+  $("#labour_age").val(l.n_age);
+  $("#labour_sex").val(l.s_sex);
+  $("#labour_address").val(l.s_address);
+  $("#labour_card").val(l.s_temp_access_card_no);
+  $("#labour_mobile").val(l.s_mobile_no);
+  $("#labour_id_type").val(l.s_id_type);
+  $("#labour_id_no").val(l.s_govt_id_no);
 
   
-  /* ================= SAVE ================= */
-
-window.saveData = () => {
-
-  /* ========= MASTER VALIDATION ========= */
-  const contractor = $("#s_contractor_name").val().trim();
-  const nature = $("#s_nature_of_work").val().trim();
-  const place = $("#s_place_of_work").val().trim();
-  const datetime = $("#dt_work_datetime").val();
-
-  if (!contractor || !nature || !place || !datetime) {
-    alert("Please fill all mandatory Work Details before saving.");
-    return;
-  }
-
-  /* ========= LABOUR VALIDATION ========= */
-  if (!labours || labours.length === 0) {
-    alert("Please add at least one Labour before saving.");
-    return;
-  }
-
-  for (let i = 0; i < labours.length; i++) {
-    const l = labours[i];
-    if (
-      !l.s_labour_name ||
-      !l.n_age ||
-      !l.s_sex ||
-      !l.s_address ||
-      !l.s_temp_access_card_no ||
-      !l.s_mobile_no ||
-      !l.s_id_type ||
-      !l.s_govt_id_no
-    ) {
-      alert(`Please complete all details for Labour #${i + 1}.`);
-      return;
-    }
-  }
-
-  /* ========= PAYLOAD ========= */
-  const payload = {
-    master: {
-      n_sl_no: editId,
-      s_location: USER_LOCATION,
-      s_contractor_name: contractor,
-      s_nature_of_work: nature,
-      s_place_of_work: place,
-      dt_work_datetime: datetime,
-    },
-    labours,
-  };
-
-  const url = isEdit
-    ? "/update_casual_labour_data"
-    : "/save_casual_labour_data";
-
-  /* ===== SAME CONFIRM STYLE AS MITRA ===== */
-  const confirmMsg = isEdit
-    ? "Do you want to update this record?"
-    : "Do you want to add this record?";
-
-  if (!confirm(confirmMsg)) return;
-
-  $.ajax({
-    url: url,
-    method: "POST",
-    contentType: "application/json",
-    data: JSON.stringify(payload),
-    success: (res) => {
-      if (isEdit) {
-        alert("Record updated successfully");
-      } else {
-        alert("Record added successfully");
-      }
-      window.location.reload();   // safe refresh
-    },
-    error: (err) => {
-      console.error(err);
-      alert("Save failed");
-    },
-  });
+  $("html, body").animate({
+    scrollTop: $("#labour_name").offset().top - 100
+  }, 300);
 };
 
 
+  function clearLabour() {
+    $("#labour_name,#labour_age,#labour_mobile,#labour_id_no").val("");
+    $("#labour_sex,#labour_address,#labour_card,#labour_id_type").val("");
+    editingLabourIndex = null;
+  }
+
+
+  /* ================= SAVE ================= */
+
+  window.saveData = () => {
+
+    /* ========= MASTER VALIDATION ========= */
+    const contractor = $("#s_contractor_name").val().trim();
+    const nature = $("#s_nature_of_work").val().trim();
+    const place = $("#s_place_of_work").val().trim();
+    const datetime = $("#dt_work_datetime").val();
+
+    if (!contractor || !nature || !place || !datetime) {
+      alert("Please fill all mandatory Work Details before saving.");
+      return;
+    }
+
+    /* ========= LABOUR VALIDATION ========= */
+    if (!labours || labours.length === 0) {
+      alert("Please add at least one Labour before saving.");
+      return;
+    }
+
+    for (let i = 0; i < labours.length; i++) {
+      const l = labours[i];
+
+      if (
+        !l.s_labour_name ||
+        !l.n_age ||
+        !l.s_sex ||
+        !l.s_address ||
+        !l.s_temp_access_card_no ||
+        !l.s_mobile_no ||
+        !l.s_id_type ||
+        !l.s_govt_id_no
+      ) {
+        alert(`Please complete all details for Labour #${i + 1}.`);
+        return;
+      }
+    }
+
+    /* ========= ORIGINAL PAYLOAD (UNCHANGED) ========= */
+    const payload = {
+      master: {
+        n_sl_no: editId,
+        s_location: USER_LOCATION,
+        s_contractor_name: contractor,
+        s_nature_of_work: nature,
+        s_place_of_work: place,
+        dt_work_datetime: datetime,
+      },
+      labours,
+    };
+
+    const url = isEdit
+      ? "/update_casual_labour_data"
+      : "/save_casual_labour_data";
+
+    if (!confirm(isEdit ? "Update this record?" : "Add this record?")) return;
+
+    $.ajax({
+      url: url,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+      success: (res) => {
+        alert(res.message || "Saved successfully");
+        window.location.reload();  
+      },
+      error: (err) => {
+        console.error(err);
+        alert("Save failed");
+      },
+    });
+  };
+
   /* ================= DELETE ================= */
 
-$("#masterTable").on("click", ".icon-btn.delete", function () {
-  const record = $(this).closest("tr").data("record");
+  $("#masterTable").on("click", ".icon-btn.delete", function () {
+    const record = $(this).closest("tr").data("record");
 
-  if (!confirm("Are you sure you want to delete this record?")) return;
+    if (!confirm("Delete this record?")) return;
 
-  $.ajax({
-    url: "/delete_casual_labour_data",
-    method: "POST",
-    contentType: "application/json",
-    data: JSON.stringify({ n_sl_no: record.n_sl_no }),
-    success: (res) => {
-      alert("Deleted successfully");
-      loadData();
-    },
-    error: () => {
-      alert("Delete failed at server");
-    },
+    $.ajax({
+      url: "/delete_casual_labour_data",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ n_sl_no: record.n_sl_no }),
+      success: (res) => {
+        alert(res.message || "Deleted successfully");
+        loadData();
+      },
+      error: () => alert("Delete failed"),
+    });
   });
-});
-
 
   /* ================= INIT ================= */
-window.nextPage = nextPage;
-window.prevPage = prevPage;
+  window.nextPage = nextPage;
+  window.prevPage = prevPage;
   loadData();
 }
 
