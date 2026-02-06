@@ -182,8 +182,7 @@ function patrollingApp() {
     }
 
     
-    if (!confirm("Do you want to proceed with saving changes?")) return;
-    if (!confirm("This action will permanently update records. Continue?")) return;
+    if (!confirm("Are you sure you want to save the changes?")) return;
 
     let requests = [];
 
@@ -240,7 +239,6 @@ function patrollingApp() {
     const row = btn.closest("tr");
 
     if (!confirm("Are you sure you want to delete this record?")) return;
-    if (!confirm("This action cannot be undone. Continue?")) return;
 
     row.remove();
     updateSerialNumbers();
