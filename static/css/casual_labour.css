@@ -187,3 +187,27 @@ button {
   justify-content: center;
   margin: 20px 0;
 }
+.row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.field label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.field input,
+.field select {
+  padding: 8px 10px;
+  font-size: 14px;
+}

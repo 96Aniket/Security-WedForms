@@ -77,35 +77,65 @@
 
         <input type="hidden" id="n_vc_id">
 
-        <!-- Row 1 -->
-        <div class="row">
-            <input id="s_location_code" placeholder="Location" required>
-            <input id="s_vehicle_no" placeholder="Vehicle No" required>
-        </div>
+       <!-- Row 1 -->
+<div class="row">
+  <div class="field">
+    <label for="s_location_code">Location</label>
+    <input id="s_location_code" required>
+  </div>
 
-        <!-- Row 2 -->
-        <div class="row">
-            <input id="s_vehicle_type" placeholder="Vehicle Type" required>
-            <input id="s_driver_name" placeholder="Driver Name" required>
-        </div>
+  <div class="field">
+    <label for="s_vehicle_no">Vehicle No</label>
+    <input id="s_vehicle_no" required>
+  </div>
+</div>
+
+
+       <!-- Row 2 -->
+<div class="row">
+  <div class="field">
+    <label for="s_vehicle_type">Vehicle Type</label>
+    <input id="s_vehicle_type" required>
+  </div>
+
+  <div class="field">
+    <label for="s_driver_name">Driver Name</label>
+    <input id="s_driver_name" required>
+  </div>
+</div>
+
 
         <!-- Row 3 -->
-        <div class="row">
-            <input id="s_contact_no"
-                placeholder="Contact No"
-                maxlength="10"
-                inputmode="numeric"
-                required>
-            <input id="s_occupants_name" placeholder="Occupants Name" required>
-        </div>
+<div class="row">
+  <div class="field">
+    <label for="s_contact_no">Contact No</label>
+    <input
+      id="s_contact_no"
+      maxlength="10"
+      inputmode="numeric"
+      required
+    >
+  </div>
+
+  <div class="field">
+    <label for="s_occupants_name">Occupants Name</label>
+    <input id="s_occupants_name" required>
+  </div>
+</div>
 
         <!-- Row 4 -->
-        <div class="row">
-            <input type="datetime-local" id="dt_entry_datetime" required>
-            <textarea id="s_purpose_of_entry"
-                    placeholder="Purpose of Entry"
-                    required></textarea>
-        </div>
+<div class="row">
+  <div class="field">
+    <label for="dt_entry_datetime">Entry Date & Time</label>
+    <input type="datetime-local" id="dt_entry_datetime" required>
+  </div>
+
+  <div class="field">
+    <label for="s_purpose_of_entry">Purpose of Entry</label>
+    <textarea id="s_purpose_of_entry" required></textarea>
+  </div>
+</div>
+
         </div>
 
         <!-- =============== STEP 2 =============== -->

@@ -167,6 +167,7 @@ html, body {
 /* ================= FORM ROW ================= */
 .row {
   display: flex;
+  flex-wrap: wrap;  
   gap: 10px;
   margin-bottom: 10px;
 }
@@ -274,4 +275,25 @@ button {
   display: flex;
   justify-content: center;
   margin: 20px 0;
+}
+
+/* ================= FIELD (LABEL ABOVE INPUT) ================= */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 250px;
+}
+
+.field label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
 }

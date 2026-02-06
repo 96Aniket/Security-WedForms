@@ -68,18 +68,36 @@
       <h3>Visitor Details</h3>
 
       <div class="row">
-        <input id="s_location" placeholder="Location">
-        <input id="s_visitor_name" placeholder="Visitor Name">
-      </div>
+  <div class="field">
+    <label for="s_location">Location</label>
+    <input id="s_location">
+  </div>
 
-      <div class="row">
-        <input id="s_visitor_pass_no" placeholder="Visitor Pass No">
-        <input id="s_whom_to_meet" placeholder="Whom To Meet">
-      </div>
+  <div class="field">
+    <label for="s_visitor_name">Visitor Name</label>
+    <input id="s_visitor_name">
+  </div>
+</div>
 
-      <div class="row">
-        <input type="datetime-local" id="dt_visit_datetime">
-      </div>
+<div class="row">
+  <div class="field">
+    <label for="s_visitor_pass_no">Visitor Pass No</label>
+    <input id="s_visitor_pass_no">
+  </div>
+
+  <div class="field">
+    <label for="s_whom_to_meet">Whom To Meet</label>
+    <input id="s_whom_to_meet">
+  </div>
+</div>
+
+<div class="row">
+  <div class="field">
+    <label for="dt_visit_datetime">Visit Date & Time</label>
+    <input type="datetime-local" id="dt_visit_datetime">
+  </div>
+</div>
+
 
     </div>
 
@@ -88,10 +106,22 @@
       <h3>Item Details</h3>
 
       <div class="row">
-        <input id="item_desc" placeholder="Item Code / Description">
-        <input id="item_uom" placeholder="UOM">
-        <input id="item_qty" type="number" placeholder="Quantity">
-      </div>
+  <div class="field field-small">
+    <label for="item_desc">Item Code / Description</label>
+    <input id="item_desc">
+  </div>
+
+  <div class="field field-xsmall">
+    <label for="item_uom">UOM</label>
+    <input id="item_uom">
+  </div>
+
+  <div class="field field-xsmall">
+    <label for="item_qty">Quantity</label>
+    <input id="item_qty" type="number">
+  </div>
+</div>
+
 
       <button onclick="addItem()">Add Item</button>
 
