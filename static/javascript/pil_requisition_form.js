@@ -44,7 +44,6 @@ function requisitionFormApp() {
     return val ? String(val).split(" ")[0] : "";
   }
 
-  // Handles SQL Server column casing (dt_xxx / DT_XXX)
   function getVal(obj, key) {
     return obj[key] ?? obj[key.toUpperCase()] ?? obj[key.toLowerCase()] ?? null;
   }
@@ -172,86 +171,116 @@ function requisitionFormApp() {
 
   window.saveRequisition = () => {
 
-    const payload = {
-      n_sr_no: editId || null,
-      s_location: USER_LOCATION,
+  // ===== VALIDATION =====
+  if (!isEdit && !$("#dt_request_date").val()) {
+    alert("Please fill required fields");
+    return;
+  }
 
-      dt_request_date: $("#dt_request_date").val(),
-      dt_date_of_birth: $("#dt_date_of_birth").val(),
-      dt_work_order_validity: $("#dt_work_order_validity").val(),
-      dt_date_of_joining: $("#dt_date_of_joining").val(),
-      dt_date_of_issue: $("#dt_date_of_issue").val(),
+  // ===== CONFIRM MESSAGE (SAME STYLE AS PATROLLING) =====
+  let confirmMsg = "Do you want to save this record?";
+  if (isEdit) confirmMsg = "Do you want to update this record?";
 
-      s_first_name: $("#s_first_name").val(),
-      s_middle_name: $("#s_middle_name").val() || null,
-      s_last_name: $("#s_last_name").val(),
+  if (!confirm(confirmMsg)) return;
 
-      n_age: $("#n_age").val(),
+  const payload = {
+  n_sr_no: editId,
+  s_location: USER_LOCATION,
 
-      s_agency_name: $("#s_agency_name").val(),
-      s_sap_vendor_code: $("#s_sap_vendor_code").val() || null,
+  dt_request_date: $("#dt_request_date").val(),
+  dt_date_of_birth: $("#dt_date_of_birth").val(),
+  dt_work_order_validity: $("#dt_work_order_validity").val(),
+  dt_date_of_joining: $("#dt_date_of_joining").val(),
+  dt_date_of_issue: $("#dt_date_of_issue").val(),
 
-      s_nature_of_job: $("#s_nature_of_job").val(),
-      s_work_order_no: $("#s_work_order_no").val(),
-      s_exact_work_location: $("#s_exact_work_location").val(),
+  s_first_name: $("#s_first_name").val(),
+  s_middle_name: $("#s_middle_name").val() || null,
+  s_last_name: $("#s_last_name").val(),
 
-      n_height_cm: $("#n_height_cm").val() || null,
-      s_gender: $("#s_gender").val(),
-      s_blood_group: $("#s_blood_group").val() || null,
+  n_age: Number($("#n_age").val()) || 0,
 
-      s_identification_mark: $("#s_identification_mark").val() || null,
-      s_aadhar_card_no: $("#s_aadhar_card_no").val(),
+  s_agency_name: $("#s_agency_name").val(),
+  s_sap_vendor_code: $("#s_sap_vendor_code").val() || null,
 
-      s_present_address: $("#s_present_address").val(),
-      s_present_city: $("#s_present_city").val(),
-      s_present_state: $("#s_present_state").val(),
-      s_present_pincode: $("#s_present_pincode").val(),
-      s_contact_no: $("#s_contact_no").val(),
+  s_nature_of_job: $("#s_nature_of_job").val(),
+  s_work_order_no: $("#s_work_order_no").val(),
+  s_exact_work_location: $("#s_exact_work_location").val(),
 
-      s_emergency_contact_details: $("#s_emergency_contact_details").val(),
-      s_emergency_city: $("#s_emergency_city").val(),
-      s_emergency_state: $("#s_emergency_state").val(),
-      s_emergency_pincode: $("#s_emergency_pincode").val(),
-      s_emergency_contact_no: $("#s_emergency_contact_no").val(),
+  n_height_cm: Number($("#n_height_cm").val()) || null,
+  s_gender: $("#s_gender").val(),
+  s_blood_group: $("#s_blood_group").val() || null,
 
-      s_police_verification_cert: $("#s_police_verification_cert").is(":checked") ? "Y" : null,
-      s_medical_certificate: $("#s_medical_certificate").is(":checked") ? "Y" : null,
-      s_govt_id_proof: $("#s_govt_id_proof").is(":checked") ? "Y" : null,
-      s_hsse_training: $("#s_hsse_training").is(":checked") ? "Y" : null,
+  s_identification_mark: $("#s_identification_mark").val() || null,
+  s_aadhar_card_no: $("#s_aadhar_card_no").val(),
 
-      s_contractor_name: $("#s_contractor_name").val(),
-      s_engineer_name: $("#s_engineer_name").val(),
-      s_area_manager_name: $("#s_area_manager_name").val(),
-      s_security_ic_name: $("#s_security_ic_name").val(),
+  s_present_address: $("#s_present_address").val(),
+  s_present_city: $("#s_present_city").val(),
+  s_present_state: $("#s_present_state").val(),
+  s_present_pincode: $("#s_present_pincode").val(),
+  s_contact_no: $("#s_contact_no").val(),
 
-      s_security_name: $("#s_security_ic_name").val(),
-      s_entry_permit_no: $("#s_entry_permit_no").val()
-    };
+  s_emergency_contact_details: $("#s_emergency_contact_details").val(),
+  s_emergency_city: $("#s_emergency_city").val(),
+  s_emergency_state: $("#s_emergency_state").val(),
+  s_emergency_pincode: $("#s_emergency_pincode").val(),
+  s_emergency_contact_no: $("#s_emergency_contact_no").val(),
 
-    const url = isEdit ? "/update_requisition_form" : "/save_requisition_form";
-    
+  s_police_verification_cert: $("#s_police_verification_cert").is(":checked") ? "Y" : null,
+  s_medical_certificate: $("#s_medical_certificate").is(":checked") ? "Y" : null,
+  s_govt_id_proof: $("#s_govt_id_proof").is(":checked") ? "Y" : null,
+  s_hsse_training: $("#s_hsse_training").is(":checked") ? "Y" : null,
 
-    $.ajax({
-      url,
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify(payload),
-      success: res => {
-        alert(res.message);
+  s_contractor_name: $("#s_contractor_name").val(),
+  s_engineer_name: $("#s_engineer_name").val(),
+  s_area_manager_name: $("#s_area_manager_name").val(),
+  s_security_ic_name: $("#s_security_ic_name").val(),
+
+  s_security_name: $("#s_security_ic_name").val(),
+  s_entry_permit_no: $("#s_entry_permit_no").val(),
+
+  // ===== REQUIRED BUT MISSING (SET SAFE NULLS) =====
+  s_photo: null,
+  s_applicant_signature: null,
+  s_contractor_signature: null,
+  s_engineer_signature: null,
+  s_area_manager_signature: null,
+  s_security_ic_signature: null,
+  s_issuing_person_signature: null
+};
+
+
+  const url = isEdit ? "/update_requisition_form" : "/save_requisition_form";
+
+  if (isEdit && !editId) {
+  alert("Invalid record selected for update");
+  return;
+}
+
+
+  $.ajax({
+    url,
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(payload),
+    success: res => {
+      if (res.success) {
+        alert(isEdit ? "Record updated successfully" : "Record added successfully");
         location.reload();
-      },
-      error: xhr => {
-        alert(xhr.responseText || "Server error");
+      } else {
+        alert(res.message || "Save failed");
       }
-    });
-  };
+    },
+    error: () => alert("Server error while saving")
+  });
+};
+
 
   /* ================= DELETE ================= */
 
   $("#masterTable").on("click", ".delete", function () {
     const r = $(this).closest("tr").data("record");
 
-    if (!confirm("Delete this record?")) return;
+    if (!confirm("Are you sure you want to delete this record?")) return;
 
     $.ajax({
       url: "/delete_requisition_form",
@@ -259,11 +288,17 @@ function requisitionFormApp() {
       contentType: "application/json",
       data: JSON.stringify({ n_sr_no: getVal(r, "n_sr_no") }),
       success: res => {
-        alert(res.message);
-        loadData();
-      }
+        if (res.success) {
+          alert("Deleted successfully");
+          loadData();
+        } else {
+          alert(res.message || "Delete failed");
+        }
+      },
+      error: () => alert("Delete failed at server")
     });
   });
+
 
   loadData();
 }
