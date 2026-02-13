@@ -117,6 +117,8 @@ function pipelineMitraApp() {
 
     tbody.prepend(row);
     updateSerialNumbers();
+
+    document.getElementById("saveBtn").style.display = "inline-block";
   }
 
   /* ================= EDIT ================= */
@@ -149,13 +151,58 @@ function editRow(btn) {
       row.children[i].innerHTML = `<input type="text" value="${val}">`;
     }
   });
+  document.getElementById("saveBtn").style.display = "inline-block";
 
   btn.disabled = true;
+}
+
+function validateMandatoryFields() {
+  let isValid = true;
+
+  document.querySelectorAll(".mandatory-error").forEach(el =>
+    el.classList.remove("mandatory-error")
+  );
+  document.querySelectorAll(".mandatory-star").forEach(el => el.remove());
+  document.querySelectorAll(".mandatory-cell").forEach(el =>
+    el.classList.remove("mandatory-cell")
+  );
+
+  const rows = document.querySelectorAll("#mitraTable tbody tr");
+
+  rows.forEach(row => {
+    const dateInput   = row.children[2]?.querySelector("input");
+    const nameInput   = row.children[4]?.querySelector("input");
+    const mobileInput = row.children[6]?.querySelector("input");
+
+    [dateInput, nameInput, mobileInput].forEach(input => {
+      if (input && !input.value.trim()) {
+        isValid = false;
+        input.classList.add("mandatory-error");
+
+        const cell = input.closest("td");
+        cell.classList.add("mandatory-cell");
+
+        if (!cell.querySelector(".mandatory-star")) {
+          const star = document.createElement("span");
+          star.innerText = "*";
+          star.className = "mandatory-star";
+          cell.appendChild(star);
+        }
+      }
+    });
+  });
+
+  if (!isValid) {
+    alert("Please fill mandatory fields");
+  }
+
+  return isValid;
 }
 
   /* ================= SAVE ================= */
 
   function saveTable() {
+     if (!validateMandatoryFields()) return;
   const rows = document.querySelectorAll("#mitraTable tbody tr");
 
   let hasNew = false;
@@ -246,6 +293,7 @@ if (row.dataset.edited && !row.dataset.new) {
   } else {
     alert("Record updated successfully");
   }
+  document.getElementById("saveBtn").style.display = "none";
 
   loadData();
 }
@@ -386,6 +434,21 @@ async function downloadTable() {
   window.nextPage = nextPage;
   window.prevPage = prevPage;
   window.downloadTable = downloadTable;
+
+
+  document.addEventListener("input", e => {
+  const input = e.target;
+  if (!input.classList.contains("mandatory-error")) return;
+
+  input.classList.remove("mandatory-error");
+
+  const cell = input.closest("td");
+  cell?.classList.remove("mandatory-cell");
+
+  const star = cell?.querySelector(".mandatory-star");
+  if (star) star.remove();
+});
+
 
 
   loadData();

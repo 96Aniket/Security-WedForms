@@ -12,6 +12,46 @@ function casualLabourApp() {
   const prevBtn = document.getElementById("prevBtn");
   const nextBtn = document.getElementById("nextBtn");
 
+ function markMandatory(input) {
+  if (!input) return;
+
+  input.classList.add("mandatory-error");
+
+  const field = input.closest(".field");
+  if (!field) return;
+
+  const label = field.querySelector("label");
+  if (!label) return;
+
+  // prevent duplicate stars
+  if (!label.querySelector(".mandatory-star")) {
+    const star = document.createElement("span");
+    star.className = "mandatory-star";
+    star.textContent = "*";
+    label.appendChild(star);
+  }
+}
+
+
+function clearMandatory(input) {
+  input.classList.remove("mandatory-error");
+
+  const field = input.closest(".field");
+  if (!field) return;
+
+  const label = field.querySelector("label");
+  const star = label?.querySelector(".mandatory-star");
+  if (star) star.remove();
+}
+
+
+document.addEventListener("input", e => {
+  if (e.target.classList.contains("mandatory-error")) {
+    clearMandatory(e.target);
+  }
+});
+
+
   function isValidMobile(mobile) {
     return /^[0-9]{10}$/.test(mobile);
   }
@@ -245,10 +285,42 @@ function renderPage() {
     const rawIdNo = $("#labour_id_no").val().trim();
 
     /* ===== REQUIRED FIELDS ===== */
-    if (!name || !age || !sex || !mobile) {
-      alert("Please fill all mandatory labour details.");
-      return;
-    }
+    let labourValid = true;
+
+if (!name) {
+  markMandatory(document.getElementById("labour_name"));
+  labourValid = false;
+}
+
+if (!mobile) {
+  markMandatory(document.getElementById("labour_mobile"));
+  labourValid = false;
+}
+
+if (!idType) {
+  markMandatory(document.getElementById("labour_id_type"));
+  labourValid = false;
+}
+
+if (!rawIdNo) {
+  markMandatory(document.getElementById("labour_id_no"));
+  labourValid = false;
+}
+
+if (!labourValid) {
+  alert("Please fill mandatory Labour details.");
+  return;
+}
+
+const ageNum = Number(age);
+
+if (!Number.isInteger(ageNum) || ageNum < 1) {
+  markMandatory(document.getElementById("labour_age"));
+  alert("Age must be a valid number greater than 0.");
+  return;
+}
+
+
 
     /* ===== MOBILE ===== */
     if (!isValidMobile(mobile)) {
@@ -385,10 +457,28 @@ function renderLabours() {
     const place = $("#s_place_of_work").val().trim();
     const datetime = $("#dt_work_datetime").val();
 
-    if (!contractor || !nature || !place || !datetime) {
-      alert("Please fill all mandatory Work Details before saving.");
-      return;
-    }
+    let workValid = true;
+
+const contractorInput = document.getElementById("s_contractor_name");
+const datetimeInput   = document.getElementById("dt_work_datetime");
+
+// contractor mandatory
+if (!contractor) {
+  markMandatory(contractorInput);
+  workValid = false;
+}
+
+// date & time mandatory
+if (!datetime) {
+  markMandatory(datetimeInput);
+  workValid = false;
+}
+
+if (!workValid) {
+  alert("Please fill mandatory Work Details.");
+  return;
+}
+
 
     /* ========= LABOUR VALIDATION ========= */
     if (!labours || labours.length === 0) {
@@ -400,18 +490,15 @@ function renderLabours() {
       const l = labours[i];
 
       if (
-        !l.s_labour_name ||
-        !l.n_age ||
-        !l.s_sex ||
-        !l.s_address ||
-        !l.s_temp_access_card_no ||
-        !l.s_mobile_no ||
-        !l.s_id_type ||
-        !l.s_govt_id_no
-      ) {
-        alert(`Please complete all details for Labour #${i + 1}.`);
-        return;
-      }
+  !l.s_labour_name ||
+  !l.s_mobile_no ||
+  !l.s_id_type ||
+  !l.s_govt_id_no
+) {
+  alert(`Please complete mandatory details for Labour #${i + 1}.`);
+  return;
+}
+
     }
 
     /* ========= ORIGINAL PAYLOAD (UNCHANGED) ========= */

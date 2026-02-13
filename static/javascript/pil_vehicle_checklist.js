@@ -34,6 +34,43 @@ function vehicleChecklistApp() {
     { code: "OTHER", label: "Any Other" }
   ];
 
+  function markMandatory(input) {
+  if (!input) return;
+
+  input.classList.add("mandatory-error");
+
+  const field = input.closest(".field");
+  if (!field) return;
+
+  const label = field.querySelector("label");
+  if (!label) return;
+
+  if (!label.querySelector(".mandatory-star")) {
+    const star = document.createElement("span");
+    star.className = "mandatory-star";
+    star.textContent = "*";
+    label.appendChild(star);
+  }
+}
+
+function clearMandatory(input) {
+  input.classList.remove("mandatory-error");
+
+  const field = input.closest(".field");
+  if (!field) return;
+
+  const label = field.querySelector("label");
+  const star = label?.querySelector(".mandatory-star");
+  if (star) star.remove();
+}
+
+document.addEventListener("input", e => {
+  if (e.target.classList.contains("mandatory-error")) {
+    clearMandatory(e.target);
+  }
+});
+
+
   function showPagination() {
     $("#paginationBar").show();
   }
@@ -253,106 +290,131 @@ function vehicleChecklistApp() {
   /* ============ SAVE / UPDATE ============ */
   window.saveData = () => {
 
+  /* ========= STEP 1: MANDATORY FIELD VALIDATION (UI + LOGIC) ========= */
+  let valid = true;
 
-    if (
-      !$("#s_vehicle_no").val() ||
-      !$("#s_vehicle_type").val() ||
-      !$("#s_driver_name").val() ||
-      !$("#s_contact_no").val() ||
-      !$("#s_occupants_name").val() ||
-      !$("#dt_entry_datetime").val() ||
-      !$("#s_purpose_of_entry").val()
-    ) {
-      alert("Please fill all required fields");
-      return;
+  const vehicleNoInput = document.getElementById("s_vehicle_no");
+  const driverInput   = document.getElementById("s_driver_name");
+  const contactInput  = document.getElementById("s_contact_no");
+  const datetimeInput = document.getElementById("dt_entry_datetime");
+
+  if (!vehicleNoInput.value.trim()) {
+    markMandatory(vehicleNoInput);
+    valid = false;
+  }
+
+  if (!driverInput.value.trim()) {
+    markMandatory(driverInput);
+    valid = false;
+  }
+
+  if (!contactInput.value.trim()) {
+    markMandatory(contactInput);
+    valid = false;
+  }
+
+  if (!datetimeInput.value) {
+    markMandatory(datetimeInput);
+    valid = false;
+  }
+
+  if (!valid) {
+    alert("Please fill mandatory Vehicle Details.");
+    return;
+  }
+
+  /* ========= STEP 2: CONTACT NUMBER VALIDATION ========= */
+  if (contactInput.value.length !== 10) {
+    alert("Contact number must be exactly 10 digits");
+    contactInput.focus();
+    return;
+  }
+
+  /* ========= STEP 3: CHECKLIST VISIBILITY ========= */
+  if ($("#step2").is(":hidden") || $("#checkTable tbody tr").length === 0) {
+    alert("Please complete checklist before saving.");
+    return;
+  }
+
+  /* ========= STEP 4: EDIT SAFETY ========= */
+  if (isEdit && !editId) {
+    alert("Edit ID missing. Please reload.");
+    return;
+  }
+
+  /* ========= STEP 5: CHECKLIST VALIDATION ========= */
+  const rows = $("#checkTable tbody tr");
+  const checklist = [];
+  let checklistValid = true;
+
+  rows.each(function () {
+    const tr = $(this);
+    const status = tr.find("input[type=radio]:checked").val();
+    const remarkInput = tr.find(".remark");
+    const remark = remarkInput.val();
+
+    if (!status) {
+      checklistValid = false;
     }
 
-    if ($("#s_contact_no").val().length !== 10) {
-      alert("Contact number must be exactly 10 digits");
-      return;
+    if (status === "N" && !remark) {
+      remarkInput
+        .addClass("remark-required")
+        .attr("placeholder", "Remark required for NO");
+      checklistValid = false;
+    } else {
+      remarkInput.removeClass("remark-required");
     }
 
-
-    if ($("#step2").is(":hidden") || $("#checkTable tbody tr").length === 0) {
-      alert("Please complete checklist before saving.");
-      return;
-    }
-
-    if (isEdit && !editId) {
-      alert("Edit ID missing. Please reload.");
-      return;
-    }
-
-    const rows = $("#checkTable tbody tr");
-    const checklist = [];
-    let valid = true;
-
-    rows.each(function () {
-      const tr = $(this);
-      const status = tr.find("input[type=radio]:checked").val();
-      const remarkInput = tr.find(".remark");
-      const remark = remarkInput.val();
-
-      if (!status) {
-        valid = false;
-      }
-
-      if (status === "N" && !remark) {
-        remarkInput
-          .addClass("remark-required")
-          .attr("placeholder", "Remark required for NO");
-        valid = false;
-      } else {
-        remarkInput.removeClass("remark-required");
-      }
-
-      checklist.push({
-        s_check_code: tr.data("code"),
-        s_check_label: tr.data("label"),
-        s_status: status,
-        s_remark: remark
-      });
+    checklist.push({
+      s_check_code: tr.data("code"),
+      s_check_label: tr.data("label"),
+      s_status: status,
+      s_remark: remark
     });
+  });
 
+  if (!checklistValid) {
+    alert("Please complete checklist properly");
+    return;
+  }
 
-    if (!valid) {
-      alert("Please complete checklist properly");
-      return;
-    }
-
-    const payload = {
-      master: {
-        n_vc_id: editId,
-        s_location_code: USER_LOCATION,
-        s_vehicle_no: $("#s_vehicle_no").val(),
-        s_vehicle_type: $("#s_vehicle_type").val(),
-        s_driver_name: $("#s_driver_name").val(),
-        s_contact_no: $("#s_contact_no").val(),
-        s_occupants_name: $("#s_occupants_name").val(),
-        dt_entry_datetime: $("#dt_entry_datetime").val(),
-        s_purpose_of_entry: $("#s_purpose_of_entry").val()
-      },
-      checklist
-    };
-
-    const url = isEdit
-      ? "/update_vehicle_checklist_data"
-      : "/save_vehicle_checklist_full";
-
-    if (!confirm(isEdit ? "Update vehicle checklist?" : "Save vehicle checklist?")) return;
-
-    $.ajax({
-      url,
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify(payload),
-      success: res => {
-        alert(res.message);
-        location.reload();
-      },
-      error: () => alert("Server error")
-    });
+  /* ========= STEP 6: PAYLOAD ========= */
+  const payload = {
+    master: {
+      n_vc_id: editId,
+      s_location_code: USER_LOCATION,
+      s_vehicle_no: vehicleNoInput.value.trim(),
+      s_vehicle_type: $("#s_vehicle_type").val(),
+      s_driver_name: driverInput.value.trim(),
+      s_contact_no: contactInput.value.trim(),
+      s_occupants_name: $("#s_occupants_name").val(),
+      dt_entry_datetime: datetimeInput.value,
+      s_purpose_of_entry: $("#s_purpose_of_entry").val()
+    },
+    checklist
   };
+
+  const url = isEdit
+    ? "/update_vehicle_checklist_data"
+    : "/save_vehicle_checklist_full";
+
+  if (!confirm(isEdit ? "Update vehicle checklist?" : "Save vehicle checklist?")) return;
+
+  /* ========= STEP 7: SAVE ========= */
+  $.ajax({
+    url,
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(payload),
+    success: res => {
+      alert(res.message);
+      location.reload();
+    },
+    error: () => alert("Server error")
+  });
+};
+
 
   /* ============ DELETE ============ */
   $("#masterTable").on("click", ".delete", function () {

@@ -311,3 +311,21 @@ button {
 .btn-download:hover {
     background: #218838;
 }
+.mandatory-error {
+  border: 2px solid red !important;
+  background-color: #fff5f5;
+}
+
+.field label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.mandatory-star {
+  color: red;
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 1;
+}

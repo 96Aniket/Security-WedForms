@@ -190,6 +190,8 @@ function openFromInput(btn) {
 
     tbody.prepend(row);
     updateSerialNumbers();
+    document.getElementById("saveBtn").style.display = "inline-block";
+
   }
 
   /* ================= DELETE ================= */
@@ -298,10 +300,58 @@ function openFromInput(btn) {
 
     btn.disabled = true;
     btn.innerText = "Editing";
+    document.getElementById("saveBtn").style.display = "inline-block";
+
   }
+
+  function validateMandatoryFields() {
+  let isValid = true;
+
+  // clear old errors
+  document.querySelectorAll(".mandatory-error").forEach(el =>
+    el.classList.remove("mandatory-error")
+  );
+  document.querySelectorAll(".mandatory-star").forEach(el => el.remove());
+  document.querySelectorAll(".mandatory-cell").forEach(el =>
+    el.classList.remove("mandatory-cell")
+  );
+
+  const rows = document.querySelectorAll("#bbaTable tbody tr");
+
+  rows.forEach(row => {
+    const dateInput     = row.children[2]?.querySelector("input"); // date
+    const timeInput     = row.children[3]?.querySelector("input"); // time
+    const nameInput     = row.children[5]?.querySelector("input"); // name
+    const securityInput = row.children[10]?.querySelector("input"); // security
+
+    [dateInput, timeInput, nameInput, securityInput].forEach(input => {
+      if (input && !input.value) {
+        isValid = false;
+        input.classList.add("mandatory-error");
+
+        const cell = input.closest("td");
+        cell.classList.add("mandatory-cell");
+
+        if (!cell.querySelector(".mandatory-star")) {
+          const star = document.createElement("span");
+          star.innerText = "*";
+          star.className = "mandatory-star";
+          cell.appendChild(star);
+        }
+      }
+    });
+  });
+
+  if (!isValid) {
+    alert("Please fill mandatory fields");
+  }
+
+  return isValid;
+}
 
   /* ================= SAVE ================= */
   function saveTable() {
+    if (!validateMandatoryFields()) return;
     const rows = document.querySelectorAll("#bbaTable tbody tr");
 
     let hasNew = false;
@@ -374,6 +424,7 @@ function openFromInput(btn) {
     } else {
       alert("Record updated successfully");
     }
+    document.getElementById("saveBtn").style.display = "none";
 
     loadBbaData();
   }
@@ -567,6 +618,20 @@ async function downloadTable() {
   window.prevPage = prevPage;
   window.closePreview = closePreview;
   window.downloadCurrentFile = downloadCurrentFile;
+
+  document.addEventListener("input", e => {
+  const input = e.target;
+  if (!input.classList.contains("mandatory-error")) return;
+
+  input.classList.remove("mandatory-error");
+
+  const cell = input.closest("td");
+  cell?.classList.remove("mandatory-cell");
+
+  const star = cell?.querySelector(".mandatory-star");
+  if (star) star.remove();
+});
+
 
   document.addEventListener("DOMContentLoaded", loadBbaData);
 }

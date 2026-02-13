@@ -133,6 +133,8 @@ function patrollingApp() {
 
     tbody.prepend(row);
     updateSerialNumbers();
+
+    document.getElementById("saveBtn").style.display = "inline-block";
   }
 
   /* ================= EDIT ================= */
@@ -159,13 +161,69 @@ function patrollingApp() {
 
     row.children[14].innerHTML = `<textarea>${row.querySelector(".remarks").innerText}</textarea>`;
     row.children[15].innerHTML = `<input value="${row.querySelector(".guard").innerText}">`;
-
+    
     btn.disabled = true;
+
+    document.getElementById("saveBtn").style.display = "inline-block";
   }
+
+  /* ================= Mandatory fields ================= */
+  function validateMandatoryFields() {
+  let isValid = true;
+
+  // remove old errors
+  document.querySelectorAll(".mandatory-error").forEach(el => {
+    el.classList.remove("mandatory-error");
+  });
+
+  document.querySelectorAll(".mandatory-star").forEach(el => el.remove());
+
+  const rows = document.querySelectorAll("#patrolTable tbody tr");
+
+  rows.forEach(row => {
+    const dateInput  = row.children[2]?.querySelector("input");
+    const fromInput  = row.children[3]?.querySelector("input");
+    const toInput    = row.children[4]?.querySelector("input");
+    const guardInput = row.children[15]?.querySelector("input");
+
+    [
+      dateInput,
+      fromInput,
+      toInput,
+      guardInput
+    ].forEach(input => {
+      if (input && !input.value) {
+        isValid = false;
+        input.classList.add("mandatory-error");
+
+        // add red star
+        const cell = input.closest("td");
+cell.classList.add("mandatory-cell");
+
+if (!cell.querySelector(".mandatory-star")) {
+  const star = document.createElement("span");
+  star.innerText = "*";
+  star.className = "mandatory-star";
+  cell.appendChild(star);
+}
+
+      }
+    });
+  });
+
+  if (!isValid) {
+    alert("Please fill mandatory fields");
+  }
+
+  return isValid;
+}
 
   /* ================= SAVE ================= */
 
   function saveTable() {
+     if (!validateMandatoryFields()) {
+    return; 
+  }
   const rows = document.querySelectorAll("#patrolTable tbody tr");
 
   let hasNew = false;
@@ -244,6 +302,7 @@ function patrollingApp() {
     }
 
     loadPatrollingData();
+    document.getElementById("saveBtn").style.display = "none";
   });
 }
 
@@ -417,6 +476,20 @@ worksheet.getRow(1).height = 40;
   window.nextPage = nextPage;
   window.prevPage = prevPage;
   window.downloadTable = downloadTable;
+
+   document.addEventListener("input", e => {
+    const input = e.target;
+
+    if (input.classList.contains("mandatory-error")) {
+      input.classList.remove("mandatory-error");
+
+      const cell = input.closest("td");
+      const star = cell?.querySelector(".mandatory-star");
+      if (star) star.remove();
+
+      cell?.classList.remove("mandatory-cell");
+    }
+  });
 
   loadPatrollingData();
 }

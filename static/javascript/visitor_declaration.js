@@ -14,6 +14,44 @@ function visitorDeclarationApp() {
   const prevBtn = () => document.getElementById("prevBtn");
   const nextBtn = () => document.getElementById("nextBtn");
 
+  function markMandatory(input) {
+  if (!input) return;
+
+  input.classList.add("mandatory-error");
+
+  const field = input.closest(".field");
+  if (!field) return;
+
+  const label = field.querySelector("label");
+  if (!label) return;
+
+  if (!label.querySelector(".mandatory-star")) {
+    const star = document.createElement("span");
+    star.className = "mandatory-star";
+    star.textContent = "*";
+    label.appendChild(star);
+  }
+}
+
+function clearMandatory(input) {
+  input.classList.remove("mandatory-error");
+
+  const field = input.closest(".field");
+  if (!field) return;
+
+  const label = field.querySelector("label");
+  const star = label?.querySelector(".mandatory-star");
+  if (star) star.remove();
+}
+
+/* auto-clear on typing */
+document.addEventListener("input", e => {
+  if (e.target.classList.contains("mandatory-error")) {
+    clearMandatory(e.target);
+  }
+});
+
+
   /* ============ LOAD ============ */
   function loadData() {
     $.get("/get_visitor_declaration_data", res => {
@@ -130,24 +168,46 @@ function visitorDeclarationApp() {
   /* ============ ITEMS ============ */
   window.addItem = () => {
 
-    const itemObj = {
-      s_item_code_description: $("#item_desc").val(),
-      s_uom: $("#item_uom").val(),
-      n_quantity: $("#item_qty").val()
-    };
+  const descInput = document.getElementById("item_desc");
+  const qtyInput  = document.getElementById("item_qty");
 
-    if (editingItemIndex !== null) {
-      // UPDATE existing item
-      items[editingItemIndex] = itemObj;
-      editingItemIndex = null;
-    } else {
-      // ADD new item
-      items.push(itemObj);
-    }
+  const desc = descInput.value.trim();
+  const qty  = qtyInput.value.trim();
 
-    renderItems();
-    $("#item_desc,#item_uom,#item_qty").val("");
+  let valid = true;
+
+  if (!desc) {
+    markMandatory(descInput);
+    valid = false;
+  }
+
+  if (!qty) {
+    markMandatory(qtyInput);
+    valid = false;
+  }
+
+  if (!valid) {
+    alert("Please fill mandatory Item details.");
+    return;
+  }
+
+  const itemObj = {
+    s_item_code_description: desc,
+    s_uom: $("#item_uom").val(),
+    n_quantity: qty
   };
+
+  if (editingItemIndex !== null) {
+    items[editingItemIndex] = itemObj;
+    editingItemIndex = null;
+  } else {
+    items.push(itemObj);
+  }
+
+  renderItems();
+  $("#item_desc,#item_uom,#item_qty").val("");
+};
+
 
 
   function renderItems() {
@@ -196,35 +256,71 @@ function visitorDeclarationApp() {
 
   /* ============ SAVE ============ */
   window.saveData = () => {
-    const payload = {
-      master: {
-        n_sl_no: editId,
-        s_location: USER_LOCATION,
-        s_visitor_name: $("#s_visitor_name").val(),
-        s_visitor_pass_no: $("#s_visitor_pass_no").val(),
-        s_whom_to_meet: $("#s_whom_to_meet").val(),
-        dt_visit_datetime: $("#dt_visit_datetime").val()
-      },
-      items
-    };
 
-    const url = isEdit
-      ? "/update_visitor_declaration_data"
-      : "/save_visitor_declaration_data";
+  /* ========= MASTER MANDATORY VALIDATION ========= */
+  let valid = true;
 
-    if (!confirm(isEdit ? "Update record?" : "Save record?")) return;
+  const visitorInput = document.getElementById("s_visitor_name");
+  const meetInput    = document.getElementById("s_whom_to_meet");
+  const datetimeInput = document.getElementById("dt_visit_datetime");
 
-    $.ajax({
-      url,
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify(payload),
-      success: r => {
-        alert(r.message);
-        location.reload();
-      }
-    });
+  if (!visitorInput.value.trim()) {
+    markMandatory(visitorInput);
+    valid = false;
+  }
+
+  if (!meetInput.value.trim()) {
+    markMandatory(meetInput);
+    valid = false;
+  }
+
+  if (!datetimeInput.value) {
+    markMandatory(datetimeInput);
+    valid = false;
+  }
+
+  if (!valid) {
+    alert("Please fill mandatory Visitor details.");
+    return;
+  }
+
+  /* ========= ITEMS CHECK ========= */
+  if (!items || items.length === 0) {
+    alert("Please add at least one Item before saving.");
+    return;
+  }
+
+  /* ========= PAYLOAD ========= */
+  const payload = {
+    master: {
+      n_sl_no: editId,
+      s_location: USER_LOCATION,
+      s_visitor_name: visitorInput.value.trim(),
+      s_visitor_pass_no: $("#s_visitor_pass_no").val(),
+      s_whom_to_meet: meetInput.value.trim(),
+      dt_visit_datetime: datetimeInput.value
+    },
+    items
   };
+
+  const url = isEdit
+    ? "/update_visitor_declaration_data"
+    : "/save_visitor_declaration_data";
+
+  if (!confirm(isEdit ? "Update record?" : "Save record?")) return;
+
+  $.ajax({
+    url,
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(payload),
+    success: r => {
+      alert(r.message);
+      location.reload();
+    }
+  });
+};
+
 
   /* ============ DELETE ============ */
   $("#masterTable").on("click", ".delete", function () {

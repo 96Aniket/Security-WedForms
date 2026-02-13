@@ -251,3 +251,24 @@ textarea {
     background: #218838;
 }
 
+/* Mandatory error input */
+.mandatory-error {
+  border: 2px solid red !important;
+  background-color: #fff5f5;
+}
+
+/* Parent cell must be relative */
+td.mandatory-cell {
+  position: relative;
+}
+
+/* Red star inside same cell */
+.mandatory-star {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  color: red;
+  font-weight: bold;
+  font-size: 14px;
+  pointer-events: none;
+}

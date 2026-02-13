@@ -93,7 +93,10 @@
 
         {% if user_role != 'admin' %}
             <button class="btn-add" onclick="addRow()">Add Row</button>
-            <button class="btn-save" onclick="saveTable()">Save</button>
+            <button class="btn-save" id="saveBtn" onclick="saveTable()" style="display:none;">
+  Save
+</button>
+
         {% endif %}
 
         <button class="btn-download" onclick="downloadTable()">
