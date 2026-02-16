@@ -191,8 +191,11 @@
       </div>
 
       {% if user_role != 'admin' %}
-      <button onclick="addLabour()">Add Labour</button>
-      {% endif %}
+<div class="labour-action-bar">
+  <button id="addLabourBtn" onclick="addLabour()">Add Labour</button>
+</div>
+{% endif %}
+
 
       <table id="labourTable">
         <thead>
@@ -215,8 +218,11 @@
       <br>
 
       {% if user_role != 'admin' %}
-      <button class="btn-save" onclick="saveData()">Save</button>
-      {% endif %}
+<div class="save-bar">
+  <button class="btn-save" onclick="saveData()">Save</button>
+</div>
+{% endif %}
+
 
     </div>
 
