@@ -19,14 +19,7 @@ function patrollingApp() {
     return tpl.content.cloneNode(true);
   }
 
-  function updateSerialNumbers() {
-    const rows = document.querySelectorAll("#patrolTable tbody tr");
-    const total = rows.length;
-    rows.forEach((row, i) => {
-      const cell = row.querySelector(".sr-no");
-      if (cell) cell.innerText = total - i;
-    });
-  }
+  
 
   /* ================= LOAD ================= */
 
@@ -45,53 +38,58 @@ function patrollingApp() {
 
   /* ================= RENDER ================= */
 
-  function renderPage() {
-    const tbody = document.querySelector("#patrolTable tbody");
-    tbody.innerHTML = "";
+ function renderPage() {
+  const tbody = document.querySelector("#patrolTable tbody");
+  tbody.innerHTML = "";
 
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
+  const totalRecords = allData.length;
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
 
-    const pageData = allData.slice(start, end);
+  const pageData = allData.slice(start, end);
 
-    pageData.forEach(r => {
-      const fragment = cloneTemplate("viewRowTemplate");
-      if (!fragment) return;
+  pageData.forEach((r, index) => {
+    const fragment = cloneTemplate("viewRowTemplate");
+    if (!fragment) return;
 
-      const row = fragment.querySelector("tr");
-      if (!row) return;
+    const row = fragment.querySelector("tr");
+    if (!row) return;
 
-      row.dataset.id = r.n_sr_no;
+    row.dataset.id = r.n_sr_no;
 
-      row.querySelector(".sr-no").innerText = r.n_sr_no;
-      row.querySelector(".loc").innerText = r.s_location_code || "";
-      row.querySelector(".date").innerText = r.d_patrol_date || "";
-      row.querySelector(".from").innerText = r.t_from_time || "";
-      row.querySelector(".to").innerText = r.t_to_time || "";
+    // ✅ REVERSE + CONTINUOUS SR NO
+    const srNo = totalRecords - (start + index);
+    row.querySelector(".sr-no").innerText = srNo;
 
-      [
-        r.s_boundary_wall_condition,
-        r.s_patrolling_pathway_condition,
-        r.s_suspicious_movement,
-        r.s_wild_vegetation,
-        r.s_illumination_status,
-        r.s_workers_without_valid_permit,
-        r.s_unknown_person_without_authorization,
-        r.s_unattended_office_unlocked,
-        r.s_other_observations_status
-      ].forEach((v, idx) => {
-        row.children[5 + idx].innerText = v || "";
-      });
+    row.querySelector(".loc").innerText = r.s_location_code || "";
+    row.querySelector(".date").innerText = r.d_patrol_date || "";
+    row.querySelector(".from").innerText = r.t_from_time || "";
+    row.querySelector(".to").innerText = r.t_to_time || "";
 
-      row.querySelector(".remarks").innerText = r.s_remarks || "";
-      row.querySelector(".guard").innerText = r.s_patrolling_guard_name || "";
-
-      tbody.appendChild(row);
+    [
+      r.s_boundary_wall_condition,
+      r.s_patrolling_pathway_condition,
+      r.s_suspicious_movement,
+      r.s_wild_vegetation,
+      r.s_illumination_status,
+      r.s_workers_without_valid_permit,
+      r.s_unknown_person_without_authorization,
+      r.s_unattended_office_unlocked,
+      r.s_other_observations_status
+    ].forEach((v, idx) => {
+      row.children[5 + idx].innerText = v || "";
     });
 
-    updateSerialNumbers();
-    updatePaginationButtons();
-  }
+    row.querySelector(".remarks").innerText = r.s_remarks || "";
+    row.querySelector(".guard").innerText = r.s_patrolling_guard_name || "";
+
+    tbody.appendChild(row);
+  });
+
+  updatePaginationButtons();
+}
+
+
 
   /* ================= PAGINATION ================= */
 
@@ -132,7 +130,7 @@ function patrollingApp() {
     });
 
     tbody.prepend(row);
-    updateSerialNumbers();
+    
 
     document.getElementById("saveBtn").style.display = "inline-block";
   }
@@ -315,7 +313,7 @@ if (!cell.querySelector(".mandatory-star")) {
   if (row.dataset.new) {
     if (!confirm("Are you sure you want to delete this row?")) return;
     row.remove();
-    updateSerialNumbers();
+    
     return;
   }
 
@@ -331,7 +329,7 @@ if (!cell.querySelector(".mandatory-star")) {
     success: res => {
       if (res.success) {
         row.remove();
-        updateSerialNumbers();
+        
         alert("Deleted successfully");
       } else {
         alert(res.message || "Delete failed");

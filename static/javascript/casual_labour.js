@@ -158,11 +158,12 @@ function renderPage() {
   const tbody = $("#masterTable tbody");
   tbody.empty();
 
+  const totalRecords = allData.length;
   const start = (currentPage - 1) * rowsPerPage;
   const end = start + rowsPerPage;
   const pageData = allData.slice(start, end);
 
-  pageData.forEach((r) => {
+  pageData.forEach((r, index) => {
 
     let actionColumn = "";
 
@@ -183,8 +184,12 @@ function renderPage() {
       `;
     }
 
+    // ✅ REVERSE + CONTINUOUS SR NO
+    const srNo = totalRecords - (start + index);
+
     const tr = $(`
       <tr>
+        <td class="sr-no">${srNo}</td>
         <td>${r.s_location || ""}</td>
         <td>${r.s_contractor_name || ""}</td>
         <td>${r.s_nature_of_work || ""}</td>
@@ -200,6 +205,7 @@ function renderPage() {
 
   updatePaginationButtons();
 }
+
 
 
   /* pagination control functions */

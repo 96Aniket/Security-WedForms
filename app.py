@@ -7,7 +7,7 @@ def create_app():
     @app.before_request
     def set_default_user():
 
-        email = "Pilsecurity.CS02@pipelineinfra.com"
+        email = "Pilsecurity.CS01@pipelineinfra.com"
 
         username_part = email.split('@')[0]
         location = username_part.split('.')[-1].upper()
