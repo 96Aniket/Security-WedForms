@@ -65,25 +65,32 @@ document.addEventListener("input", e => {
   }
 
   /* ============ RENDER MASTER ============ */
- function renderTable() {
+function renderTable() {
   const tbody = document.querySelector("#masterTable tbody");
   tbody.innerHTML = "";
 
   const template = document.getElementById("visitorRowTemplate");
 
+  const totalRecords = allData.length;
   const start = (currentPage - 1) * rowsPerPage;
   const end = start + rowsPerPage;
   const pageData = allData.slice(start, end);
 
-  pageData.forEach(r => {
-
+  pageData.forEach((r, index) => {
     const clone = template.content.cloneNode(true);
     const tr = clone.querySelector("tr");
 
-    tr.querySelector(".location").textContent = r.s_location || "";
-    tr.querySelector(".visitor-name").textContent = r.s_visitor_name || "";
-    tr.querySelector(".pass-no").textContent = r.s_visitor_pass_no || "";
-    tr.querySelector(".visit-datetime").textContent = r.dt_visit_datetime || "";
+    const srNo = totalRecords - (start + index);
+    tr.querySelector(".sr-no").textContent = srNo;
+
+    tr.querySelector(".location").textContent =
+      r.s_location || "";
+    tr.querySelector(".visitor-name").textContent =
+      r.s_visitor_name || "";
+    tr.querySelector(".pass-no").textContent =
+      r.s_visitor_pass_no || "";
+    tr.querySelector(".visit-datetime").textContent =
+      r.dt_visit_datetime || "";
 
     $(tr).data("record", r);
 

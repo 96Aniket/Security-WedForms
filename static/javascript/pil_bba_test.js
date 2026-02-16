@@ -119,12 +119,8 @@ function showFile(base64, type, name) {
     return document.getElementById(id).content.cloneNode(true);
   }
 
-  function updateSerialNumbers() {
-  const rows = document.querySelectorAll("#bbaTable tbody tr");
-  rows.forEach((row, i) => {
-    row.querySelector(".sr-no").innerText = i + 1;
-  });
-}
+  
+  
 
 
 function openFromInput(btn) {
@@ -189,7 +185,7 @@ function openFromInput(btn) {
     if (previewDiv) previewDiv.innerHTML = "";
 
     tbody.prepend(row);
-    updateSerialNumbers();
+  
     document.getElementById("saveBtn").style.display = "inline-block";
 
   }
@@ -201,7 +197,7 @@ function openFromInput(btn) {
     if (row.dataset.new === "true") {
       if (!confirm("Are you sure you want to delete this row?")) return;
       row.remove();
-      updateSerialNumbers();
+      
       return;
     }
 
@@ -215,7 +211,7 @@ function openFromInput(btn) {
       success: (res) => {
         if (res.success) {
           row.remove();
-          updateSerialNumbers();
+          
           alert("Deleted successfully");
         } else {
           alert(res.message || "Delete failed");
@@ -441,50 +437,54 @@ function openFromInput(btn) {
 
   /* ================= RENDER ================= */
   function renderPage() {
-    const tbody = document.querySelector("#bbaTable tbody");
-    tbody.innerHTML = "";
+  const tbody = document.querySelector("#bbaTable tbody");
+  tbody.innerHTML = "";
 
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
+  const totalRecords = allData.length;
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
 
-    allData.slice(start, end).forEach((r) => {
-      const tpl = cloneTemplate("bbaViewRowTemplate");
-      const row = tpl.querySelector("tr");
+  allData.slice(start, end).forEach((r, index) => {
+    const tpl = cloneTemplate("bbaViewRowTemplate");
+    const row = tpl.querySelector("tr");
 
-      row.dataset.id = r.n_sr_no;
-      row.dataset.attachment = r.img_attachment || null;
-      row.dataset.fileType = r.s_file_type || "application/pdf";
-      row.dataset.fileName = "Attachment";
+    row.dataset.id = r.n_sr_no;
+    row.dataset.attachment = r.img_attachment || null;
+    row.dataset.fileType = r.s_file_type || "application/pdf";
+    row.dataset.fileName = "Attachment";
 
-      row.querySelector(".loc").innerText = r.s_location_code;
-      row.querySelector(".date").innerText = r.d_test_date;
-      row.querySelector(".time").innerText = r.t_test_time;
-      row.querySelector(".record").innerText = r.s_test_record_no;
-      row.querySelector(".name").innerText = r.s_individual_name;
-      row.querySelector(".type").innerText = r.s_person_type;
-      row.querySelector(".result").innerText = r.s_test_result;
-      row.querySelector(".bac").innerText = r.n_bac_count;
+   
+    const srNo = totalRecords - (start + index);
+    row.querySelector(".sr-no").innerText = srNo;
 
-      if (r.img_attachment) {
-        row.children[9].innerHTML = `
-          <button onclick="showFile(
-  '${r.img_attachment}',
-  '${r.s_file_type || "application/pdf"}',
-  'Attachment'
-)">View Document</button>
+    row.querySelector(".loc").innerText = r.s_location_code;
+    row.querySelector(".date").innerText = r.d_test_date;
+    row.querySelector(".time").innerText = r.t_test_time;
+    row.querySelector(".record").innerText = r.s_test_record_no;
+    row.querySelector(".name").innerText = r.s_individual_name;
+    row.querySelector(".type").innerText = r.s_person_type;
+    row.querySelector(".result").innerText = r.s_test_result;
+    row.querySelector(".bac").innerText = r.n_bac_count;
 
-        `;
-      }
+    if (r.img_attachment) {
+      row.children[9].innerHTML = `
+        <button onclick="showFile(
+          '${r.img_attachment}',
+          '${r.s_file_type || "application/pdf"}',
+          'Attachment'
+        )">View Document</button>
+      `;
+    }
 
-      row.querySelector(".security").innerText = r.s_security_personnel_name;
-      row.querySelector(".remarks").innerText = r.s_remarks || "";
+    row.querySelector(".security").innerText =
+      r.s_security_personnel_name;
+    row.querySelector(".remarks").innerText = r.s_remarks || "";
 
-      tbody.appendChild(row);
-    });
+    tbody.appendChild(row);
+  });
 
-    updateSerialNumbers();
-    updatePaginationButtons();
-  }
+  updatePaginationButtons();
+}
 
   /* ================= PAGINATION ================= */
   function updatePaginationButtons() {

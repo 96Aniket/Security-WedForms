@@ -19,13 +19,7 @@ function pipelineMitraApp() {
     return tpl.content.cloneNode(true);
   }
 
-  function updateSerialNumbers() {
-  const rows = document.querySelectorAll("#mitraTable tbody tr");
-  rows.forEach((row, i) => {
-    const cell = row.querySelector(".sr-no");
-    if (cell) cell.innerText = i + 1;
-  });
-}
+  
 
 
   /* ================= LOAD ================= */
@@ -47,39 +41,41 @@ function pipelineMitraApp() {
   /* ================= RENDER ================= */
 
   function renderPage() {
-    const tbody = document.querySelector("#mitraTable tbody");
-    tbody.innerHTML = "";
+  const tbody = document.querySelector("#mitraTable tbody");
+  tbody.innerHTML = "";
 
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
+  const totalRecords = allData.length;
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
 
-    const pageData = allData.slice(start, end);
-    console.log("Rendering rows:", pageData);
+  const pageData = allData.slice(start, end);
 
-    pageData.forEach(r => {
-      const fragment = cloneTemplate("mitraViewRowTemplate");
-      if (!fragment) return;
+  pageData.forEach((r, index) => {
+    const fragment = cloneTemplate("mitraViewRowTemplate");
+    if (!fragment) return;
 
-      const row = fragment.querySelector("tr");
-      if (!row) return;
+    const row = fragment.querySelector("tr");
+    if (!row) return;
 
-      row.dataset.id = r.n_sr_no;
+    row.dataset.id = r.n_sr_no;
 
-      
-      row.querySelector(".loc").innerText = r.s_location_code || "";
-      row.querySelector(".date").innerText = r.d_entry_date || "";
-      row.querySelector(".chainage").innerText = r.s_chainage_no || "";
-      row.querySelector(".name").innerText = r.s_pm_name || "";
-      row.querySelector(".village").innerText = r.s_pm_village_name || "";
-      row.querySelector(".mobile").innerText = r.s_pm_mobile_no || "";
-      row.querySelector(".remarks").innerText = r.s_remarks || "";
+    // ✅ REVERSE + CONTINUOUS SR NO
+    const srNo = totalRecords - (start + index);
+    row.querySelector(".sr-no").innerText = srNo;
 
-      tbody.appendChild(row);
-    });
+    row.querySelector(".loc").innerText = r.s_location_code || "";
+    row.querySelector(".date").innerText = r.d_entry_date || "";
+    row.querySelector(".chainage").innerText = r.s_chainage_no || "";
+    row.querySelector(".name").innerText = r.s_pm_name || "";
+    row.querySelector(".village").innerText = r.s_pm_village_name || "";
+    row.querySelector(".mobile").innerText = r.s_pm_mobile_no || "";
+    row.querySelector(".remarks").innerText = r.s_remarks || "";
 
-    updateSerialNumbers();
-    updatePaginationButtons();
-  }
+    tbody.appendChild(row);
+  });
+
+  updatePaginationButtons();
+}
 
   /* ================= PAGINATION ================= */
 
@@ -116,7 +112,7 @@ function pipelineMitraApp() {
     row.querySelector(".loc").innerText = USER_LOCATION;
 
     tbody.prepend(row);
-    updateSerialNumbers();
+    
 
     document.getElementById("saveBtn").style.display = "inline-block";
   }
@@ -308,7 +304,6 @@ if (row.dataset.edited && !row.dataset.new) {
   if (row.dataset.new) {
     if (!confirm("Are you sure you want to delete this row?")) return;
     row.remove();
-    updateSerialNumbers();
     return;
   }
 
@@ -325,7 +320,6 @@ if (row.dataset.edited && !row.dataset.new) {
     success: res => {
       if (res.success) {
         row.remove();
-        updateSerialNumbers();
         alert("Deleted successfully");
       } else {
         alert(res.message || "Delete failed");

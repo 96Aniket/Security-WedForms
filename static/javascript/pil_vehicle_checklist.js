@@ -92,29 +92,39 @@ document.addEventListener("input", e => {
   }
 
 
-  function renderPage() {
+function renderPage() {
   const tbody = document.querySelector("#masterTable tbody");
   tbody.innerHTML = "";
 
   const template = document.getElementById("vehicleRowTemplate");
 
+  const totalRecords = allData.length;
   const start = (currentPage - 1) * rowsPerPage;
   const end = start + rowsPerPage;
   const pageData = allData.slice(start, end);
 
   pageData.forEach((r, index) => {
-
     const clone = template.content.cloneNode(true);
     const tr = clone.querySelector("tr");
 
-    tr.querySelector(".sr").textContent = start + index + 1;
-    tr.querySelector(".location").textContent = r.s_location_code || "";
-    tr.querySelector(".datetime").textContent = r.dt_entry_datetime || "";
-    tr.querySelector(".vehicleno").textContent = r.s_vehicle_no || "";
-    tr.querySelector(".vehicletype").textContent = r.s_vehicle_type || "";
-    tr.querySelector(".driver").textContent = r.s_driver_name || "";
-    tr.querySelector(".contact").textContent = r.s_contact_no || "";
-    tr.querySelector(".purpose").textContent = r.s_purpose_of_entry || "";
+    
+    tr.querySelector(".sr").textContent =
+      totalRecords - (start + index);
+
+    tr.querySelector(".location").textContent =
+      r.s_location_code || "";
+    tr.querySelector(".datetime").textContent =
+      r.dt_entry_datetime || "";
+    tr.querySelector(".vehicleno").textContent =
+      r.s_vehicle_no || "";
+    tr.querySelector(".vehicletype").textContent =
+      r.s_vehicle_type || "";
+    tr.querySelector(".driver").textContent =
+      r.s_driver_name || "";
+    tr.querySelector(".contact").textContent =
+      r.s_contact_no || "";
+    tr.querySelector(".purpose").textContent =
+      r.s_purpose_of_entry || "";
 
     // attach data
     $(tr).data("record", r);
