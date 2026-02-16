@@ -1,4 +1,6 @@
 let editingLabourIndex = null;
+let hasUnsavedChanges = false;
+
 function casualLabourApp() {
   let allData = [];
   let labours = [];
@@ -31,6 +33,17 @@ function casualLabourApp() {
     label.appendChild(star);
   }
 }
+
+function markUnsaved() {
+  hasUnsavedChanges = true;
+  $(".btn-save").addClass("unsaved").text("Save (Required)");
+}
+
+function clearUnsaved() {
+  hasUnsavedChanges = false;
+  $(".btn-save").removeClass("unsaved").text("Save");
+}
+
 
 
 function clearMandatory(input) {
@@ -289,6 +302,10 @@ function renderPage() {
     const mobile = $("#labour_mobile").val().trim();
     const idType = $("#labour_id_type").val();
     const rawIdNo = $("#labour_id_no").val().trim();
+    $("#addLabourBtn")
+  .text("Add Labour")
+  .removeClass("update-mode");
+
 
     /* ===== REQUIRED FIELDS ===== */
     let labourValid = true;
@@ -384,6 +401,10 @@ if (!Number.isInteger(ageNum) || ageNum < 1) {
 
     renderLabours();
     clearLabour();
+    markUnsaved();
+    $("#addLabourBtn").text("Add Labour");
+
+
   };
 
 function renderLabours() {
@@ -430,6 +451,11 @@ function renderLabours() {
     const l = labours[index];
 
     editingLabourIndex = index;
+    $("#addLabourBtn")
+  .text("Update Labour")
+  .addClass("update-mode");
+
+    $("#addLabourBtn").text("Update Labour");
 
     $("#labour_name").val(l.s_labour_name);
     $("#labour_age").val(l.n_age);
@@ -452,11 +478,25 @@ function renderLabours() {
     $("#labour_name,#labour_age,#labour_mobile,#labour_id_no").val("");
     $("#labour_sex,#labour_address,#labour_card,#labour_id_type").val("");
     editingLabourIndex = null;
+    $("#addLabourBtn").text("Add Labour");
+    $("#addLabourBtn")
+  .text("Add Labour")
+  .removeClass("update-mode");
+
+
   }
 
   /* ================= SAVE ================= */
 
   window.saveData = () => {
+    // ===== BLOCK SAVE IF LABOUR EDIT IS PENDING =====
+if (editingLabourIndex !== null) {
+  alert(
+    "You are editing a labour entry.\n\nPlease click 'Update Labour' before saving."
+  );
+  return;
+}
+
     /* ========= MASTER VALIDATION ========= */
     const contractor = $("#s_contractor_name").val().trim();
     const nature = $("#s_nature_of_work").val().trim();
@@ -532,9 +572,11 @@ if (!workValid) {
       contentType: "application/json",
       data: JSON.stringify(payload),
       success: (res) => {
-        alert(res.message || "Saved successfully");
-        window.location.reload();
-      },
+  clearUnsaved();
+  alert(res.message || "Saved successfully");
+  window.location.reload();
+}
+,
       error: (err) => {
         console.error(err);
         alert("Save failed");
@@ -730,6 +772,14 @@ if (!workValid) {
   window.nextPage = nextPage;
   window.prevPage = prevPage;
   window.downloadTable = downloadTable;
+
+  window.addEventListener("beforeunload", function (e) {
+  if (hasUnsavedChanges) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
+
 
   loadData();
 }
