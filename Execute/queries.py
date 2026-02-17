@@ -1640,337 +1640,337 @@ def delete_casual_labour_data(data, username="system"):
 # Requisition Form
 # =====================================================
 
-# ---------- CREATE ----------
-def create_requisition_form(data, username="system"):
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
+# # ---------- CREATE ----------
+# def create_requisition_form(data, username="system"):
+#     try:
+#         conn = get_connection()
+#         cursor = conn.cursor()
 
-        cursor.execute("SELECT ISNULL(MAX(n_sr_no),0)+1 FROM dbo.REQUISITION_FORM_MASTER")
-        n_sr_no = cursor.fetchone()[0]
+#         cursor.execute("SELECT ISNULL(MAX(n_sr_no),0)+1 FROM dbo.REQUISITION_FORM_MASTER")
+#         n_sr_no = cursor.fetchone()[0]
 
-        sql = """
-        INSERT INTO dbo.REQUISITION_FORM_MASTER
-        (
-            n_sr_no, s_location, dt_request_date,
-            s_first_name, s_middle_name, s_last_name, s_photo,
-            dt_date_of_birth, n_age,
-            s_agency_name, s_sap_vendor_code,
-            s_nature_of_job, s_work_order_no, dt_work_order_validity,
-            dt_date_of_joining, s_exact_work_location,
-            n_height_cm, s_gender, s_blood_group,
-            s_identification_mark, s_aadhar_card_no,
-            s_present_address, s_present_city, s_present_state, s_present_pincode,
-            s_contact_no,
-            s_emergency_contact_details, s_emergency_city, s_emergency_state,
-            s_emergency_pincode, s_emergency_contact_no,
-            s_police_verification_cert, s_medical_certificate,
-            s_govt_id_proof, s_hsse_training,
-            s_applicant_signature,
-            s_contractor_name, s_contractor_signature,
-            s_engineer_name, s_engineer_signature,
-            s_area_manager_name, s_area_manager_signature,
-            s_security_ic_name, s_security_ic_signature,
-            s_entry_permit_no, dt_date_of_issue,
-            s_issuing_person_signature, s_security_name,
-            n_flag, dt_created_at, s_created_by
-        )
-        VALUES (
-    ?,?,?,?,?,?,?,?,?,?
-  , ?,?,?,?,?,?,?,?,?,?
-  , ?,?,?,?,?,?,?,?,?,?
-  , ?,?,?,?,?,?,?,?,?,?
-  , ?,?,?,?,?,?,?,?
-  , 1, GETDATE(), ?
-)
+#         sql = """
+#         INSERT INTO dbo.REQUISITION_FORM_MASTER
+#         (
+#             n_sr_no, s_location, dt_request_date,
+#             s_first_name, s_middle_name, s_last_name, s_photo,
+#             dt_date_of_birth, n_age,
+#             s_agency_name, s_sap_vendor_code,
+#             s_nature_of_job, s_work_order_no, dt_work_order_validity,
+#             dt_date_of_joining, s_exact_work_location,
+#             n_height_cm, s_gender, s_blood_group,
+#             s_identification_mark, s_aadhar_card_no,
+#             s_present_address, s_present_city, s_present_state, s_present_pincode,
+#             s_contact_no,
+#             s_emergency_contact_details, s_emergency_city, s_emergency_state,
+#             s_emergency_pincode, s_emergency_contact_no,
+#             s_police_verification_cert, s_medical_certificate,
+#             s_govt_id_proof, s_hsse_training,
+#             s_applicant_signature,
+#             s_contractor_name, s_contractor_signature,
+#             s_engineer_name, s_engineer_signature,
+#             s_area_manager_name, s_area_manager_signature,
+#             s_security_ic_name, s_security_ic_signature,
+#             s_entry_permit_no, dt_date_of_issue,
+#             s_issuing_person_signature, s_security_name,
+#             n_flag, dt_created_at, s_created_by
+#         )
+#         VALUES (
+#     ?,?,?,?,?,?,?,?,?,?
+#   , ?,?,?,?,?,?,?,?,?,?
+#   , ?,?,?,?,?,?,?,?,?,?
+#   , ?,?,?,?,?,?,?,?,?,?
+#   , ?,?,?,?,?,?,?,?
+#   , 1, GETDATE(), ?
+# )
 
-        """
+#         """
 
-        params = (
-            n_sr_no,
-            data["s_location"],
-            data["dt_request_date"],
+#         params = (
+#             n_sr_no,
+#             data["s_location"],
+#             data["dt_request_date"],
 
-            data["s_first_name"],
-            data.get("s_middle_name"),
-            data["s_last_name"],
-            data.get("s_photo"),
+#             data["s_first_name"],
+#             data.get("s_middle_name"),
+#             data["s_last_name"],
+#             data.get("s_photo"),
 
-            data["dt_date_of_birth"],
-            data["n_age"],
+#             data["dt_date_of_birth"],
+#             data["n_age"],
 
-            data["s_agency_name"],
-            data.get("s_sap_vendor_code"),
+#             data["s_agency_name"],
+#             data.get("s_sap_vendor_code"),
 
-            data["s_nature_of_job"],
-            data["s_work_order_no"],
-            data["dt_work_order_validity"],
+#             data["s_nature_of_job"],
+#             data["s_work_order_no"],
+#             data["dt_work_order_validity"],
 
-            data["dt_date_of_joining"],
-            data["s_exact_work_location"],
+#             data["dt_date_of_joining"],
+#             data["s_exact_work_location"],
 
-            data.get("n_height_cm"),
-            data["s_gender"],
-            data.get("s_blood_group"),
+#             data.get("n_height_cm"),
+#             data["s_gender"],
+#             data.get("s_blood_group"),
 
-            data.get("s_identification_mark"),
-            data["s_aadhar_card_no"],
+#             data.get("s_identification_mark"),
+#             data["s_aadhar_card_no"],
 
-            data["s_present_address"],
-            data["s_present_city"],
-            data["s_present_state"],
-            data["s_present_pincode"],
-            data["s_contact_no"],
+#             data["s_present_address"],
+#             data["s_present_city"],
+#             data["s_present_state"],
+#             data["s_present_pincode"],
+#             data["s_contact_no"],
 
-            data["s_emergency_contact_details"],
-            data["s_emergency_city"],
-            data["s_emergency_state"],
-            data["s_emergency_pincode"],
-            data["s_emergency_contact_no"],
+#             data["s_emergency_contact_details"],
+#             data["s_emergency_city"],
+#             data["s_emergency_state"],
+#             data["s_emergency_pincode"],
+#             data["s_emergency_contact_no"],
 
-            data.get("s_police_verification_cert"),
-            data.get("s_medical_certificate"),
-            data.get("s_govt_id_proof"),
-            data.get("s_hsse_training"),
+#             data.get("s_police_verification_cert"),
+#             data.get("s_medical_certificate"),
+#             data.get("s_govt_id_proof"),
+#             data.get("s_hsse_training"),
 
-            data.get("s_applicant_signature"),
+#             data.get("s_applicant_signature"),
 
-            data["s_contractor_name"],
-            data.get("s_contractor_signature"),
+#             data["s_contractor_name"],
+#             data.get("s_contractor_signature"),
 
-            data["s_engineer_name"],
-            data.get("s_engineer_signature"),
+#             data["s_engineer_name"],
+#             data.get("s_engineer_signature"),
 
-            data["s_area_manager_name"],
-            data.get("s_area_manager_signature"),
+#             data["s_area_manager_name"],
+#             data.get("s_area_manager_signature"),
 
-            data["s_security_ic_name"],
-            data.get("s_security_ic_signature"),
+#             data["s_security_ic_name"],
+#             data.get("s_security_ic_signature"),
 
-            data["s_entry_permit_no"],
-            data["dt_date_of_issue"],
+#             data["s_entry_permit_no"],
+#             data["dt_date_of_issue"],
 
-            data.get("s_issuing_person_signature"),
-            data["s_security_name"],
+#             data.get("s_issuing_person_signature"),
+#             data["s_security_name"],
 
-            username
-        )
+#             username
+#         )
 
-        cursor.execute(sql, params)
+#         cursor.execute(sql, params)
 
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return True, "Requisition form created successfully"
+#         conn.commit()
+#         cursor.close()
+#         conn.close()
+#         return True, "Requisition form created successfully"
 
-    except Exception as e:
-        return False, str(e)
-
-
-# ---------- READ ----------
-def get_requisition_forms(user_role, user_location):
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        if user_role == "admin":
-            cursor.execute("""
-                SELECT * FROM dbo.REQUISITION_FORM_MASTER
-                WHERE n_flag = 1
-                ORDER BY n_sr_no DESC
-            """)
-        else:
-            cursor.execute("""
-                SELECT * FROM dbo.REQUISITION_FORM_MASTER
-                WHERE n_flag = 1 AND s_location = ?
-                ORDER BY n_sr_no DESC
-            """, (user_location,))
-
-        rows = cursor.fetchall()
-        columns = [col[0] for col in cursor.description]
-
-        def normalize_dates(row_dict):
-            for k, v in row_dict.items():
-                if isinstance(v, (date, datetime)):
-                    row_dict[k] = v.strftime("%Y-%m-%d")
-            return row_dict
-
-        data = []
-        for row in rows:
-            record = dict(zip(columns, row))
-            data.append(normalize_dates(record))
-
-        cursor.close()
-        conn.close()
-        return True, data
-
-    except Exception as e:
-        return False, str(e)
+#     except Exception as e:
+#         return False, str(e)
 
 
-# ---------- UPDATE ----------
-def update_requisition_form(data, username="system"):
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
+# # ---------- READ ----------
+# def get_requisition_forms(user_role, user_location):
+#     try:
+#         conn = get_connection()
+#         cursor = conn.cursor()
 
-        sql = """
-        UPDATE dbo.REQUISITION_FORM_MASTER
-        SET
-            s_location = ?,
-            dt_request_date = ?,
-            s_first_name = ?,
-            s_middle_name = ?,
-            s_last_name = ?,
-            s_photo = ?,
-            dt_date_of_birth = ?,
-            n_age = ?,
-            s_agency_name = ?,
-            s_sap_vendor_code = ?,
-            s_nature_of_job = ?,
-            s_work_order_no = ?,
-            dt_work_order_validity = ?,
-            dt_date_of_joining = ?,
-            s_exact_work_location = ?,
-            n_height_cm = ?,
-            s_gender = ?,
-            s_blood_group = ?,
-            s_identification_mark = ?,
-            s_aadhar_card_no = ?,
-            s_present_address = ?,
-            s_present_city = ?,
-            s_present_state = ?,
-            s_present_pincode = ?,
-            s_contact_no = ?,
-            s_emergency_contact_details = ?,
-            s_emergency_city = ?,
-            s_emergency_state = ?,
-            s_emergency_pincode = ?,
-            s_emergency_contact_no = ?,
-            s_police_verification_cert = ?,
-            s_medical_certificate = ?,
-            s_govt_id_proof = ?,
-            s_hsse_training = ?,
-            s_applicant_signature = ?,
-            s_contractor_name = ?,
-            s_contractor_signature = ?,
-            s_engineer_name = ?,
-            s_engineer_signature = ?,
-            s_area_manager_name = ?,
-            s_area_manager_signature = ?,
-            s_security_ic_name = ?,
-            s_security_ic_signature = ?,
-            s_entry_permit_no = ?,
-            dt_date_of_issue = ?,
-            s_issuing_person_signature = ?,
-            s_security_name = ?,
-            dt_updated_at = GETDATE(),
-            s_updated_by = ?
-        WHERE n_sr_no = ?
-        """
+#         if user_role == "admin":
+#             cursor.execute("""
+#                 SELECT * FROM dbo.REQUISITION_FORM_MASTER
+#                 WHERE n_flag = 1
+#                 ORDER BY n_sr_no DESC
+#             """)
+#         else:
+#             cursor.execute("""
+#                 SELECT * FROM dbo.REQUISITION_FORM_MASTER
+#                 WHERE n_flag = 1 AND s_location = ?
+#                 ORDER BY n_sr_no DESC
+#             """, (user_location,))
 
-        cursor.execute(sql, (
-            data["s_location"],
-            data["dt_request_date"],
-            data["s_first_name"],
-            data.get("s_middle_name"),
-            data["s_last_name"],
-            data.get("s_photo"),
+#         rows = cursor.fetchall()
+#         columns = [col[0] for col in cursor.description]
 
-            data["dt_date_of_birth"],
-            data["n_age"],
+#         def normalize_dates(row_dict):
+#             for k, v in row_dict.items():
+#                 if isinstance(v, (date, datetime)):
+#                     row_dict[k] = v.strftime("%Y-%m-%d")
+#             return row_dict
 
-            data["s_agency_name"],
-            data.get("s_sap_vendor_code"),
+#         data = []
+#         for row in rows:
+#             record = dict(zip(columns, row))
+#             data.append(normalize_dates(record))
 
-            data["s_nature_of_job"],
-            data["s_work_order_no"],
-            data["dt_work_order_validity"],
+#         cursor.close()
+#         conn.close()
+#         return True, data
 
-            data["dt_date_of_joining"],
-            data["s_exact_work_location"],
-
-            data.get("n_height_cm"),
-            data["s_gender"],
-            data.get("s_blood_group"),
-
-            data.get("s_identification_mark"),
-            data["s_aadhar_card_no"],
-
-            data["s_present_address"],
-            data["s_present_city"],
-            data["s_present_state"],
-            data["s_present_pincode"],
-            data["s_contact_no"],
-
-            data["s_emergency_contact_details"],
-            data["s_emergency_city"],
-            data["s_emergency_state"],
-            data["s_emergency_pincode"],
-            data["s_emergency_contact_no"],
-
-            data.get("s_police_verification_cert"),
-            data.get("s_medical_certificate"),
-            data.get("s_govt_id_proof"),
-            data.get("s_hsse_training"),
-
-            data.get("s_applicant_signature"),
-
-            data["s_contractor_name"],
-            data.get("s_contractor_signature"),
-
-            data["s_engineer_name"],
-            data.get("s_engineer_signature"),
-
-            data["s_area_manager_name"],
-            data.get("s_area_manager_signature"),
-
-            data["s_security_ic_name"],
-            data.get("s_security_ic_signature"),
-
-            data["s_entry_permit_no"],
-            data["dt_date_of_issue"],
-
-            data.get("s_issuing_person_signature"),
-            data["s_security_name"],
-
-            username,
-            data["n_sr_no"]
-        ))
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return True, "Requisition form updated successfully"
-
-    except Exception as e:
-        return False, str(e)
+#     except Exception as e:
+#         return False, str(e)
 
 
-# ---------- DELETE ----------
-def delete_requisition_form(data, username="system"):
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
+# # ---------- UPDATE ----------
+# def update_requisition_form(data, username="system"):
+#     try:
+#         conn = get_connection()
+#         cursor = conn.cursor()
 
-        sql = """
-        UPDATE dbo.REQUISITION_FORM_MASTER
-    SET
-        n_flag = 0,
-        dt_deleted_at = GETDATE(),
-        s_deleted_by = ?
-    WHERE n_sr_no = ?
-        """
+#         sql = """
+#         UPDATE dbo.REQUISITION_FORM_MASTER
+#         SET
+#             s_location = ?,
+#             dt_request_date = ?,
+#             s_first_name = ?,
+#             s_middle_name = ?,
+#             s_last_name = ?,
+#             s_photo = ?,
+#             dt_date_of_birth = ?,
+#             n_age = ?,
+#             s_agency_name = ?,
+#             s_sap_vendor_code = ?,
+#             s_nature_of_job = ?,
+#             s_work_order_no = ?,
+#             dt_work_order_validity = ?,
+#             dt_date_of_joining = ?,
+#             s_exact_work_location = ?,
+#             n_height_cm = ?,
+#             s_gender = ?,
+#             s_blood_group = ?,
+#             s_identification_mark = ?,
+#             s_aadhar_card_no = ?,
+#             s_present_address = ?,
+#             s_present_city = ?,
+#             s_present_state = ?,
+#             s_present_pincode = ?,
+#             s_contact_no = ?,
+#             s_emergency_contact_details = ?,
+#             s_emergency_city = ?,
+#             s_emergency_state = ?,
+#             s_emergency_pincode = ?,
+#             s_emergency_contact_no = ?,
+#             s_police_verification_cert = ?,
+#             s_medical_certificate = ?,
+#             s_govt_id_proof = ?,
+#             s_hsse_training = ?,
+#             s_applicant_signature = ?,
+#             s_contractor_name = ?,
+#             s_contractor_signature = ?,
+#             s_engineer_name = ?,
+#             s_engineer_signature = ?,
+#             s_area_manager_name = ?,
+#             s_area_manager_signature = ?,
+#             s_security_ic_name = ?,
+#             s_security_ic_signature = ?,
+#             s_entry_permit_no = ?,
+#             dt_date_of_issue = ?,
+#             s_issuing_person_signature = ?,
+#             s_security_name = ?,
+#             dt_updated_at = GETDATE(),
+#             s_updated_by = ?
+#         WHERE n_sr_no = ?
+#         """
 
-        cursor.execute(sql, (username, data["n_sr_no"]))
+#         cursor.execute(sql, (
+#             data["s_location"],
+#             data["dt_request_date"],
+#             data["s_first_name"],
+#             data.get("s_middle_name"),
+#             data["s_last_name"],
+#             data.get("s_photo"),
 
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return True, "Requisition form deleted"
+#             data["dt_date_of_birth"],
+#             data["n_age"],
 
-    except Exception as e:
-        return False, str(e)
+#             data["s_agency_name"],
+#             data.get("s_sap_vendor_code"),
+
+#             data["s_nature_of_job"],
+#             data["s_work_order_no"],
+#             data["dt_work_order_validity"],
+
+#             data["dt_date_of_joining"],
+#             data["s_exact_work_location"],
+
+#             data.get("n_height_cm"),
+#             data["s_gender"],
+#             data.get("s_blood_group"),
+
+#             data.get("s_identification_mark"),
+#             data["s_aadhar_card_no"],
+
+#             data["s_present_address"],
+#             data["s_present_city"],
+#             data["s_present_state"],
+#             data["s_present_pincode"],
+#             data["s_contact_no"],
+
+#             data["s_emergency_contact_details"],
+#             data["s_emergency_city"],
+#             data["s_emergency_state"],
+#             data["s_emergency_pincode"],
+#             data["s_emergency_contact_no"],
+
+#             data.get("s_police_verification_cert"),
+#             data.get("s_medical_certificate"),
+#             data.get("s_govt_id_proof"),
+#             data.get("s_hsse_training"),
+
+#             data.get("s_applicant_signature"),
+
+#             data["s_contractor_name"],
+#             data.get("s_contractor_signature"),
+
+#             data["s_engineer_name"],
+#             data.get("s_engineer_signature"),
+
+#             data["s_area_manager_name"],
+#             data.get("s_area_manager_signature"),
+
+#             data["s_security_ic_name"],
+#             data.get("s_security_ic_signature"),
+
+#             data["s_entry_permit_no"],
+#             data["dt_date_of_issue"],
+
+#             data.get("s_issuing_person_signature"),
+#             data["s_security_name"],
+
+#             username,
+#             data["n_sr_no"]
+#         ))
+
+#         conn.commit()
+#         cursor.close()
+#         conn.close()
+#         return True, "Requisition form updated successfully"
+
+#     except Exception as e:
+#         return False, str(e)
+
+
+# # ---------- DELETE ----------
+# def delete_requisition_form(data, username="system"):
+#     try:
+#         conn = get_connection()
+#         cursor = conn.cursor()
+
+#         sql = """
+#         UPDATE dbo.REQUISITION_FORM_MASTER
+#     SET
+#         n_flag = 0,
+#         dt_deleted_at = GETDATE(),
+#         s_deleted_by = ?
+#     WHERE n_sr_no = ?
+#         """
+
+#         cursor.execute(sql, (username, data["n_sr_no"]))
+
+#         conn.commit()
+#         cursor.close()
+#         conn.close()
+#         return True, "Requisition form deleted"
+
+#     except Exception as e:
+#         return False, str(e)
 
 
 # =====================================================

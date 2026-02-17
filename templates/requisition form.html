@@ -2,212 +2,100 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Requisition for Entry Permit</title>
+  <meta charset="UTF-8">
+  <title>User-0 Approval Dashboard</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pil_requisition_form.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pil_requisition_form.css') }}">
 </head>
 
 <body>
 
-    <header class="header-dashboard">
-        <div class="hamburger-dashboard">
-            ☰
-            <a href="{{ url_for('routes_bp.home') }}">
-                <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
-            </a>
+<!-- ================= HEADER ================= -->
+<header class="header-dashboard">
+  <div class="hamburger-dashboard">
+    ☰
+    <a href="{{ url_for('routes_bp.home') }}">
+      <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
+    </a>
+  </div>
+
+  <h2>User-0 Approval Dashboard</h2>
+
+  <div id="profileAvatar">
+    <div id="profileInitials">
+      {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+    </div>
+    <span>
+      {{ (session.get('user') or {}).get('name','Guest User') }}
+    </span>
+  </div>
+</header>
+
+<!-- ================= MAIN ================= -->
+<div class="dashboard-container">
+
+  <!-- ================= CREATE REQUEST ================= -->
+  <div class="dashboard-card">
+    <h3>Create New Request</h3>
+
+    <div class="create-request-row">
+
+      <div class="filter-item" style="min-width:260px;">
+        <label>Generated SR No</label>
+        <div id="srDisplay" class="sr-display" style="display:none;">
+          <span id="srValue"></span>
         </div>
-
-        <h2>Requisition Form</h2>
-
-        <div id="profileAvatar">
-            <div id="profileInitials">
-                {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
-            </div>
-            <span>{{ (session.get('user') or {}).get('name','Guest User') }}</span>
+        <div class="sr-hint">
+          SR No will be generated after form save
         </div>
-    </header>
+      </div>
 
-    <div class="container">
+      <div class="filter-item">
+        <label>User-1 Email</label>
+        <input type="email" id="user1Email" placeholder="Enter User-1 Email">
+      </div>
 
-        <!-- ================= PAGINATION ================= -->
-        <div class="toolbar" id="paginationBar">
-            <div class="pagination">
-                <button id="prevBtn">◀ Back</button>
-                <span id="pageInfo"></span>
-                <button id="nextBtn">Next ▶</button>
-            </div>
-        </div>
-
-        <!-- ================= LIST VIEW ================= -->
-        <div id="listView">
-            <table id="masterTable">
-                <thead>
-                    <tr>
-                        <th>Sr. No.</th>
-                        <th>Location</th>
-                        <th>Request Date</th>
-                        <th>Contractor Name</th>
-                        <th>Name of Agency</th>
-                        <th>SAP Vendor Code</th>
-                        {% if user_role != 'admin' %}
-                        <th>Action</th>
-                        {% endif %}
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-
-            <div class="table-footer">
-                {% if user_role != 'admin' %}
-                <button type="button" class="btn-add" onclick="openAddForm()">Add Data</button>
-                {% endif %}
-                <button type="button" class="btn-download" onclick="downloadTable()">
-                    <i class="fa fa-download"></i> Download
-                </button>
-            </div>
-        </div>
-
-        <!-- ================= FORM ================= -->
-        <form id="requisitionForm" onsubmit="return false;">
-            <div id="formView" class="form-box">
-                <h3>Basic Details</h3>
-
-                <div class="row">
-                    <div class="field">
-                        <label>Date of Request *</label>
-                        <input type="date" id="dt_request_date">
-                    </div>
-                    <div class="field">
-                        <label>Location</label>
-                        <input id="s_location" readonly value="{{ session['user']['location'] }}">
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="field"><label>First Name</label><input id="s_first_name"></div>
-                    <div class="field"><label>Middle Name</label><input id="s_middle_name"></div>
-                    <div class="field"><label>Last Name</label><input id="s_last_name"></div>
-                </div>
-
-                <div class="row">
-                    <div class="field"><label>Date of Birth</label><input type="date" id="dt_date_of_birth">
-                    </div>
-                    <div class="field"><label>Age (Years)</label><input id="n_age" readonly></div>
-                </div>
-
-                <div class="row">
-                    <div class="field"><label>Name of Agency</label><input id="s_agency_name"></div>
-                    <div class="field"><label>SAP Vendor Code</label><input id="s_sap_vendor_code"></div>
-                </div>
-
-                <div class="row">
-                    <div class="field"><label>Nature of Job</label><input id="s_nature_of_job"></div>
-                    <div class="field"><label>Work Order No</label><input id="s_work_order_no"></div>
-                    <div class="field"><label>Work Order Validity</label><input type="date" id="dt_work_order_validity">
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="field"><label>Date of Joining</label><input type="date" id="dt_date_of_joining">
-                    </div>
-                    <div class="field"><label>Exact Location of Work</label><input id="s_exact_work_location">
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="field"><label>Height (cm)</label><input id="n_height_cm"></div>
-                    <div class="field">
-                        <label>Gender</label>
-                        <select id="s_gender">
-                            <option value="">Select</option>
-                            <option>Male</option>
-                            <option>Female</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
-                    <div class="field"><label>Blood Group</label><input id="s_blood_group"></div>
-                </div>
-
-                <div class="row">
-                    <div class="field"><label>Identification Mark</label><input id="s_identification_mark">
-                    </div>
-                    <div class="field"><label>Aadhar Card No</label><input id="s_aadhar_card_no"></div>
-                </div>
-
-                <div class="row">
-                    <div class="field"><label>Present Residential Address</label><textarea
-                            id="s_present_address"></textarea></div>
-                </div>
-
-                <div class="row">
-                    <div class="field"><label>City</label><input id="s_present_city"></div>
-                    <div class="field"><label>State</label><input id="s_present_state"></div>
-                    <div class="field"><label>Pin Code</label><input id="s_present_pincode"></div>
-                    <div class="field"><label>Contact No</label><input id="s_contact_no"></div>
-                </div>
-
-                <h3>Emergency Contact</h3>
-
-                <div class="row">
-                    <div class="field">
-                        <label>Emergency Contact Person Name & Address</label>
-                        <textarea id="s_emergency_contact_details"></textarea>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="field"><label>City</label><input id="s_emergency_city"></div>
-                    <div class="field"><label>State</label><input id="s_emergency_state"></div>
-                    <div class="field"><label>Pin Code</label><input id="s_emergency_pincode"></div>
-                    <div class="field"><label>Contact No</label><input id="s_emergency_contact_no"></div>
-                </div>
-
-                <h3>Certificates</h3>
-
-                <div class="row">
-                    <label><input type="checkbox" id="s_police_verification_cert"> Police Verification
-                        Certificate</label>
-                    <label><input type="checkbox" id="s_medical_certificate"> Medical Certificate</label>
-                    <label><input type="checkbox" id="s_govt_id_proof"> Govt ID Proof</label>
-                    <label><input type="checkbox" id="s_hsse_training"> HSSE Training</label>
-                </div>
-
-                <h3 style="display: none;">Approvals</h3>
-
-                <div class="row" style="display: none;">
-                    <div class="field"><label>Contractor Name</label><input id="s_contractor_name"></div>
-                    <div class="field"><label>Engineer Name</label><input id="s_engineer_name"></div>
-                    <div class="field"><label>Area Manager Name</label><input id="s_area_manager_name"></div>
-                </div>
-
-                <div class="row" style="display: none;">
-                    <div class="field"><label>Security I/C Name</label><input id="s_security_ic_name"></div>
-                </div>
-
-                <div class="row" style="display: none;">
-                    <div class="field"><label>Entry Permit No</label><input id="s_entry_permit_no"></div>
-                    <div class="field"><label>Date of Issue</label><input type="date" id="dt_date_of_issue">
-                    </div>
-                </div>
-                <div class="btn-row">
-                    <button type="button" class="btn-save" onclick="saveRequisition()">Save</button>
-                    <button type="button" class="secondary" onclick="cancel()">Cancel</button>
-                </div>
-
-            </div>
-        </form>
+      <div class="filter-item" style="justify-content:flex-end;">
+        <label>&nbsp;</label>
+        <button class="primary-btn" onclick="createRequest()">
+          Send for Approval
+        </button>
+      </div>
 
     </div>
+  </div>
 
-    <script>
-        const USER_LOCATION = "{{ session['user']['location'] }}";
-        const USER_ROLE = "{{ user_role }}";
-    </script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="{{ url_for('static', filename='javascript/pil_requisition_form.js') }}"></script>
+  <!-- ================= REQUEST LIST ================= -->
+  <div class="dashboard-card">
+    <h3 style="margin-bottom:15px;">All Requests</h3>
 
+    <table class="dashboard-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Status</th>
+          <th>Current Approver</th>
+          <th>Last Action</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="requestTable"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ================= TIMELINE MODAL ================= -->
+<div id="timelineBox" class="dashboard-card timeline-modal" style="display:none;">
+
+  <h3>Approval Timeline</h3>
+  <ul id="timelineList" class="timeline-list"></ul>
+
+  <div style="text-align:right;">
+    <button class="primary-btn" onclick="closeTimeline()">Close</button>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='javascript/pil_requisition_form.js') }}"></script>
 </body>
-
 </html>

@@ -2,6 +2,10 @@ from flask import request, jsonify, session , send_file
 from Execute import queries
 from Execute.queries import fetch_data_with_date, get_report_master_tables
 from excel_bp import write_excel
+from services.approval_service import execute_sp
+from utils.token import generate_token, mark_token_used, validate_token
+from utils.mailer import send_mail
+from Execute.executesql import get_connection
 
 # =====================================================
 # COMMON RESPONSE HELPERS
@@ -397,63 +401,63 @@ def delete_casual_labour_data_fn():
 # Requisition Form
 # =====================================================
 
-def save_requisition_form_fn():
-    try:
-        data = request.get_json(force=True)
-        if not data:
-            return error_response("No data received")
+# def save_requisition_form_fn():
+#     try:
+#         data = request.get_json(force=True)
+#         if not data:
+#             return error_response("No data received")
 
-        username = session.get("user", {}).get("email", "system")
-        success, msg = queries.create_requisition_form(data, username)
+#         username = session.get("user", {}).get("email", "system")
+#         success, msg = queries.create_requisition_form(data, username)
 
-        return success_response(msg) if success else error_response(msg)
+#         return success_response(msg) if success else error_response(msg)
 
-    except Exception as e:
-        return error_response(str(e), 500)
-
-
-def get_requisition_form_fn():
-    try:
-        user = session.get("user", {})
-        user_role = user.get("role")
-        user_location = user.get("location")
-
-        success, data = queries.get_requisition_forms(user_role, user_location)
-
-        return success_response(data=data) if success else error_response("Failed to fetch data")
-
-    except Exception as e:
-        return error_response(str(e), 500)
+#     except Exception as e:
+#         return error_response(str(e), 500)
 
 
-def update_requisition_form_fn():
-    try:
-        data = request.get_json(force=True)
-        if not data:
-            return error_response("No data received")
+# def get_requisition_form_fn():
+#     try:
+#         user = session.get("user", {})
+#         user_role = user.get("role")
+#         user_location = user.get("location")
 
-        username = session.get("user", {}).get("email", "system")
-        success, msg = queries.update_requisition_form(data, username)
+#         success, data = queries.get_requisition_forms(user_role, user_location)
 
-        return success_response(msg) if success else error_response(msg)
+#         return success_response(data=data) if success else error_response("Failed to fetch data")
 
-    except Exception as e:
-        return error_response(str(e), 500)
+#     except Exception as e:
+#         return error_response(str(e), 500)
 
 
-def delete_requisition_form_fn():
-    try:
-        data = request.get_json(force=True)
-        if not data or "n_sr_no" not in data:
-            return error_response("Invalid delete request")
+# def update_requisition_form_fn():
+#     try:
+#         data = request.get_json(force=True)
+#         if not data:
+#             return error_response("No data received")
 
-        username = session.get("user", {}).get("email", "system")
-        success, msg = queries.delete_requisition_form(data, username)
+#         username = session.get("user", {}).get("email", "system")
+#         success, msg = queries.update_requisition_form(data, username)
 
-        return success_response(msg) if success else error_response(msg)
+#         return success_response(msg) if success else error_response(msg)
 
-    except Exception as e:
-        return error_response(str(e), 500)
+#     except Exception as e:
+#         return error_response(str(e), 500)
+
+
+# def delete_requisition_form_fn():
+#     try:
+#         data = request.get_json(force=True)
+#         if not data or "n_sr_no" not in data:
+#             return error_response("Invalid delete request")
+
+#         username = session.get("user", {}).get("email", "system")
+#         success, msg = queries.delete_requisition_form(data, username)
+
+#         return success_response(msg) if success else error_response(msg)
+
+#     except Exception as e:
+#         return error_response(str(e), 500)
 
 
 # =====================================================
@@ -568,3 +572,297 @@ def get_locations_fn():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
+# =====================================================
+# Requisition Form
+# =====================================================
+
+def create_request():
+
+    data = request.json
+    receiver_email = data.get("first_user_email")
+    sender_email = session['user']['email']
+
+    if not receiver_email:
+        return {"error": "Receiver email required"}, 400
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO APPROVAL_REQUEST_MASTER
+        (
+            form_sr_no,
+            initiator_email,
+            current_level,
+            current_approver_email,
+            overall_status,
+            last_action_time
+        )
+        OUTPUT INSERTED.request_id
+        VALUES (NULL, ?, 1, ?, 'PENDING', GETDATE())
+    """, (sender_email, receiver_email))
+
+    request_id = cursor.fetchone()[0]
+    conn.commit()
+
+    approval_link = f"http://127.0.0.1:5001/form-fill/{request_id}"
+
+    send_mail(
+        to_email=receiver_email,
+        subject="Form Fill Required",
+        body=f"""
+        <p>You have received a form request.</p>
+        <p><b>Sent by:</b> {sender_email}</p>
+        <a href="{approval_link}">Click here to fill the form</a>
+        """,
+        sender_email=sender_email
+    )
+
+    return {"success": True, "request_id": request_id}
+
+
+
+def submit_form():
+
+    data = request.json
+    request_id = data['request_id']
+    user_email = data['user_email']
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO REQUISITION_FORM_MASTER
+        (
+            s_location,
+            dt_request_date,
+            s_first_name,
+            s_last_name,
+            dt_date_of_birth,
+            n_age,
+            s_agency_name,
+            s_nature_of_job,
+            s_work_order_no,
+            dt_work_order_validity,
+            dt_date_of_joining,
+            s_exact_work_location,
+            s_gender,
+            s_aadhar_card_no,
+            s_present_address,
+            s_present_city,
+            s_present_state,
+            s_present_pincode,
+            s_contact_no,
+            s_emergency_contact_details,
+            s_emergency_city,
+            s_emergency_state,
+            s_emergency_pincode,
+            s_emergency_contact_no,
+            s_created_by
+        )
+        OUTPUT INSERTED.n_sr_no
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (
+        data['s_location'],
+        data['dt_request_date'],
+        data['s_first_name'],
+        data['s_last_name'],
+        data['dt_date_of_birth'],
+        data['n_age'],
+        data['s_agency_name'],
+        data['s_nature_of_job'],
+        data['s_work_order_no'],
+        data['dt_work_order_validity'],
+        data['dt_date_of_joining'],
+        data['s_exact_work_location'],
+        data['s_gender'],
+        data['s_aadhar_card_no'],
+        data['s_present_address'],
+        data['s_present_city'],
+        data['s_present_state'],
+        data['s_present_pincode'],
+        data['s_contact_no'],
+        data['s_emergency_contact_details'],
+        data['s_emergency_city'],
+        data['s_emergency_state'],
+        data['s_emergency_pincode'],
+        data['s_emergency_contact_no'],
+        user_email
+    ))
+
+    form_sr_no = cursor.fetchone()[0]
+
+    cursor.execute("""
+        UPDATE APPROVAL_REQUEST_MASTER
+        SET form_sr_no = ?,
+            current_level = 0,
+            current_approver_email = initiator_email,
+            last_action_time = GETDATE()
+        WHERE request_id = ?
+    """, (form_sr_no, request_id))
+
+    conn.commit()
+
+    token = generate_token(request_id, 0, "user0@mail.com")
+    link = f"http://localhost:5001/approval?token={token}"
+
+    send_mail(
+        "user0@mail.com",
+        "Form submitted – Review required",
+        f"<a href='{link}'>Review Request</a>",
+        user_email
+    )
+
+    return {"status": "form submitted successfully"}
+
+
+def approve():
+    data = request.json
+
+    request_id = data['request_id']
+    current_level = data['current_level']
+    approver_email = data['approver_email']
+    next_approver_email = data['next_approver_email']
+
+    execute_sp(
+        "sp_approve_request",
+        (request_id, current_level, approver_email, next_approver_email)
+    )
+
+    token = generate_token(request_id, current_level + 1)
+    approval_link = f"http://localhost:5001/approval?token={token}"
+
+    send_mail(
+        next_approver_email,
+        "Approval required",
+        f"""
+        <p>Please review the request.</p>
+        <a href="{approval_link}">Approve / Reject</a>
+        """
+    )
+
+    return jsonify({"status": "approved & mail sent"})
+
+def reject():
+    data = request.json
+
+    request_id = data['request_id']
+    current_level = data['current_level']
+    approver_email = data['approver_email']
+    remark = data['remark']
+
+    execute_sp(
+        "sp_reject_request",
+        (request_id, current_level, approver_email, remark)
+    )
+
+    return jsonify({"status": "rejected"})
+
+def approval_action():
+    token = request.form['token']
+    action = request.form['action']
+
+    token_data, error = validate_token(token)
+    if error:
+        return error
+
+    request_id = token_data['request_id']
+    level = token_data['approval_level']
+    approver_email = token_data['approver_email']
+
+    if action == "APPROVE":
+        next_email = request.form['next_email']
+
+        execute_sp(
+            "sp_approve_request",
+            (request_id, level, approver_email, next_email)
+        )
+
+    else:
+        remark = request.form['remark']
+
+        execute_sp(
+            "sp_reject_request",
+            (request_id, level, approver_email, remark)
+        )
+
+    mark_token_used(token)
+    return "Action completed successfully"
+
+def resend_approval():
+    data = request.json
+    request_id = data['request_id']
+    current_level = data['current_level']
+    approver_email = data['approver_email']
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE APPROVAL_TOKENS
+        SET is_used = 1
+        WHERE request_id = ? AND approval_level = ? AND is_used = 0
+    """, (request_id, current_level))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    token = generate_token(request_id, current_level, approver_email)
+
+    link = f"http://localhost:5001/approval?token={token}"
+
+    send_mail(
+        approver_email,
+        "Reminder: Approval Required",
+        f"""
+        <p>This is a reminder to approve the request.</p>
+        <a href="{link}">Click here to Approve / Reject</a>
+        """
+    )
+
+    return {"status": "resent successfully"}
+
+def save_form():
+    data = request.json
+
+    result = execute_sp(
+        "sp_save_requisition_form",
+        (
+            data['s_location'],
+            data['dt_request_date'],
+            data['s_first_name'],
+            data.get('s_middle_name'),
+            data['s_last_name'],
+            data['dt_date_of_birth'],
+            data['n_age'],
+            data['s_agency_name'],
+            data.get('s_sap_vendor_code'),
+            data['s_nature_of_job'],
+            data['s_work_order_no'],
+            data['dt_work_order_validity'],
+            data['dt_date_of_joining'],
+            data['s_exact_work_location'],
+            data['s_gender'],
+            data['s_aadhar_card_no'],
+            data['s_present_address'],
+            data['s_present_city'],
+            data['s_present_state'],
+            data['s_present_pincode'],
+            data['s_contact_no'],
+            data['s_emergency_contact_details'],
+            data['s_emergency_city'],
+            data['s_emergency_state'],
+            data['s_emergency_pincode'],
+            data['s_emergency_contact_no'],
+            session['user']['email']
+        )
+    )
+
+    if not result:
+        return {"error": "Form save failed"}, 500
+
+    return {
+        "status": "success",
+        "form_sr_no": result[0]
+    }

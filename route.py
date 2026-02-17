@@ -1,10 +1,13 @@
-from flask import Blueprint, render_template , session
+from flask import Blueprint, render_template , session, jsonify
 from Execute.Functions import functions
 from flask import request, send_file
 from Execute.vehicle_checklist_export import generate_vehicle_checklist_excel
 from Execute.vehicle_checklist_pdf import generate_vehicle_checklist_pdf
 from Execute.visitor_slip_pdf import generate_visitor_slip_pdf
 from Execute.Functions.functions import download_filtered_excel_logic , get_report_tables_fn
+from utils.token import validate_token
+from Execute.executesql import get_connection
+
 
 routes_bp = Blueprint('routes_bp', __name__)
 
@@ -160,13 +163,90 @@ routes_bp.add_url_rule('/update_casual_labour_data',view_func=functions.update_c
 routes_bp.add_url_rule('/delete_casual_labour_data',view_func=functions.delete_casual_labour_data_fn,methods=['POST'])
 
 # ------------ REQUISITION FORM -----------------
-routes_bp.add_url_rule('/save_requisition_form',view_func=functions.save_requisition_form_fn,methods=['POST'])
-routes_bp.add_url_rule('/get_requisition_form',view_func=functions.get_requisition_form_fn,methods=['GET'])
-routes_bp.add_url_rule('/update_requisition_form',view_func=functions.update_requisition_form_fn,methods=['POST'])
-routes_bp.add_url_rule('/delete_requisition_form',view_func=functions.delete_requisition_form_fn,methods=['POST'])
+# routes_bp.add_url_rule('/save_requisition_form',view_func=functions.save_requisition_form_fn,methods=['POST'])
+# routes_bp.add_url_rule('/get_requisition_form',view_func=functions.get_requisition_form_fn,methods=['GET'])
+# routes_bp.add_url_rule('/update_requisition_form',view_func=functions.update_requisition_form_fn,methods=['POST'])
+# routes_bp.add_url_rule('/delete_requisition_form',view_func=functions.delete_requisition_form_fn,methods=['POST'])
 
 #----------- report excel_bp --------------
 routes_bp.add_url_rule('/download_filtered_excel',view_func=functions.download_filtered_excel,methods=['POST'])
 routes_bp.add_url_rule('/get_report_tables',view_func=functions.get_report_tables,methods=['GET'])
 routes_bp.add_url_rule("/get_locations",view_func=functions.get_locations_fn,methods=["GET"])
 
+# ------------ REQUISITION FORM -----------------
+routes_bp.add_url_rule('/api/create-request',view_func=functions.create_request,methods=['POST'])
+routes_bp.add_url_rule('/api/submit-form',view_func=functions.submit_form,methods=['POST'])
+routes_bp.add_url_rule('/api/approve',view_func=functions.approve,methods=['POST'])
+routes_bp.add_url_rule('/api/reject',view_func=functions.reject,methods=['POST'])
+routes_bp.add_url_rule('/approval-action',view_func=functions.approval_action,methods=['POST'])
+routes_bp.add_url_rule('/api/resend-approval',view_func=functions.resend_approval,methods=['POST'])
+routes_bp.add_url_rule('/api/save-form',view_func=functions.save_form,methods=['POST'])
+
+
+@routes_bp.route('/approval')
+def approval_page():
+    token = request.args.get("token")
+
+    data, error = validate_token(token)
+
+    if error:
+        return error
+
+    return render_template(
+        "approval_form.html",
+        token=token,
+        request_id=data["request_id"],
+        level=data["approval_level"]
+    )
+
+@routes_bp.route('/api/timeline/<int:request_id>')
+def get_timeline(request_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("EXEC sp_get_request_timeline ?", request_id)
+    rows = cursor.fetchall()
+
+    timeline = []
+    for r in rows:
+        timeline.append({
+            "level": r.approval_level,
+            "email": r.approver_email,
+            "action": r.action_taken,
+            "remark": r.remark,
+            "time": str(r.action_time)
+        })
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(timeline)
+
+@routes_bp.route('/api/dashboard-requests')
+def dashboard_requests():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT request_id, overall_status, current_level,
+               current_approver_email, last_action_time, sla_breached
+        FROM APPROVAL_REQUEST_MASTER
+        ORDER BY request_id DESC
+    """)
+
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    data = []
+    for r in rows:
+        data.append({
+            "request_id": r.request_id,
+            "overall_status": r.overall_status,
+            "current_level": r.current_level,
+            "current_approver_email": r.current_approver_email,
+            "last_action_time": str(r.last_action_time),
+            "sla_breached": r.sla_breached
+        })
+
+    return jsonify(data)

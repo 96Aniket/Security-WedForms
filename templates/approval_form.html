@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form method="post" action="/approval-action">
+        <input type="hidden" name="token" value="{{token}}">
+        <input type="hidden" name="request_id" value="{{request_id}}">
+        <input type="hidden" name="current_level" value="{{level}}">
+
+        <label>
+            <input type="radio" name="action" value="APPROVE" required> Approve
+        </label>
+        <label>
+            <input type="radio" name="action" value="REJECT" required> Reject
+        </label>
+
+        <br><br>
+
+        <textarea name="remark" placeholder="Remark (required if reject)"></textarea>
+
+        <br><br>
+
+        <input type="email" name="next_email" placeholder="Next approver email">
+
+        <br><br>
+        <button type="submit">Submit</button>
+    </form>
+
+</body>
+</html>
