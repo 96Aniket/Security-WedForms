@@ -329,3 +329,53 @@ button {
   font-size: 14px;
   line-height: 1;
 }
+
+/* ================= DOCUMENT CHECKLIST ================= */
+
+.doc-checklist {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.doc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #cfd6dd;
+  border-radius: 6px;
+  background: #f9fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.doc-item:hover {
+  background: #eef3f9;
+  border-color: #90caf9;
+}
+
+.doc-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.doc-item span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Checked state */
+.doc-item input:checked + span {
+  color: #1f3a5f;
+}
+
+/* Mobile polish */
+@media (max-width: 600px) {
+  .doc-checklist {
+    grid-template-columns: 1fr;
+  }
+}
