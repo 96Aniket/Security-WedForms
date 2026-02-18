@@ -33,7 +33,10 @@ def create_app():
 
     from route import routes_bp
     app.register_blueprint(routes_bp)
-    start_scheduler()
+    
+    if os.environ.get("RUN_MAIN") == "true":
+        start_scheduler()
+
 
     return app
 

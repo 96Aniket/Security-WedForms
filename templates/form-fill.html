@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Requisition Form</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      background: #fff;
+      padding: 20px;
+      margin: auto;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h3 {
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 8px;
+    }
+    .row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 12px;
+    }
+    .field {
+      flex: 1;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 7px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    textarea {
+      resize: vertical;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h3>Requisition Form</h3>
+
+  <form id="requisitionForm">
+
+    <!-- Hidden -->
+    <input type="hidden" name="request_id" value="{{ request_id }}">
+    <input type="hidden" name="user_email" value="{{ user_email | default('') }}">
+
+    <!-- ================= BASIC DETAILS ================= -->
+    <div class="row">
+      <div class="field">
+        <label>Location</label>
+        <input type="text" name="s_location" required>
+      </div>
+      <div class="field">
+        <label>Request Date</label>
+        <input type="date" name="dt_request_date" required>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>First Name</label>
+        <input type="text" name="s_first_name" required>
+      </div>
+      <div class="field">
+        <label>Middle Name</label>
+        <input type="text" name="s_middle_name">
+      </div>
+      <div class="field">
+        <label>Last Name</label>
+        <input type="text" name="s_last_name" required>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Date of Birth</label>
+        <input type="date" name="dt_date_of_birth" required>
+      </div>
+      <div class="field">
+        <label>Age</label>
+        <input type="number" name="n_age" required>
+      </div>
+      <div class="field">
+        <label>Gender</label>
+        <select name="s_gender" required>
+          <option value="">Select</option>
+          <option>Male</option>
+          <option>Female</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ================= WORK DETAILS ================= -->
+    <h3>Work Details</h3>
+
+    <div class="row">
+      <div class="field">
+        <label>Agency Name</label>
+        <input type="text" name="s_agency_name" required>
+      </div>
+      <div class="field">
+        <label>SAP Vendor Code</label>
+        <input type="text" name="s_sap_vendor_code">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Nature of Job</label>
+        <input type="text" name="s_nature_of_job" required>
+      </div>
+      <div class="field">
+        <label>Work Order No</label>
+        <input type="text" name="s_work_order_no" required>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Work Order Validity</label>
+        <input type="date" name="dt_work_order_validity" required>
+      </div>
+      <div class="field">
+        <label>Date of Joining</label>
+        <input type="date" name="dt_date_of_joining" required>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Exact Work Location</label>
+        <input type="text" name="s_exact_work_location" required>
+      </div>
+    </div>
+
+    <!-- ================= ID & CONTACT ================= -->
+    <h3>Identification & Contact</h3>
+
+    <div class="row">
+      <div class="field">
+        <label>Aadhar Card No</label>
+        <input type="text" name="s_aadhar_card_no" required>
+      </div>
+      <div class="field">
+        <label>Blood Group</label>
+        <input type="text" name="s_blood_group">
+      </div>
+      <div class="field">
+        <label>Height (cm)</label>
+        <input type="number" name="n_height_cm">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Identification Mark</label>
+        <input type="text" name="s_identification_mark">
+      </div>
+      <div class="field">
+        <label>Contact No</label>
+        <input type="text" name="s_contact_no" required>
+      </div>
+    </div>
+
+    <!-- ================= ADDRESS ================= -->
+    <h3>Present Address</h3>
+
+    <div class="row">
+      <div class="field">
+        <label>Address</label>
+        <textarea name="s_present_address" required></textarea>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>City</label>
+        <input type="text" name="s_present_city" required>
+      </div>
+      <div class="field">
+        <label>State</label>
+        <input type="text" name="s_present_state" required>
+      </div>
+      <div class="field">
+        <label>Pincode</label>
+        <input type="text" name="s_present_pincode" required>
+      </div>
+    </div>
+
+    <!-- ================= EMERGENCY ================= -->
+    <h3>Emergency Contact</h3>
+
+    <div class="row">
+      <div class="field">
+        <label>Emergency Contact Details</label>
+        <textarea name="s_emergency_contact_details" required></textarea>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>City</label>
+        <input type="text" name="s_emergency_city" required>
+      </div>
+      <div class="field">
+        <label>State</label>
+        <input type="text" name="s_emergency_state" required>
+      </div>
+      <div class="field">
+        <label>Pincode</label>
+        <input type="text" name="s_emergency_pincode" required>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Emergency Contact No</label>
+        <input type="text" name="s_emergency_contact_no" required>
+      </div>
+    </div>
+
+    <!-- ================= DOCUMENT CHECK ================= -->
+    <h3>Documents</h3>
+
+    <div class="row">
+      <div class="field">
+        <label><input type="checkbox" name="s_police_verification_cert"> Police Verification</label>
+      </div>
+      <div class="field">
+        <label><input type="checkbox" name="s_medical_certificate"> Medical Certificate</label>
+      </div>
+      <div class="field">
+        <label><input type="checkbox" name="s_govt_id_proof"> Govt ID Proof</label>
+      </div>
+      <div class="field">
+        <label><input type="checkbox" name="s_hsse_training"> HSSE Training</label>
+      </div>
+    </div>
+
+    <br>
+    <button type="submit">Submit Form</button>
+
+  </form>
+
+</div>
+
+<script>
+document.getElementById("requisitionForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const formData = new FormData(this);
+  const data = Object.fromEntries(formData.entries());
+
+  // Convert checkboxes to 0/1
+  ['s_police_verification_cert','s_medical_certificate','s_govt_id_proof','s_hsse_training']
+    .forEach(k => data[k] = data[k] ? 1 : 0);
+
+  fetch("/api/submit-form", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(resp => {
+    alert("Form submitted successfully");
+    document.body.innerHTML = "<h3>Thank you! Form submitted.</h3>";
+  })
+  .catch(() => alert("Error submitting form"));
+});
+</script>
+
+</body>
+</html>

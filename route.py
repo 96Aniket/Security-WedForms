@@ -112,6 +112,13 @@ def pil_visitor():
 def gov_visitor():
     return render_template('government visitor.html')
 
+@routes_bp.route('/approval-form')
+def approval_form():
+    return render_template('approval_form.html')
+
+@routes_bp.route('/form-fill')
+def form_fill():
+    return render_template('form-fill.html')
 
 @routes_bp.route('/requisition-form')
 def requisition_form():
@@ -182,13 +189,19 @@ routes_bp.add_url_rule('/approval-action',view_func=functions.approval_action,me
 routes_bp.add_url_rule('/api/resend-approval',view_func=functions.resend_approval,methods=['POST'])
 routes_bp.add_url_rule('/api/save-form',view_func=functions.save_form,methods=['POST'])
 
+@routes_bp.route('/form-fill/<int:request_id>')
+def form_fill_page(request_id):
+    return render_template(
+        "form-fill.html",
+        request_id=request_id
+    )
 
 @routes_bp.route('/approval')
 def approval_page():
     token = request.args.get("token")
+    action = request.args.get("action")  
 
     data, error = validate_token(token)
-
     if error:
         return error
 
@@ -196,8 +209,10 @@ def approval_page():
         "approval_form.html",
         token=token,
         request_id=data["request_id"],
-        level=data["approval_level"]
+        level=data["approval_level"],
+        action=action
     )
+
 
 @routes_bp.route('/api/timeline/<int:request_id>')
 def get_timeline(request_id):

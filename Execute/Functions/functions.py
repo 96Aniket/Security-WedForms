@@ -6,6 +6,7 @@ from services.approval_service import execute_sp
 from utils.token import generate_token, mark_token_used, validate_token
 from utils.mailer import send_mail
 from Execute.executesql import get_connection
+from utils.approval_engine import process_approval
 
 # =====================================================
 # COMMON RESPONSE HELPERS
@@ -631,34 +632,19 @@ def submit_form():
     conn = get_connection()
     cursor = conn.cursor()
 
+    # Insert Form Data
     cursor.execute("""
         INSERT INTO REQUISITION_FORM_MASTER
         (
-            s_location,
-            dt_request_date,
-            s_first_name,
-            s_last_name,
-            dt_date_of_birth,
-            n_age,
-            s_agency_name,
-            s_nature_of_job,
-            s_work_order_no,
-            dt_work_order_validity,
-            dt_date_of_joining,
-            s_exact_work_location,
-            s_gender,
-            s_aadhar_card_no,
-            s_present_address,
-            s_present_city,
-            s_present_state,
-            s_present_pincode,
-            s_contact_no,
-            s_emergency_contact_details,
-            s_emergency_city,
-            s_emergency_state,
-            s_emergency_pincode,
-            s_emergency_contact_no,
-            s_created_by
+            s_location, dt_request_date, s_first_name, s_last_name,
+            dt_date_of_birth, n_age, s_agency_name, s_nature_of_job,
+            s_work_order_no, dt_work_order_validity, dt_date_of_joining,
+            s_exact_work_location, s_gender, s_aadhar_card_no,
+            s_present_address, s_present_city, s_present_state,
+            s_present_pincode, s_contact_no,
+            s_emergency_contact_details, s_emergency_city,
+            s_emergency_state, s_emergency_pincode,
+            s_emergency_contact_no, s_created_by
         )
         OUTPUT INSERTED.n_sr_no
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
@@ -692,6 +678,7 @@ def submit_form():
 
     form_sr_no = cursor.fetchone()[0]
 
+    #  Update Request Master
     cursor.execute("""
         UPDATE APPROVAL_REQUEST_MASTER
         SET form_sr_no = ?,
@@ -701,13 +688,23 @@ def submit_form():
         WHERE request_id = ?
     """, (form_sr_no, request_id))
 
-    conn.commit()
+    #  Fetch Initiator Email (User-0)
+    cursor.execute(
+        "SELECT initiator_email FROM APPROVAL_REQUEST_MASTER WHERE request_id = ?",
+        (request_id,)
+    )
+    initiator_email = cursor.fetchone().initiator_email
 
-    token = generate_token(request_id, 0, "user0@mail.com")
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    #  Send Mail to Initiator
+    token = generate_token(request_id, 0, initiator_email)
     link = f"http://localhost:5001/approval?token={token}"
 
     send_mail(
-        "user0@mail.com",
+        initiator_email,
         "Form submitted – Review required",
         f"<a href='{link}'>Review Request</a>",
         user_email
@@ -758,6 +755,8 @@ def reject():
 
     return jsonify({"status": "rejected"})
 
+
+
 def approval_action():
     token = request.form['token']
     action = request.form['action']
@@ -770,24 +769,39 @@ def approval_action():
     level = token_data['approval_level']
     approver_email = token_data['approver_email']
 
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT 1 FROM APPROVAL_REQUEST_MASTER
+        WHERE request_id = ?
+          AND current_level = ?
+          AND current_approver_email = ?
+          AND overall_status = 'PENDING'
+    """, (request_id, level, approver_email))
+
+    if not cursor.fetchone():
+        return "Invalid or expired approval attempt"
+
+    cursor.close()
+    conn.close()
+
     if action == "APPROVE":
         next_email = request.form['next_email']
-
-        execute_sp(
-            "sp_approve_request",
-            (request_id, level, approver_email, next_email)
+        result = process_approval(
+            request_id, level, approver_email,
+            "APPROVE", None, next_email
         )
-
     else:
         remark = request.form['remark']
-
-        execute_sp(
-            "sp_reject_request",
-            (request_id, level, approver_email, remark)
+        result = process_approval(
+            request_id, level, approver_email,
+            "REJECT", remark, None
         )
 
     mark_token_used(token)
-    return "Action completed successfully"
+    return f"Request {result}"
+
+
 
 def resend_approval():
     data = request.json
