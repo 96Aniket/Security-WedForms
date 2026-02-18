@@ -2,7 +2,7 @@ import smtplib
 from email.mime.text import MIMEText
 from flask import current_app
 
-SYSTEM_SMTP_EMAIL = "aniketsupekar2004@gmail.com"  
+SYSTEM_SMTP_EMAIL = ""  
 
 def send_mail(to_email, subject, body, sender_email):
     try:
