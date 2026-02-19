@@ -20,7 +20,7 @@ def send_approval_mail_to_user0(request_id, token, user0_email, submitted_by):
               color:white;
               text-decoration:none;
               border-radius:6px;">
-       🔍 Review & Approve
+        Review & Approve
     </a>
 
     <p style="margin-top:12px;font-size:12px;color:gray;">

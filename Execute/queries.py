@@ -2359,3 +2359,19 @@ def get_dashboard_requests():
         "last_action_time": str(r.last_action_time),
         "sla_breached": r.sla_breached
     } for r in rows]
+
+def is_final_level(level):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT is_final
+        FROM APPROVAL_LEVEL_CONFIG
+        WHERE level_no = ?
+    """, (level,))
+
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    return bool(row and row.is_final)

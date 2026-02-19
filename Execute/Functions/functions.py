@@ -9,6 +9,7 @@ from Execute.executesql import get_connection
 from utils.approval_engine import process_approval
 from utils.notification import send_approval_mail_to_user0
 from config import BASE_URL
+from utils.email_templates import approval_email_template
 
 
 # =====================================================
@@ -639,27 +640,37 @@ def submit_form():
 def approve():
     data = request.json
 
-    execute_sp(
-        "sp_approve_request",
-        (
-            data['request_id'],
-            data['current_level'],
-            data['approver_email'],
-            data['next_approver_email']
-        )
+    result = process_approval(
+        request_id=data['request_id'],
+        level=data['current_level'],
+        approver_email=data['approver_email'],  
+        action="APPROVE",
+        remark=None,
+        next_email=data['next_approver_email']  
     )
 
-    token = generate_token(data['request_id'], data['current_level'] + 1)
-    link = f"{BASE_URL}/approval?token={token}"
+    if result == "MOVED":
+        token = generate_token(
+            data['request_id'],
+            data['current_level'] + 1,
+            data['next_approver_email']
+        )
 
-    send_mail(
-        data['next_approver_email'],
-        "Approval Required",
-        f"<a href='{link}'>Approve / Reject</a>",
+        link = f"{BASE_URL}/approval?token={token}"
+
+        send_mail(
+        to_email=data['next_approver_email'],
+        subject="Approval Required",
+        body=f"""
+        <p>You have a pending approval.</p>
+        <p>Please review the request.</p>
+        <a href="{link}">Open Approval Page</a>
+        """,
         sender_email=SYSTEM_SMTP_EMAIL
     )
 
-    return jsonify({"status": "approved"})
+
+    return jsonify({"status": result})
 
 
 def reject():
@@ -679,12 +690,14 @@ def reject():
 
 
 def approval_action():
-    token = request.form['token']
+    used_token = request.form['token']    
     action = request.form['action']
 
-    token_data, error = validate_token(token)
+    token_data, error = validate_token(used_token)
     if error:
         return error
+
+    next_email = request.form.get('next_email')
 
     result = process_approval(
         token_data['request_id'],
@@ -692,10 +705,28 @@ def approval_action():
         token_data['approver_email'],
         action,
         request.form.get('remark'),
-        request.form.get('next_email')
+        next_email
     )
 
-    mark_token_used(token)
+    if result == "MOVED" and next_email:
+        next_token = generate_token(
+            token_data['request_id'],
+            token_data['approval_level'] + 1,
+            next_email
+        )
+
+        link = f"{BASE_URL}/approval?token={next_token}"
+        body = approval_email_template(next_token)
+
+        send_mail(
+            to_email=next_email,
+            subject="Approval Required",
+            body=body,
+            sender_email=SYSTEM_SMTP_EMAIL
+        )
+
+    mark_token_used(used_token)
+
     return f"Request {result}"
 
 
@@ -771,14 +802,20 @@ def approval_page_fn(request):
         return error
 
     form = queries.get_form_by_request_id(data["request_id"])
+    timeline = queries.get_request_timeline(data["request_id"])
+
+    is_final = queries.is_final_level(data["approval_level"])
 
     return render_template(
         "approval_review.html",
         token=token,
         action=action,
         request_id=data["request_id"],
-        form=form
+        form=form,
+        timeline=timeline,
+        is_final=is_final
     )
+
 
 
 def get_timeline_fn(request_id):
