@@ -128,6 +128,12 @@ def approval_reviews():
 def requisition_form():
     return render_template('requisition form.html')
 
+@routes_bp.route('/form-fill/<int:request_id>')
+def form_fill_page(request_id):
+    return render_template(
+        "form-fill.html",
+        request_id=request_id
+    )
 
 @routes_bp.route('/reports')
 def reports():
@@ -193,98 +199,15 @@ routes_bp.add_url_rule('/approval-action',view_func=functions.approval_action,me
 routes_bp.add_url_rule('/api/resend-approval',view_func=functions.resend_approval,methods=['POST'])
 routes_bp.add_url_rule('/api/save-form',view_func=functions.save_form,methods=['POST'])
 
-@routes_bp.route('/form-fill/<int:request_id>')
-def form_fill_page(request_id):
-    return render_template(
-        "form-fill.html",
-        request_id=request_id
-    )
-
 @routes_bp.route('/approval')
 def approval_page():
-    token = request.args.get("token")
-    action = request.args.get("action")
-
-    data, error = validate_token(token)
-    if error:
-        return error
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    # Fetch full form data
-    cursor.execute("""
-        SELECT *
-        FROM REQUISITION_FORM_MASTER
-        WHERE n_sr_no = (
-            SELECT form_sr_no
-            FROM APPROVAL_REQUEST_MASTER
-            WHERE request_id = ?
-        )
-    """, (data["request_id"],))
-
-    form = cursor.fetchone()
-    cursor.close()
-    conn.close()
-
-    return render_template(
-        "approval_review.html",
-        token=token,
-        action=action,
-        request_id=data["request_id"],
-        form=form
-    )
-
+    return functions.approval_page_fn(request)
 
 
 @routes_bp.route('/api/timeline/<int:request_id>')
 def get_timeline(request_id):
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("EXEC sp_get_request_timeline ?", request_id)
-    rows = cursor.fetchall()
-
-    timeline = []
-    for r in rows:
-        timeline.append({
-            "level": r.approval_level,
-            "email": r.approver_email,
-            "action": r.action_taken,
-            "remark": r.remark,
-            "time": str(r.action_time)
-        })
-
-    cursor.close()
-    conn.close()
-
-    return jsonify(timeline)
+    return functions.get_timeline_fn(request_id)
 
 @routes_bp.route('/api/dashboard-requests')
 def dashboard_requests():
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT request_id, overall_status, current_level,
-               current_approver_email, last_action_time, sla_breached
-        FROM APPROVAL_REQUEST_MASTER
-        ORDER BY request_id DESC
-    """)
-
-    rows = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
-    data = []
-    for r in rows:
-        data.append({
-            "request_id": r.request_id,
-            "overall_status": r.overall_status,
-            "current_level": r.current_level,
-            "current_approver_email": r.current_approver_email,
-            "last_action_time": str(r.last_action_time),
-            "sla_breached": r.sla_breached
-        })
-
-    return jsonify(data)
+    return functions.dashboard_requests_fn()

@@ -2180,3 +2180,182 @@ def get_report_master_tables():
         {"value": t["table"], "label": t["label"]}
         for t in REPORT_TABLES
     ]
+
+# =====================================================
+# Requisition – Request Master
+# =====================================================
+
+def create_request(sender_email, receiver_email):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO APPROVAL_REQUEST_MASTER
+        (
+            form_sr_no,
+            initiator_email,
+            current_level,
+            current_approver_email,
+            overall_status,
+            last_action_time
+        )
+        OUTPUT INSERTED.request_id
+        VALUES (NULL, ?, 1, ?, 'PENDING', GETDATE())
+    """, (sender_email, receiver_email))
+
+    request_id = cursor.fetchone()[0]
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return request_id
+
+
+def get_initiator_email(request_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT initiator_email
+        FROM APPROVAL_REQUEST_MASTER
+        WHERE request_id = ?
+    """, (request_id,))
+
+    email = cursor.fetchone().initiator_email
+    cursor.close()
+    conn.close()
+    return email
+
+
+def update_request_after_submit(request_id, form_sr_no, approver_email):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE APPROVAL_REQUEST_MASTER
+        SET form_sr_no = ?,
+            current_level = 0,
+            current_approver_email = ?,
+            last_action_time = GETDATE()
+        WHERE request_id = ?
+    """, (form_sr_no, approver_email, request_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
+# =====================================================
+# Requisition Form
+# =====================================================
+
+def insert_requisition_form(data, created_by):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO REQUISITION_FORM_MASTER
+        (
+            s_location, dt_request_date, s_first_name, s_last_name,
+            dt_date_of_birth, n_age, s_agency_name, s_nature_of_job,
+            s_work_order_no, dt_work_order_validity, dt_date_of_joining,
+            s_exact_work_location, s_gender, s_aadhar_card_no,
+            s_present_address, s_present_city, s_present_state,
+            s_present_pincode, s_contact_no,
+            s_emergency_contact_details, s_emergency_city,
+            s_emergency_state, s_emergency_pincode,
+            s_emergency_contact_no, s_created_by
+        )
+        OUTPUT INSERTED.n_sr_no
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (
+        data['s_location'],
+        data['dt_request_date'],
+        data['s_first_name'],
+        data['s_last_name'],
+        data['dt_date_of_birth'],
+        data['n_age'],
+        data['s_agency_name'],
+        data['s_nature_of_job'],
+        data['s_work_order_no'],
+        data['dt_work_order_validity'],
+        data['dt_date_of_joining'],
+        data['s_exact_work_location'],
+        data['s_gender'],
+        data['s_aadhar_card_no'],
+        data['s_present_address'],
+        data['s_present_city'],
+        data['s_present_state'],
+        data['s_present_pincode'],
+        data['s_contact_no'],
+        data['s_emergency_contact_details'],
+        data['s_emergency_city'],
+        data['s_emergency_state'],
+        data['s_emergency_pincode'],
+        data['s_emergency_contact_no'],
+        created_by
+    ))
+
+    form_sr_no = cursor.fetchone()[0]
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return form_sr_no
+
+
+def get_form_by_request_id(request_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM REQUISITION_FORM_MASTER
+        WHERE n_sr_no = (
+            SELECT form_sr_no
+            FROM APPROVAL_REQUEST_MASTER
+            WHERE request_id = ?
+        )
+    """, (request_id,))
+
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return row
+
+
+# =====================================================
+# Timeline & Dashboard
+# =====================================================
+
+def get_request_timeline(request_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("EXEC sp_get_request_timeline ?", request_id)
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return rows
+
+
+def get_dashboard_requests():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT request_id, overall_status, current_level,
+               current_approver_email, last_action_time, sla_breached
+        FROM APPROVAL_REQUEST_MASTER
+        ORDER BY request_id DESC
+    """)
+
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    return [{
+        "request_id": r.request_id,
+        "overall_status": r.overall_status,
+        "current_level": r.current_level,
+        "current_approver_email": r.current_approver_email,
+        "last_action_time": str(r.last_action_time),
+        "sla_breached": r.sla_breached
+    } for r in rows]

@@ -1,4 +1,4 @@
-from flask import request, jsonify, session , send_file
+from flask import request, jsonify, session , send_file, render_template
 from Execute import queries
 from Execute.queries import fetch_data_with_date, get_report_master_tables
 from excel_bp import write_excel
@@ -581,7 +581,6 @@ def get_locations_fn():
 # =====================================================
 
 def create_request():
-
     data = request.json
     receiver_email = data.get("first_user_email")
     sender_email = session['user']['email']
@@ -589,35 +588,17 @@ def create_request():
     if not receiver_email:
         return {"error": "Receiver email required"}, 400
 
-    conn = get_connection()
-    cursor = conn.cursor()
+    request_id = queries.create_request(sender_email, receiver_email)
 
-    cursor.execute("""
-        INSERT INTO APPROVAL_REQUEST_MASTER
-        (
-            form_sr_no,
-            initiator_email,
-            current_level,
-            current_approver_email,
-            overall_status,
-            last_action_time
-        )
-        OUTPUT INSERTED.request_id
-        VALUES (NULL, ?, 1, ?, 'PENDING', GETDATE())
-    """, (sender_email, receiver_email))
-
-    request_id = cursor.fetchone()[0]
-    conn.commit()
-
-    approval_link = f"{BASE_URL}/form-fill/{request_id}"
+    link = f"{BASE_URL}/form-fill/{request_id}"
 
     send_mail(
-        to_email=receiver_email,
-        subject="Form Fill Required",
-        body=f"""
+        receiver_email,
+        "Form Fill Required",
+        f"""
         <p>You have received a form request.</p>
         <p><b>Sent by:</b> {sender_email}</p>
-        <a href="{approval_link}">Click here to fill the form</a>
+        <a href="{link}">Click here to fill the form</a>
         """,
         sender_email=sender_email
     )
@@ -625,91 +606,31 @@ def create_request():
     return {"success": True, "request_id": request_id}
 
 
-
 def submit_form():
     data = request.json
-
     request_id = data.get("request_id")
+
     if not request_id:
         return {"error": "request_id missing"}, 400
 
-    user_email = data.get("s_created_by", "FORM_USER")
+    created_by = data.get("s_created_by", "FORM_USER")
 
-    conn = get_connection()
-    cursor = conn.cursor()
+    form_sr_no = queries.insert_requisition_form(data, created_by)
+    initiator_email = queries.get_initiator_email(request_id)
 
-    cursor.execute("""
-        INSERT INTO REQUISITION_FORM_MASTER
-        (
-            s_location, dt_request_date, s_first_name, s_last_name,
-            dt_date_of_birth, n_age, s_agency_name, s_nature_of_job,
-            s_work_order_no, dt_work_order_validity, dt_date_of_joining,
-            s_exact_work_location, s_gender, s_aadhar_card_no,
-            s_present_address, s_present_city, s_present_state,
-            s_present_pincode, s_contact_no,
-            s_emergency_contact_details, s_emergency_city,
-            s_emergency_state, s_emergency_pincode,
-            s_emergency_contact_no, s_created_by
-        )
-        OUTPUT INSERTED.n_sr_no
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    """, (
-        data['s_location'],
-        data['dt_request_date'],
-        data['s_first_name'],
-        data['s_last_name'],
-        data['dt_date_of_birth'],
-        data['n_age'],
-        data['s_agency_name'],
-        data['s_nature_of_job'],
-        data['s_work_order_no'],
-        data['dt_work_order_validity'],
-        data['dt_date_of_joining'],
-        data['s_exact_work_location'],
-        data['s_gender'],
-        data['s_aadhar_card_no'],
-        data['s_present_address'],
-        data['s_present_city'],
-        data['s_present_state'],
-        data['s_present_pincode'],
-        data['s_contact_no'],
-        data['s_emergency_contact_details'],
-        data['s_emergency_city'],
-        data['s_emergency_state'],
-        data['s_emergency_pincode'],
-        data['s_emergency_contact_no'],
-        user_email
-    ))
+    queries.update_request_after_submit(
+        request_id,
+        form_sr_no,
+        initiator_email
+    )
 
-    form_sr_no = cursor.fetchone()[0]
-
-    cursor.execute("""
-        SELECT initiator_email
-        FROM APPROVAL_REQUEST_MASTER
-        WHERE request_id = ?
-    """, (request_id,))
-    user0_email = cursor.fetchone().initiator_email
-
-    cursor.execute("""
-        UPDATE APPROVAL_REQUEST_MASTER
-        SET form_sr_no = ?,
-            current_level = 0,
-            current_approver_email = ?,
-            last_action_time = GETDATE()
-        WHERE request_id = ?
-    """, (form_sr_no, user0_email, request_id))
-
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-    token = generate_token(request_id, 0, user0_email)
+    token = generate_token(request_id, 0, initiator_email)
 
     send_approval_mail_to_user0(
         request_id=request_id,
         token=token,
-        user0_email=user0_email,
-        submitted_by=user_email
+        user0_email=initiator_email,
+        submitted_by=created_by
     )
 
     return {"status": "submitted successfully"}
@@ -718,46 +639,43 @@ def submit_form():
 def approve():
     data = request.json
 
-    request_id = data['request_id']
-    current_level = data['current_level']
-    approver_email = data['approver_email']
-    next_approver_email = data['next_approver_email']
-
     execute_sp(
         "sp_approve_request",
-        (request_id, current_level, approver_email, next_approver_email)
+        (
+            data['request_id'],
+            data['current_level'],
+            data['approver_email'],
+            data['next_approver_email']
+        )
     )
 
-    token = generate_token(request_id, current_level + 1)
-    approval_link = f"{BASE_URL}/approval?token={token}"
+    token = generate_token(data['request_id'], data['current_level'] + 1)
+    link = f"{BASE_URL}/approval?token={token}"
 
     send_mail(
-        next_approver_email,
-        "Approval required",
-        f"""
-        <p>Please review the request.</p>
-        <a href="{approval_link}">Approve / Reject</a>
-        """,
+        data['next_approver_email'],
+        "Approval Required",
+        f"<a href='{link}'>Approve / Reject</a>",
         sender_email=SYSTEM_SMTP_EMAIL
     )
 
-    return jsonify({"status": "approved & mail sent"})
+    return jsonify({"status": "approved"})
+
 
 def reject():
     data = request.json
 
-    request_id = data['request_id']
-    current_level = data['current_level']
-    approver_email = data['approver_email']
-    remark = data['remark']
-
     execute_sp(
         "sp_reject_request",
-        (request_id, current_level, approver_email, remark)
+        (
+            data['request_id'],
+            data['current_level'],
+            data['approver_email'],
+            data['remark']
+        )
     )
 
     return jsonify({"status": "rejected"})
-
 
 
 def approval_action():
@@ -768,76 +686,34 @@ def approval_action():
     if error:
         return error
 
-    request_id = token_data['request_id']
-    level = token_data['approval_level']
-    approver_email = token_data['approver_email']
-
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT 1 FROM APPROVAL_REQUEST_MASTER
-        WHERE request_id = ?
-          AND current_level = ?
-          AND current_approver_email = ?
-          AND overall_status = 'PENDING'
-    """, (request_id, level, approver_email))
-
-    if not cursor.fetchone():
-        return "Invalid or expired approval attempt"
-
-    cursor.close()
-    conn.close()
-
-    if action == "APPROVE":
-        next_email = request.form['next_email']
-        result = process_approval(
-            request_id, level, approver_email,
-            "APPROVE", None, next_email
-        )
-    else:
-        remark = request.form['remark']
-        result = process_approval(
-            request_id, level, approver_email,
-            "REJECT", remark, None
-        )
+    result = process_approval(
+        token_data['request_id'],
+        token_data['approval_level'],
+        token_data['approver_email'],
+        action,
+        request.form.get('remark'),
+        request.form.get('next_email')
+    )
 
     mark_token_used(token)
     return f"Request {result}"
 
 
-
 def resend_approval():
     data = request.json
-    request_id = data['request_id']
-    current_level = data['current_level']
-    approver_email = data['approver_email']
 
-    conn = get_connection()
-    cursor = conn.cursor()
+    token = generate_token(
+        data['request_id'],
+        data['current_level'],
+        data['approver_email']
+    )
 
-    cursor.execute("""
-        UPDATE APPROVAL_TOKENS
-        SET is_used = 1
-        WHERE request_id = ? AND approval_level = ? AND is_used = 0
-    """, (request_id, current_level))
-
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-    token = generate_token(request_id, current_level, approver_email)
-
-    
     link = f"{BASE_URL}/approval?token={token}&action=APPROVE"
 
-
     send_mail(
-        approver_email,
+        data['approver_email'],
         "Reminder: Approval Required",
-        f"""
-        <p>This is a reminder to approve the request.</p>
-        <a href="{link}">Click here to Approve / Reject</a>
-        """
+        f"<a href='{link}'>Approve / Reject</a>"
     )
 
     return {"status": "resent successfully"}
@@ -885,3 +761,36 @@ def save_form():
         "status": "success",
         "form_sr_no": result[0]
     }
+
+def approval_page_fn(request):
+    token = request.args.get("token")
+    action = request.args.get("action")
+
+    data, error = validate_token(token)
+    if error:
+        return error
+
+    form = queries.get_form_by_request_id(data["request_id"])
+
+    return render_template(
+        "approval_review.html",
+        token=token,
+        action=action,
+        request_id=data["request_id"],
+        form=form
+    )
+
+
+def get_timeline_fn(request_id):
+    rows = queries.get_request_timeline(request_id)
+    return jsonify([{
+        "level": r.approval_level,
+        "email": r.approver_email,
+        "action": r.action_taken,
+        "remark": r.remark,
+        "time": str(r.action_time)
+    } for r in rows])
+
+
+def dashboard_requests_fn():
+    return jsonify(queries.get_dashboard_requests())
