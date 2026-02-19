@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Review Requisition</title>
+</head>
+<body>
+
+<h2>Requisition Review</h2>
+
+<p><b>Request ID:</b> {{ request_id }}</p>
+
+<hr>
+
+<h3>Basic Details</h3>
+<p>Name: {{ form.s_first_name }} {{ form.s_last_name }}</p>
+<p>Agency: {{ form.s_agency_name }}</p>
+<p>Nature of Job: {{ form.s_nature_of_job }}</p>
+<p>Location: {{ form.s_location }}</p>
+
+<hr>
+
+<form method="POST" action="/approval-action">
+  <input type="hidden" name="token" value="{{ token }}">
+  <input type="hidden" name="action" value="{{ action }}">
+
+  {% if action == "APPROVE" %}
+    <label>Next Approver Area Manager Email</label><br>
+    <input type="email" name="next_email" required><br><br>
+    <button>Approve & Send</button>
+  {% else %}
+    <label>Reject Remark</label><br>
+    <textarea name="remark" required></textarea><br><br>
+    <button>Reject</button>
+  {% endif %}
+</form>
+
+</body>
+</html>

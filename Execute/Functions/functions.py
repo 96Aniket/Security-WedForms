@@ -4,9 +4,12 @@ from Execute.queries import fetch_data_with_date, get_report_master_tables
 from excel_bp import write_excel
 from services.approval_service import execute_sp
 from utils.token import generate_token, mark_token_used, validate_token
-from utils.mailer import send_mail
+from utils.mailer import send_mail, SYSTEM_SMTP_EMAIL
 from Execute.executesql import get_connection
 from utils.approval_engine import process_approval
+from utils.notification import send_approval_mail_to_user0
+from config import BASE_URL
+
 
 # =====================================================
 # COMMON RESPONSE HELPERS
@@ -606,7 +609,7 @@ def create_request():
     request_id = cursor.fetchone()[0]
     conn.commit()
 
-    approval_link = f"http://127.0.0.1:5001/form-fill/{request_id}"
+    approval_link = f"{BASE_URL}/form-fill/{request_id}"
 
     send_mail(
         to_email=receiver_email,
@@ -624,15 +627,17 @@ def create_request():
 
 
 def submit_form():
-
     data = request.json
-    request_id = data['request_id']
-    user_email = data['user_email']
+
+    request_id = data.get("request_id")
+    if not request_id:
+        return {"error": "request_id missing"}, 400
+
+    user_email = data.get("s_created_by", "FORM_USER")
 
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Insert Form Data
     cursor.execute("""
         INSERT INTO REQUISITION_FORM_MASTER
         (
@@ -678,39 +683,36 @@ def submit_form():
 
     form_sr_no = cursor.fetchone()[0]
 
-    #  Update Request Master
+    cursor.execute("""
+        SELECT initiator_email
+        FROM APPROVAL_REQUEST_MASTER
+        WHERE request_id = ?
+    """, (request_id,))
+    user0_email = cursor.fetchone().initiator_email
+
     cursor.execute("""
         UPDATE APPROVAL_REQUEST_MASTER
         SET form_sr_no = ?,
             current_level = 0,
-            current_approver_email = initiator_email,
+            current_approver_email = ?,
             last_action_time = GETDATE()
         WHERE request_id = ?
-    """, (form_sr_no, request_id))
-
-    #  Fetch Initiator Email (User-0)
-    cursor.execute(
-        "SELECT initiator_email FROM APPROVAL_REQUEST_MASTER WHERE request_id = ?",
-        (request_id,)
-    )
-    initiator_email = cursor.fetchone().initiator_email
+    """, (form_sr_no, user0_email, request_id))
 
     conn.commit()
     cursor.close()
     conn.close()
 
-    #  Send Mail to Initiator
-    token = generate_token(request_id, 0, initiator_email)
-    link = f"http://localhost:5001/approval?token={token}"
+    token = generate_token(request_id, 0, user0_email)
 
-    send_mail(
-        initiator_email,
-        "Form submitted – Review required",
-        f"<a href='{link}'>Review Request</a>",
-        user_email
+    send_approval_mail_to_user0(
+        request_id=request_id,
+        token=token,
+        user0_email=user0_email,
+        submitted_by=user_email
     )
 
-    return {"status": "form submitted successfully"}
+    return {"status": "submitted successfully"}
 
 
 def approve():
@@ -727,7 +729,7 @@ def approve():
     )
 
     token = generate_token(request_id, current_level + 1)
-    approval_link = f"http://localhost:5001/approval?token={token}"
+    approval_link = f"{BASE_URL}/approval?token={token}"
 
     send_mail(
         next_approver_email,
@@ -735,7 +737,8 @@ def approve():
         f"""
         <p>Please review the request.</p>
         <a href="{approval_link}">Approve / Reject</a>
-        """
+        """,
+        sender_email=SYSTEM_SMTP_EMAIL
     )
 
     return jsonify({"status": "approved & mail sent"})
@@ -824,7 +827,9 @@ def resend_approval():
 
     token = generate_token(request_id, current_level, approver_email)
 
-    link = f"http://localhost:5001/approval?token={token}"
+    
+    link = f"{BASE_URL}/approval?token={token}&action=APPROVE"
+
 
     send_mail(
         approver_email,

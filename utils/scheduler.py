@@ -2,6 +2,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from Execute.executesql import get_connection
 from utils.token import generate_token
 from utils.mailer import send_mail
+from config import BASE_URL
 
 def send_pending_reminders():
     conn = get_connection()
@@ -23,7 +24,7 @@ def send_pending_reminders():
             r.current_approver_email
         )
 
-        link = f"http://localhost:5001/approval?token={token}"
+        link = f"{BASE_URL}/approval?token={token}"
 
         send_mail(
             r.current_approver_email,

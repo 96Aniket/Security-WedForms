@@ -120,6 +120,10 @@ def approval_form():
 def form_fill():
     return render_template('form-fill.html')
 
+@routes_bp.route('/approval_review')
+def approval_reviews():
+    return render_template('approval_review.html')
+
 @routes_bp.route('/requisition-form')
 def requisition_form():
     return render_template('requisition form.html')
@@ -199,19 +203,38 @@ def form_fill_page(request_id):
 @routes_bp.route('/approval')
 def approval_page():
     token = request.args.get("token")
-    action = request.args.get("action")  
+    action = request.args.get("action")
 
     data, error = validate_token(token)
     if error:
         return error
 
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Fetch full form data
+    cursor.execute("""
+        SELECT *
+        FROM REQUISITION_FORM_MASTER
+        WHERE n_sr_no = (
+            SELECT form_sr_no
+            FROM APPROVAL_REQUEST_MASTER
+            WHERE request_id = ?
+        )
+    """, (data["request_id"],))
+
+    form = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
     return render_template(
-        "approval_form.html",
+        "approval_review.html",
         token=token,
+        action=action,
         request_id=data["request_id"],
-        level=data["approval_level"],
-        action=action
+        form=form
     )
+
 
 
 @routes_bp.route('/api/timeline/<int:request_id>')

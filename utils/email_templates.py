@@ -1,6 +1,8 @@
+from config import BASE_URL
+
 def approval_email_template(token, approver_name="User"):
-    approve_link = f"http://localhost:5001/approval?token={token}&action=APPROVE"
-    reject_link = f"http://localhost:5001/approval?token={token}&action=REJECT"
+    approve_link = f"{BASE_URL}/approval?token={token}&action=APPROVE"
+    reject_link = f"{BASE_URL}/approval?token={token}&action=REJECT"
 
     return f"""
     <h3>Hello {approver_name},</h3>
@@ -9,7 +11,7 @@ def approval_email_template(token, approver_name="User"):
     <a href="{approve_link}"
        style="padding:10px 20px;background:#28a745;color:white;
               text-decoration:none;border-radius:5px;">
-       ✅ APPROVE
+       ✅ APPROVE1
     </a>
 
     &nbsp;&nbsp;

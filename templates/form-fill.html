@@ -25,6 +25,8 @@
 <input type="hidden" name="n_sr_no">
 <input type="hidden" name="s_created_by" value="{{ user_email }}">
 <input type="hidden" name="dt_created_at">
+<input type="hidden" name="request_id" value="{{ request_id }}">
+
 
 <!-- ================= BASIC DETAILS ================= -->
 <h3>Basic Details</h3>
@@ -214,23 +216,35 @@
 <!-- ================= DOCUMENTS ================= -->
 <h3>Documents</h3>
 
-<div class="row">
+<div class="row doc-row">
   <div class="field">
-    <label><input type="checkbox" name="s_police_verification_cert"> Police Verification</label>
+    <label class="doc-label">
+      <input type="checkbox" name="s_police_verification_cert">
+      <span>Police Verification</span>
+    </label>
   </div>
+
   <div class="field">
-    <label><input type="checkbox" name="s_medical_certificate"> Medical Certificate</label>
+    <label class="doc-label">
+      <input type="checkbox" name="s_medical_certificate">
+      <span>Medical Certificate</span>
+    </label>
   </div>
+
   <div class="field">
-    <label><input type="checkbox" name="s_govt_id_proof"> Govt ID Proof</label>
+    <label class="doc-label">
+      <input type="checkbox" name="s_govt_id_proof">
+      <span>Govt ID Proof</span>
+    </label>
   </div>
+
   <div class="field">
-    <label><input type="checkbox" name="s_hsse_training"> HSSE Training</label>
+    <label class="doc-label">
+      <input type="checkbox" name="s_hsse_training">
+      <span>HSSE Training</span>
+    </label>
   </div>
 </div>
-
-
-<br>
 
 <button type="submit" class="btn-save">Submit</button>
 
