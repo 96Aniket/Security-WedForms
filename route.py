@@ -7,6 +7,7 @@ from Execute.visitor_slip_pdf import generate_visitor_slip_pdf
 from Execute.Functions.functions import download_filtered_excel_logic , get_report_tables_fn
 from utils.token import validate_token
 from Execute.executesql import get_connection
+from Execute import queries
 
 
 routes_bp = Blueprint('routes_bp', __name__)
@@ -134,6 +135,14 @@ def form_fill_page(request_id):
         "form-fill.html",
         request_id=request_id
     )
+@routes_bp.route('/form-edit/<int:request_id>')
+def form_edit_page(request_id):
+    form = queries.get_form_by_request_id(request_id)
+    return render_template(
+        "form_edit.html",
+        request_id=request_id,
+        form=form
+    )
 
 @routes_bp.route('/reports')
 def reports():
@@ -198,6 +207,8 @@ routes_bp.add_url_rule('/api/reject',view_func=functions.reject,methods=['POST']
 routes_bp.add_url_rule('/approval-action',view_func=functions.approval_action,methods=['POST'])
 routes_bp.add_url_rule('/api/resend-approval',view_func=functions.resend_approval,methods=['POST'])
 routes_bp.add_url_rule('/api/save-form',view_func=functions.save_form,methods=['POST'])
+routes_bp.add_url_rule('/api/resubmit-form',view_func=functions.resubmit_form,methods=['POST'])
+
 
 @routes_bp.route('/approval')
 def approval_page():

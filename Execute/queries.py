@@ -2375,3 +2375,119 @@ def is_final_level(level):
     conn.close()
 
     return bool(row and row.is_final)
+
+def get_previous_approver(request_id, current_level):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT TOP 1 approver_email
+        FROM APPROVAL_ACTION_LOGS
+        WHERE request_id = ?
+          AND approval_level < ?
+        ORDER BY action_time DESC
+    """, (request_id, current_level))
+
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    return row.approver_email if row else None
+
+def reject_email_template(request_id, remark):
+    return f"""
+    <h3>Requisition Rejected</h3>
+    <p><b>Request ID:</b> {request_id}</p>
+    <p><b>Remark:</b> {remark}</p>
+
+    <p>Please review and take action.</p>
+    """
+def update_requisition_form(data):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE REQUISITION_FORM_MASTER
+        SET
+            s_nature_of_job = ?,
+            s_location      = ?
+        WHERE n_sr_no = (
+            SELECT form_sr_no
+            FROM APPROVAL_REQUEST_MASTER
+            WHERE request_id = ?
+        )
+    """, (
+        data.get('s_nature_of_job'),
+        data.get('s_location'),
+        data.get('request_id')
+    ))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def get_current_level(request_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT current_level
+        FROM APPROVAL_REQUEST_MASTER
+        WHERE request_id = ?
+    """, (request_id,))
+
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    return row.current_level if row else None
+
+
+def get_current_approver(request_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT current_approver_email
+        FROM APPROVAL_REQUEST_MASTER
+        WHERE request_id = ?
+    """, (request_id,))
+
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    return row.current_approver_email if row else None
+
+def get_rejector(request_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT rejected_from_level
+        FROM APPROVAL_REQUEST_MASTER
+        WHERE request_id = ?
+    """, (request_id,))
+
+    row = cursor.fetchone()
+
+    if not row or row.rejected_from_level is None:
+        cursor.close()
+        conn.close()
+        return None, None
+
+    rejected_level = row.rejected_from_level
+
+    cursor.execute("""
+        SELECT approver_email
+        FROM APPROVAL_ACTION_LOGS
+        WHERE request_id = ?
+          AND approval_level = ?
+          AND action_taken = 'REJECT'
+    """, (request_id, rejected_level))
+
+    approver_row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    return rejected_level, approver_row.approver_email if approver_row else None

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h3>Correct Requisition Form</h3>
+
+    <form method="POST" action="/api/resubmit-form">
+    <input type="hidden" name="request_id" value="{{ request_id }}">
+
+    <label>Job</label>
+    <input name="s_nature_of_job" value="{{ form.s_nature_of_job }}">
+
+    <label>Location</label>
+    <input name="s_location" value="{{ form.s_location }}">
+
+    <button type="submit">Save & Resubmit</button>
+    </form>
+</body>
+
+</html>

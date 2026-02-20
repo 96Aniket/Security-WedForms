@@ -640,38 +640,42 @@ def submit_form():
 def approve():
     data = request.json
 
-    result = process_approval(
-        request_id=data['request_id'],
-        level=data['current_level'],
-        approver_email=data['approver_email'],  
-        action="APPROVE",
-        remark=None,
-        next_email=data['next_approver_email']  
+    request_id = data['request_id']
+    next_email = data['next_approver_email']   
+    approver_email = data['approver_email']    
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE APPROVAL_REQUEST_MASTER
+        SET
+            current_level = 1,
+            current_approver_email = ?,
+            last_action_time = GETDATE()
+        WHERE request_id = ?
+    """, (next_email, request_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    token = generate_token(
+        request_id,
+        1,             
+        next_email
     )
 
-    if result == "MOVED":
-        token = generate_token(
-            data['request_id'],
-            data['current_level'] + 1,
-            data['next_approver_email']
-        )
+    body = approval_email_template(token)
 
-        link = f"{BASE_URL}/approval?token={token}"
-
-        send_mail(
-        to_email=data['next_approver_email'],
+    send_mail(
+        to_email=next_email,
         subject="Approval Required",
-        body=f"""
-        <p>You have a pending approval.</p>
-        <p>Please review the request.</p>
-        <a href="{link}">Open Approval Page</a>
-        """,
+        body=body,
         sender_email=SYSTEM_SMTP_EMAIL
     )
 
-
-    return jsonify({"status": result})
-
+    return jsonify({"status": "MOVED"})
 
 def reject():
     data = request.json
@@ -690,12 +694,18 @@ def reject():
 
 
 def approval_action():
-    used_token = request.form['token']    
+    used_token = request.form['token']
     action = request.form['action']
+    remark = request.form.get('remark', '').strip()
 
     token_data, error = validate_token(used_token)
     if error:
         return error
+
+    if action == "REJECT" and not remark:
+        return "Remark is mandatory for rejection", 400
+
+    mark_token_used(used_token)
 
     next_email = request.form.get('next_email')
 
@@ -704,7 +714,7 @@ def approval_action():
         token_data['approval_level'],
         token_data['approver_email'],
         action,
-        request.form.get('remark'),
+        remark,
         next_email
     )
 
@@ -715,7 +725,6 @@ def approval_action():
             next_email
         )
 
-        link = f"{BASE_URL}/approval?token={next_token}"
         body = approval_email_template(next_token)
 
         send_mail(
@@ -725,18 +734,18 @@ def approval_action():
             sender_email=SYSTEM_SMTP_EMAIL
         )
 
-    mark_token_used(used_token)
-
     return f"Request {result}"
-
 
 def resend_approval():
     data = request.json
 
+    level = queries.get_current_level(data['request_id'])
+    approver = queries.get_current_approver(data['request_id'])
+
     token = generate_token(
         data['request_id'],
-        data['current_level'],
-        data['approver_email']
+        level,
+        approver
     )
 
     link = f"{BASE_URL}/approval?token={token}&action=APPROVE"
@@ -803,7 +812,7 @@ def approval_page_fn(request):
     form = queries.get_form_by_request_id(data["request_id"])
     timeline = queries.get_request_timeline(data["request_id"])
 
-    is_final = queries.is_final_level(data["approval_level"])
+    is_final = queries.is_final_level(data["approval_level"] + 1)
 
     return render_template(
         "approval_review.html",
@@ -829,3 +838,100 @@ def get_timeline_fn(request_id):
 
 def dashboard_requests_fn():
     return jsonify(queries.get_dashboard_requests())
+
+def update_form():
+    data = request.form
+    request_id = data['request_id']
+
+    queries.update_requisition_form(data)
+
+    approver = queries.get_current_approver(request_id)
+
+    token = generate_token(
+        request_id,
+        queries.get_current_level(request_id),
+        approver
+    )
+
+    send_mail(
+        to_email=approver,
+        subject="Requisition Resubmitted",
+        body=f"""
+        <p>Form has been corrected and resubmitted.</p>
+        <a href="{BASE_URL}/approval?token={token}">
+            Review Again
+        </a>
+        """,
+        sender_email=SYSTEM_SMTP_EMAIL
+    )
+
+    return {"status": "resubmitted"}
+
+def resubmit_form():
+    data = request.form
+    request_id = data['request_id']
+
+    queries.update_requisition_form(data)
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT TOP 1 approver_email, approval_level
+        FROM APPROVAL_ACTION_LOGS
+        WHERE request_id = ?
+          AND action_taken = 'REJECT'
+        ORDER BY action_time DESC
+    """, (request_id,))
+
+    row = cursor.fetchone()
+    if not row:
+        cursor.close()
+        conn.close()
+        return {"error": "No reject record found"}, 400
+
+    rejector_email = row.approver_email
+    reject_level   = row.approval_level
+
+    cursor.execute("""
+        INSERT INTO APPROVAL_ACTION_LOGS
+        (request_id, approval_level, approver_email, action_taken, remark)
+        VALUES (?, ?, ?, ?, ?)
+    """, (
+        request_id,
+        reject_level - 1,
+        session['user']['email'],
+        'RESUBMITTED',
+        'Form corrected and resubmitted'
+    ))
+
+    cursor.execute("""
+        UPDATE APPROVAL_REQUEST_MASTER
+        SET
+            current_level = ?,
+            current_approver_email = ?,
+            overall_status = 'PENDING',
+            last_action_time = GETDATE()
+        WHERE request_id = ?
+    """, (reject_level, rejector_email, request_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    token = generate_token(request_id, reject_level, rejector_email)
+
+    send_mail(
+        to_email=rejector_email,
+        subject="Requisition Resubmitted - Review Again",
+        body=f"""
+        <p>The requisition form has been corrected and resubmitted.</p>
+        <a href="{BASE_URL}/approval?token={token}">
+            Review Again
+        </a>
+        """,
+        sender_email=SYSTEM_SMTP_EMAIL
+    )
+
+    return {"status": "resubmitted"}
+
