@@ -795,7 +795,6 @@ def save_form():
 
 def approval_page_fn(request):
     token = request.args.get("token")
-    action = request.args.get("action")
 
     data, error = validate_token(token)
     if error:
@@ -809,7 +808,6 @@ def approval_page_fn(request):
     return render_template(
         "approval_review.html",
         token=token,
-        action=action,
         request_id=data["request_id"],
         form=form,
         timeline=timeline,

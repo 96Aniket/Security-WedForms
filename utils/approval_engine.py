@@ -8,7 +8,6 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Log action
     cursor.execute("""
         INSERT INTO APPROVAL_ACTION_LOGS
         (request_id, approval_level, approver_email, action_taken, remark)
@@ -27,15 +26,14 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
         send_final_summary(request_id, "REJECTED")
         return "REJECTED"
 
-    # Check next level
     cursor.execute("""
         SELECT is_final
         FROM APPROVAL_LEVEL_CONFIG
         WHERE level_no = ?
-    """, (level + 1,))
+    """, (level,))
     row = cursor.fetchone()
 
-    if not row or row.is_final:
+    if row and row.is_final:
         cursor.execute("""
             UPDATE APPROVAL_REQUEST_MASTER
             SET overall_status='APPROVED',
@@ -47,7 +45,6 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
         send_final_summary(request_id, "APPROVED")
         return "APPROVED"
 
-    # Move forward
     cursor.execute("""
         UPDATE APPROVAL_REQUEST_MASTER
         SET current_level=?,
