@@ -1,5 +1,6 @@
 from utils.mailer import send_mail, SYSTEM_SMTP_EMAIL
 from config import BASE_URL
+from utils.async_mail import send_mail_async
 
 def send_approval_mail_to_user0(request_id, token, user0_email, submitted_by):
     link = f"{BASE_URL}/approval?token={token}&action=APPROVE"
@@ -28,9 +29,9 @@ def send_approval_mail_to_user0(request_id, token, user0_email, submitted_by):
     </p>
     """
 
-    send_mail(
-        to_email=user0_email,
-        subject="Requisition Form Submitted – Approval Required",
-        body=body,
-        sender_email=SYSTEM_SMTP_EMAIL
+    send_mail_async(
+        user0_email,
+        "Requisition Form Submitted – Approval Required",
+        body,
+        SYSTEM_SMTP_EMAIL
     )

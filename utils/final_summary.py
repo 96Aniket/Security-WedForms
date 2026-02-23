@@ -1,6 +1,7 @@
 from Execute.executesql import get_connection
 from utils.mailer import send_mail
 from utils.mailer import SYSTEM_SMTP_EMAIL
+from utils.async_mail import send_mail_async
 
 def send_final_summary(request_id, final_status):
     conn = get_connection()
@@ -65,5 +66,5 @@ def send_final_summary(request_id, final_status):
     </table>
     """
 
-    send_mail(initiator, "Final Approval Status", body, SYSTEM_SMTP_EMAIL)
-    send_mail(form_user, "Final Approval Status", body, SYSTEM_SMTP_EMAIL)
+    send_mail_async(initiator, "Final Approval Status", body, SYSTEM_SMTP_EMAIL)
+    send_mail_async(form_user, "Final Approval Status", body, SYSTEM_SMTP_EMAIL)

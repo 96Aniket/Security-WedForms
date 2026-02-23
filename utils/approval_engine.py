@@ -2,6 +2,7 @@ from Execute.executesql import get_connection
 from utils.mailer import send_mail, SYSTEM_SMTP_EMAIL
 from utils.final_summary import send_final_summary
 from config import BASE_URL
+from utils.async_mail import send_mail_async
 
 
 def process_approval(request_id, level, approver_email, action, remark=None, next_email=None):
@@ -44,9 +45,9 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
 
             edit_link = f"{BASE_URL}/form-edit/{request_id}"
 
-            send_mail(
-                to_email=prev_email,
-                subject="Requisition Rejected – Action Required",
+            send_mail_async(
+                prev_email,
+                "Requisition Rejected – Action Required",
                 body=f"""
                 <h3>Requisition Rejected</h3>
 
@@ -62,7 +63,7 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
                         color:white;
                         text-decoration:none;
                         border-radius:6px;">
-                    ✏️ Review & Modify Form
+                        Review & Modify Form
                 </a>
 
                 <p style="margin-top:12px;font-size:12px;color:gray;">
@@ -112,10 +113,12 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
             UPDATE APPROVAL_REQUEST_MASTER
             SET
                 overall_status = 'APPROVED',
+                current_level = NULL,
+                current_approver_email = NULL,
                 rejected_from_level = NULL,
                 last_action_time = GETDATE()
             WHERE request_id = ?
-        """, request_id)
+        """, (request_id,))
 
         conn.commit()
         send_final_summary(request_id, "APPROVED")

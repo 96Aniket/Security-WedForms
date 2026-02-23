@@ -10,7 +10,7 @@ from utils.approval_engine import process_approval
 from utils.notification import send_approval_mail_to_user0
 from config import BASE_URL
 from utils.email_templates import approval_email_template
-
+from utils.async_mail import send_mail_async
 
 # =====================================================
 # COMMON RESPONSE HELPERS
@@ -593,7 +593,7 @@ def create_request():
 
     link = f"{BASE_URL}/form-fill/{request_id}"
 
-    send_mail(
+    send_mail_async(
         receiver_email,
         "Form Fill Required",
         f"""
@@ -601,7 +601,7 @@ def create_request():
         <p><b>Sent by:</b> {sender_email}</p>
         <a href="{link}">Click here to fill the form</a>
         """,
-        sender_email=sender_email
+        sender_email
     )
 
     return {"success": True, "request_id": request_id}
@@ -668,11 +668,11 @@ def approve():
 
     body = approval_email_template(token)
 
-    send_mail(
-        to_email=next_email,
-        subject="Approval Required",
-        body=body,
-        sender_email=SYSTEM_SMTP_EMAIL
+    send_mail_async(
+        next_email,
+        "Approval Required",
+        body,
+        SYSTEM_SMTP_EMAIL
     )
 
     return jsonify({"status": "MOVED"})
@@ -727,11 +727,11 @@ def approval_action():
 
         body = approval_email_template(next_token)
 
-        send_mail(
-            to_email=next_email,
-            subject="Approval Required",
-            body=body,
-            sender_email=SYSTEM_SMTP_EMAIL
+        send_mail_async(
+            next_email,
+            "Approval Required",
+            body,
+            SYSTEM_SMTP_EMAIL
         )
 
     return f"Request {result}"
@@ -921,9 +921,9 @@ def resubmit_form():
 
     token = generate_token(request_id, reject_level, rejector_email)
 
-    send_mail(
-        to_email=rejector_email,
-        subject="Requisition Resubmitted - Review Again",
+    send_mail_async(
+        rejector_email,
+        "Requisition Resubmitted - Review Again",
         body=f"""
         <p>The requisition form has been corrected and resubmitted.</p>
         <a href="{BASE_URL}/approval?token={token}">

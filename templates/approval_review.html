@@ -60,14 +60,13 @@
   <input type="hidden" name="token" value="{{ token }}">
 
   {% if not is_final %}
-  <!-- 🔹 USER-2 ONLY -->
-  <div class="box">
+  <div class="box" id="nextApproverBox">
     <label><b>Next Approver Email (User-3)</b></label><br>
     <input type="email"
-           name="next_email"
-           placeholder="Enter User-3 Email"
-           required
-           style="width:100%;padding:6px;">
+          id="next_email"
+          name="next_email"
+          placeholder="Enter User-3 Email"
+          style="width:100%;padding:6px;">
   </div>
   {% endif %}
 
