@@ -10,11 +10,17 @@ function loadRequests() {
         html += `
           <tr>
             <td>${r.request_id}</td>
-            <td class="${r.sla_breached ? 'sla' : ''}">
+            <td class="${
+              r.overall_status === 'APPROVED'
+                ? 'status-approved'
+                : r.overall_status === 'REJECTED'
+                  ? 'status-rejected'
+                  : 'status-pending'
+            }">
               ${r.overall_status}
             </td>
             <td>${r.current_approver_email || '-'}</td>
-            <td>${r.last_action_time || '-'}</td>
+            <td>${formatDateTime(r.last_action_time)}</td>
             <td class="action-cell">
               <button
                 class="action-btn btn-timeline"
@@ -37,6 +43,15 @@ function loadRequests() {
       document.getElementById('requestTable').innerHTML = html;
     });
 }
+function formatDateTime(dtStr) {
+  if (!dtStr) return "-";
+
+  const dt = new Date(dtStr);
+  const date = dt.toISOString().slice(0, 10);
+  const time = dt.toTimeString().slice(0, 8);
+
+  return `${date} ${time}`;
+}
 
 /* =======================
    TIMELINE
@@ -45,21 +60,33 @@ function viewTimeline(id) {
   fetch(`/api/timeline/${id}`)
     .then(res => res.json())
     .then(data => {
-      let html = '';
+
+      let html = "";
+
       data.forEach(t => {
+        const dt = new Date(t.time);
+
+        const date = dt.toISOString().slice(0, 10);
+        const time = dt.toTimeString().slice(0, 8);
+
         html += `
-          <li>
-            ${t.time} – ${t.email} – ${t.action}
-            ${t.remark ? `(${t.remark})` : ''}
-          </li>`;
+          <tr>
+            <td>${date}</td>
+            <td>${time}</td>
+            <td>${t.email}</td>
+            <td><b>${t.action}</b></td>
+            <td>${t.remark || "-"}</td>
+          </tr>
+        `;
       });
-      document.getElementById('timelineList').innerHTML = html;
-      document.getElementById('timelineBox').style.display = 'block';
+
+      document.getElementById("timelineBody").innerHTML = html;
+      document.getElementById("timelineBox").style.display = "block";
     });
 }
 
 function closeTimeline() {
-  document.getElementById('timelineBox').style.display = 'none';
+  document.getElementById("timelineBox").style.display = "none";
 }
 
 /* =======================

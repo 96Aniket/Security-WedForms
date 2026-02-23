@@ -89,9 +89,21 @@
 <div id="timelineBox" class="dashboard-card timeline-modal" style="display:none;">
 
   <h3>Approval Timeline</h3>
-  <ul id="timelineList" class="timeline-list"></ul>
 
-  <div style="text-align:right;">
+  <table id="timelineTable">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Approver Email</th>
+        <th>Action</th>
+        <th>Remark</th>
+      </tr>
+    </thead>
+    <tbody id="timelineBody"></tbody>
+  </table>
+
+  <div style="text-align:right; margin-top:15px;">
     <button class="primary-btn" onclick="closeTimeline()">Close</button>
   </div>
 </div>

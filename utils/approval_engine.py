@@ -112,8 +112,6 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
             UPDATE APPROVAL_REQUEST_MASTER
             SET
                 overall_status = 'APPROVED',
-                current_level = NULL,
-                current_approver_email = NULL,
                 rejected_from_level = NULL,
                 last_action_time = GETDATE()
             WHERE request_id = ?
