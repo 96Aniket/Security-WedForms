@@ -11,8 +11,8 @@ def send_pending_reminders():
     cursor.execute("""
         SELECT request_id, current_level, current_approver_email
         FROM APPROVAL_REQUEST_MASTER
-        WHERE overall_status = 'PENDING'
-          AND DATEDIFF(HOUR, last_action_time, GETDATE()) >= 24
+        WHERE overall_status = 'PENDING'WHERE overall_status IN ('PENDING','APPROVED','REJECTED')
+        AND DATEDIFF(HOUR, last_action_time, GETDATE()) >= 24
     """)
 
     rows = cursor.fetchall()

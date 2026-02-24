@@ -1,8 +1,8 @@
-from utils.mailer import send_mail, SYSTEM_SMTP_EMAIL
 from config import BASE_URL
 from utils.async_mail import send_mail_async
+from flask import session
 
-def send_approval_mail_to_user0(request_id, token, user0_email, submitted_by):
+def send_approval_mail_to_user0(request_id, token, user0_email, submitted_by, sender_email):
     link = f"{BASE_URL}/approval?token={token}&action=APPROVE"
 
     body = f"""
@@ -23,15 +23,12 @@ def send_approval_mail_to_user0(request_id, token, user0_email, submitted_by):
               border-radius:6px;">
         Review & Approve
     </a>
-
-    <p style="margin-top:12px;font-size:12px;color:gray;">
-      This link will work only on the system where the project is running.
-    </p>
     """
 
+
     send_mail_async(
-        user0_email,
-        "Requisition Form Submitted – Approval Required",
-        body,
-        SYSTEM_SMTP_EMAIL
+        to_email=user0_email,
+        subject="Requisition Form Submitted – Approval Required",
+        body=body,
+        sender_email=sender_email              
     )

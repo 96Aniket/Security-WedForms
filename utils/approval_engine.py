@@ -9,130 +9,118 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        INSERT INTO APPROVAL_ACTION_LOGS
-        (request_id, approval_level, approver_email, action_taken, remark)
-        VALUES (?, ?, ?, ?, ?)
-    """, (request_id, level, approver_email, action, remark))
-
-    if action == "REJECT":
-
+    try:
         cursor.execute("""
-            SELECT TOP 1 approver_email
-            FROM APPROVAL_ACTION_LOGS
-            WHERE request_id = ?
-              AND approval_level < ?
-            ORDER BY action_time DESC
-        """, (request_id, level))
+            INSERT INTO APPROVAL_ACTION_LOGS
+            (request_id, approval_level, approver_email, action_taken, remark)
+            VALUES (?, ?, ?, ?, ?)
+        """, (request_id, level, approver_email, action, remark))
 
-        prev = cursor.fetchone()
-        prev_email = prev.approver_email if prev else None
+        if action == "REJECT":
 
-        if prev_email:
-            
+            cursor.execute("""
+                SELECT TOP 1 approver_email
+                FROM APPROVAL_ACTION_LOGS
+                WHERE request_id = ?
+                  AND approval_level < ?
+                ORDER BY action_time DESC
+            """, (request_id, level))
+
+            prev = cursor.fetchone()
+            prev_email = prev.approver_email if prev else None
+
+            if prev_email:
+                cursor.execute("""
+                    UPDATE APPROVAL_REQUEST_MASTER
+                    SET
+                        rejected_from_level = ?,
+                        current_level = ?,
+                        current_approver_email = ?,
+                        overall_status = 'PENDING',
+                        last_action_time = GETDATE()
+                    WHERE request_id = ?
+                """, (level, level - 1, prev_email, request_id))
+
+                conn.commit()
+
+                edit_link = f"{BASE_URL}/form-edit/{request_id}"
+
+                send_mail_async(
+                    to_email=prev_email,
+                    subject="Requisition Rejected – Action Required",
+                    body=f"""
+                    <h3>Requisition Rejected</h3>
+                    <p><b>Request ID:</b> {request_id}</p>
+                    <p><b>Rejected By:</b> {approver_email}</p>
+                    <p><b>Remark:</b> {remark}</p>
+                    <a href="{edit_link}">Review & Modify Form</a>
+                    """,
+                    sender_email=approver_email
+                )
+
+                return "REJECTED_BACK"
+
             cursor.execute("""
                 UPDATE APPROVAL_REQUEST_MASTER
                 SET
-                    rejected_from_level = ?,
-                    current_level = ?,
-                    current_approver_email = ?,
-                    overall_status = 'PENDING',
+                    overall_status = 'REJECTED',
                     last_action_time = GETDATE()
                 WHERE request_id = ?
-            """, (level, level - 1, prev_email, request_id))
+            """, (request_id,))
 
             conn.commit()
+            send_final_summary(request_id, "REJECTED")
+            return "REJECTED_FINAL"
 
-            edit_link = f"{BASE_URL}/form-edit/{request_id}"
-
-            send_mail_async(
-                prev_email,
-                "Requisition Rejected – Action Required",
-                body=f"""
-                <h3>Requisition Rejected</h3>
-
-                <p><b>Request ID:</b> {request_id}</p>
-                <p><b>Rejected By:</b> {approver_email}</p>
-                <p><b>Remark:</b> {remark}</p>
-
-                <a href="{edit_link}"
-                style="display:inline-block;
-                        margin-top:12px;
-                        padding:10px 18px;
-                        background:#0d6efd;
-                        color:white;
-                        text-decoration:none;
-                        border-radius:6px;">
-                        Review & Modify Form
-                </a>
-
-                <p style="margin-top:12px;font-size:12px;color:gray;">
-                Please correct the form and resubmit to continue approval.
-                </p>
-                """,
-                sender_email=SYSTEM_SMTP_EMAIL
-            )
-
-            return "REJECTED_BACK"
+        # ---------- APPROVE FLOW ----------
 
         cursor.execute("""
-            UPDATE APPROVAL_REQUEST_MASTER
-            SET overall_status = 'REJECTED',
-                last_action_time = GETDATE()
+            SELECT rejected_from_level
+            FROM APPROVAL_REQUEST_MASTER
             WHERE request_id = ?
-        """, request_id)
+        """, (request_id,))
+        row = cursor.fetchone()
 
-        conn.commit()
-        send_final_summary(request_id, "REJECTED")
-        return "REJECTED_FINAL"
+        next_level = row.rejected_from_level if row and row.rejected_from_level is not None else level + 1
 
+        cursor.execute("""
+            SELECT is_final
+            FROM APPROVAL_LEVEL_CONFIG
+            WHERE level_no = ?
+        """, (next_level,))
+        final_row = cursor.fetchone()
 
-    cursor.execute("""
-        SELECT rejected_from_level
-        FROM APPROVAL_REQUEST_MASTER
-        WHERE request_id = ?
-    """, (request_id,))
-    row = cursor.fetchone()
+        if final_row and final_row.is_final:
+            cursor.execute("""
+                UPDATE APPROVAL_REQUEST_MASTER
+                SET
+                    overall_status = 'APPROVED',
+                    current_level = -1,               
+                    current_approver_email = NULL,
+                    rejected_from_level = NULL,
+                    last_action_time = GETDATE()
+                WHERE request_id = ?
+            """, (request_id,))
 
-    if row and row.rejected_from_level is not None:
-        
-        next_level = row.rejected_from_level
-    else:
-        
-        next_level = level + 1
+            conn.commit()
+            send_final_summary(request_id, "APPROVED")
+            return "APPROVED"
 
-    cursor.execute("""
-        SELECT is_final
-        FROM APPROVAL_LEVEL_CONFIG
-        WHERE level_no = ?
-    """, (next_level,))
-    final_row = cursor.fetchone()
-
-    if final_row and final_row.is_final:
         cursor.execute("""
             UPDATE APPROVAL_REQUEST_MASTER
             SET
-                overall_status = 'APPROVED',
-                current_level = NULL,
-                current_approver_email = NULL,
+                current_level = ?,
+                current_approver_email = ?,
+                overall_status = 'PENDING',
                 rejected_from_level = NULL,
                 last_action_time = GETDATE()
             WHERE request_id = ?
-        """, (request_id,))
+        """, (next_level, next_email, request_id))
 
         conn.commit()
-        send_final_summary(request_id, "APPROVED")
-        return "APPROVED"
+        return "MOVED"
 
-    cursor.execute("""
-        UPDATE APPROVAL_REQUEST_MASTER
-        SET
-            current_level = ?,
-            current_approver_email = ?,
-            rejected_from_level = NULL,
-            last_action_time = GETDATE()
-        WHERE request_id = ?
-    """, (next_level, next_email, request_id))
-
-    conn.commit()
-    return "MOVED"
+    finally:
+        cursor.close()
+        conn.close()
+    

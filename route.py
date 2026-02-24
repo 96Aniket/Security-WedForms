@@ -109,13 +109,13 @@ def pil_visitor():
 
 
 
-@routes_bp.route('/government-visitor')
-def gov_visitor():
-    return render_template('government visitor.html')
+# @routes_bp.route('/government-visitor')
+# def gov_visitor():
+#     return render_template('government visitor.html')
 
-@routes_bp.route('/approval-form')
-def approval_form():
-    return render_template('approval_form.html')
+# @routes_bp.route('/approval-form')
+# def approval_form():
+#     return render_template('approval_form.html')
 
 @routes_bp.route('/form-fill')
 def form_fill():

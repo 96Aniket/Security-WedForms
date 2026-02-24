@@ -1,195 +1,211 @@
-/* =======================
-   LOAD DASHBOARD REQUESTS
-======================= */
-function loadRequests() {
-  fetch('/api/dashboard-requests')
-    .then(res => res.json())
-    .then(data => {
-      let html = '';
-      data.forEach(r => {
-        html += `
-          <tr>
-            <td>${r.request_id}</td>
-            <td class="${
-              r.overall_status === 'APPROVED'
-                ? 'status-approved'
-                : r.overall_status === 'REJECTED'
-                  ? 'status-rejected'
-                  : 'status-pending'
-            }">
-              ${r.overall_status}
-            </td>
-            <td>${r.current_approver_email || '-'}</td>
-            <td>${formatDateTime(r.last_action_time)}</td>
-            <td class="action-cell">
-              <button
-                class="action-btn btn-timeline"
-                onclick="viewTimeline(${r.request_id})">
-                Timeline
-              </button>
+function requisitionDashboardApp() {
 
-              ${
-                r.overall_status === 'PENDING'
-                  ? `<button
-                      class="action-btn btn-resend"
-                      onclick="resend(${r.request_id}, ${r.current_level}, '${r.current_approver_email}')">
-                      Resend
-                    </button>`
-                  : ''
-              }
-            </td>
-          </tr>`;
-      });
-      document.getElementById('requestTable').innerHTML = html;
-    });
-}
-function formatDateTime(dtStr) {
-  if (!dtStr) return "-";
+  /* ================= STATE ================= */
 
-  const dt = new Date(dtStr);
-  const date = dt.toISOString().slice(0, 10);
-  const time = dt.toTimeString().slice(0, 8);
+  let savedFormSrNo = null;
 
-  return `${date} ${time}`;
-}
+  /* ================= HELPERS ================= */
 
-/* =======================
-   TIMELINE
-======================= */
-function viewTimeline(id) {
-  fetch(`/api/timeline/${id}`)
-    .then(res => res.json())
-    .then(data => {
-
-      let html = "";
-
-      data.forEach(t => {
-        const dt = new Date(t.time);
-
-        const date = dt.toISOString().slice(0, 10);
-        const time = dt.toTimeString().slice(0, 8);
-
-        html += `
-          <tr>
-            <td>${date}</td>
-            <td>${time}</td>
-            <td>${t.email}</td>
-            <td><b>${t.action}</b></td>
-            <td>${t.remark || "-"}</td>
-          </tr>
-        `;
-      });
-
-      document.getElementById("timelineBody").innerHTML = html;
-      document.getElementById("timelineBox").style.display = "block";
-    });
-}
-
-function closeTimeline() {
-  document.getElementById("timelineBox").style.display = "none";
-}
-
-/* =======================
-   RESEND
-======================= */
-function resend(id, level, email) {
-  if (!email) {
-    alert("No current approver found");
-    return;
+  function formatDateTime(dtStr) {
+    if (!dtStr) return "-";
+    const dt = new Date(dtStr);
+    return `${dt.toISOString().slice(0, 10)} ${dt.toTimeString().slice(0, 8)}`;
   }
 
-  fetch('/api/resend-approval', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      request_id: id,
-      current_level: level,
-      approver_email: email
-    })
-  }).then(() => alert("Approval mail resent"));
-}
+  /* ================= LOAD REQUESTS ================= */
 
-/* =======================
-   FORM SAVE (AUTO SR NO)
-======================= */
-let savedFormSrNo = null;
-
-function saveRequisition() {
-
-  const payload = {
-    s_location: document.getElementById("s_location").value,
-    dt_request_date: document.getElementById("dt_request_date").value,
-    s_first_name: document.getElementById("s_first_name").value,
-    s_middle_name: document.getElementById("s_middle_name").value,
-    s_last_name: document.getElementById("s_last_name").value,
-    dt_date_of_birth: document.getElementById("dt_date_of_birth").value,
-    n_age: document.getElementById("n_age").value,
-    s_agency_name: document.getElementById("s_agency_name").value,
-    s_sap_vendor_code: document.getElementById("s_sap_vendor_code").value,
-    s_nature_of_job: document.getElementById("s_nature_of_job").value,
-    s_work_order_no: document.getElementById("s_work_order_no").value,
-    dt_work_order_validity: document.getElementById("dt_work_order_validity").value,
-    dt_date_of_joining: document.getElementById("dt_date_of_joining").value,
-    s_exact_work_location: document.getElementById("s_exact_work_location").value,
-    s_gender: document.getElementById("s_gender").value,
-    s_aadhar_card_no: document.getElementById("s_aadhar_card_no").value,
-    s_present_address: document.getElementById("s_present_address").value,
-    s_present_city: document.getElementById("s_present_city").value,
-    s_present_state: document.getElementById("s_present_state").value,
-    s_present_pincode: document.getElementById("s_present_pincode").value,
-    s_contact_no: document.getElementById("s_contact_no").value,
-    s_emergency_contact_details: document.getElementById("s_emergency_contact_details").value,
-    s_emergency_city: document.getElementById("s_emergency_city").value,
-    s_emergency_state: document.getElementById("s_emergency_state").value,
-    s_emergency_pincode: document.getElementById("s_emergency_pincode").value,
-    s_emergency_contact_no: document.getElementById("s_emergency_contact_no").value
-  };
-
-  fetch('/api/save-form', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(payload)
-  })
-  .then(res => res.json())
-  .then(data => {
-    savedFormSrNo = data.form_sr_no;
-
-    document.getElementById("srValue").innerText = savedFormSrNo;
-    document.getElementById("srDisplay").style.display = "block";
-
-    alert("Form saved successfully");
-  });
-}
-
-/* =======================
-   CREATE REQUEST
-======================= */
-function createRequest() {
-
-  const user1Email = document.getElementById('user1Email').value;
-
-  if (!user1Email) {
-    alert("Please enter receiver email");
-    return;
+  function loadRequests() {
+    $.ajax({
+      url: "/api/dashboard-requests",
+      method: "GET",
+      dataType: "json",
+      success: data => renderRequests(data)
+    });
   }
 
-  fetch('/api/create-request', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      first_user_email: user1Email
-    })
-  })
-  .then(res => res.json())
-  .then(() => {
-    alert("Mail sent successfully");
-    loadRequests();
-  });
+  /* ================= RENDER ================= */
+
+  function renderRequests(data) {
+    let html = "";
+
+    data.forEach(r => {
+      const finalStatus =
+        r.overall_status === "APPROVED"
+          ? "APPROVED"
+          : r.overall_status === "REJECTED"
+          ? "REJECTED"
+          : "PENDING";
+
+      const statusClass =
+        finalStatus === "APPROVED"
+          ? "status-approved"
+          : finalStatus === "REJECTED"
+          ? "status-rejected"
+          : "status-pending";
+
+      html += `
+        <tr>
+          <td>${r.request_id}</td>
+          <td class="${statusClass}">${finalStatus}</td>
+          <td>${r.current_approver_email || "-"}</td>
+          <td>${formatDateTime(r.last_action_time)}</td>
+          <td class="action-cell">
+            <button class="action-btn btn-timeline"
+              onclick="viewTimeline(${r.request_id})">
+              Timeline
+            </button>
+
+            ${
+              r.overall_status === "PENDING" && r.current_level !== -1
+                ? `<button class="action-btn btn-resend"
+                    onclick="resendApproval(${r.request_id},
+                      ${r.current_level},
+                      '${r.current_approver_email}')">
+                    Resend
+                  </button>`
+                : ""
+            }
+          </td>
+        </tr>`;
+    });
+
+    $("#requestTable").html(html);
+  }
+
+  /* ================= TIMELINE ================= */
+
+  function viewTimeline(id) {
+    $.ajax({
+      url: `/api/timeline/${id}`,
+      method: "GET",
+      dataType: "json",
+      success: data => {
+        let html = "";
+
+        data.forEach(t => {
+          const dt = new Date(t.time);
+          html += `
+            <tr>
+              <td>${dt.toISOString().slice(0, 10)}</td>
+              <td>${dt.toTimeString().slice(0, 8)}</td>
+              <td>${t.email}</td>
+              <td><b>${t.action}</b></td>
+              <td>${t.remark || "-"}</td>
+            </tr>`;
+        });
+
+        $("#timelineBody").html(html);
+        $("#timelineBox").show();
+      }
+    });
+  }
+
+  function closeTimeline() {
+    $("#timelineBox").hide();
+  }
+
+  /* ================= RESEND ================= */
+
+  function resendApproval(id, level, email) {
+    if (!email) {
+      alert("No current approver found");
+      return;
+    }
+
+    $.ajax({
+      url: "/api/resend-approval",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        request_id: id,
+        current_level: level,
+        approver_email: email
+      }),
+      success: () => alert("Approval mail resent")
+    });
+  }
+
+  /* ================= SAVE FORM ================= */
+
+  function saveRequisition() {
+    const payload = {
+      s_location: $("#s_location").val(),
+      dt_request_date: $("#dt_request_date").val(),
+      s_first_name: $("#s_first_name").val(),
+      s_middle_name: $("#s_middle_name").val(),
+      s_last_name: $("#s_last_name").val(),
+      dt_date_of_birth: $("#dt_date_of_birth").val(),
+      n_age: $("#n_age").val(),
+      s_agency_name: $("#s_agency_name").val(),
+      s_sap_vendor_code: $("#s_sap_vendor_code").val(),
+      s_nature_of_job: $("#s_nature_of_job").val(),
+      s_work_order_no: $("#s_work_order_no").val(),
+      dt_work_order_validity: $("#dt_work_order_validity").val(),
+      dt_date_of_joining: $("#dt_date_of_joining").val(),
+      s_exact_work_location: $("#s_exact_work_location").val(),
+      s_gender: $("#s_gender").val(),
+      s_aadhar_card_no: $("#s_aadhar_card_no").val(),
+      s_present_address: $("#s_present_address").val(),
+      s_present_city: $("#s_present_city").val(),
+      s_present_state: $("#s_present_state").val(),
+      s_present_pincode: $("#s_present_pincode").val(),
+      s_contact_no: $("#s_contact_no").val(),
+      s_emergency_contact_details: $("#s_emergency_contact_details").val(),
+      s_emergency_city: $("#s_emergency_city").val(),
+      s_emergency_state: $("#s_emergency_state").val(),
+      s_emergency_pincode: $("#s_emergency_pincode").val(),
+      s_emergency_contact_no: $("#s_emergency_contact_no").val()
+    };
+
+    $.ajax({
+      url: "/api/save-form",
+      method: "POST",
+      contentType: "application/json",
+      dataType: "json",
+      data: JSON.stringify(payload),
+      success: res => {
+        savedFormSrNo = res.form_sr_no;
+        $("#srValue").text(savedFormSrNo);
+        $("#srDisplay").show();
+        alert("Form saved successfully");
+      }
+    });
+  }
+
+  /* ================= CREATE REQUEST ================= */
+
+  function createRequest() {
+    const email = $("#user1Email").val();
+
+    if (!email) {
+      alert("Please enter receiver email");
+      return;
+    }
+
+    $.ajax({
+      url: "/api/create-request",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ first_user_email: email }),
+      success: () => {
+        alert("Mail sent successfully");
+        loadRequests();
+      }
+    });
+  }
+
+  /* ================= EXPOSE ================= */
+
+  window.viewTimeline = viewTimeline;
+  window.closeTimeline = closeTimeline;
+  window.resendApproval = resendApproval;
+  window.saveRequisition = saveRequisition;
+  window.createRequest = createRequest;
+
+  /* ================= INIT ================= */
+
+  loadRequests();
 }
 
-
-
-/* =======================
-   INIT
-======================= */
-loadRequests();
+/* ================= START APP ================= */
+requisitionDashboardApp();

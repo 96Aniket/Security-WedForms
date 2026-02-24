@@ -616,6 +616,8 @@ def submit_form():
 
     created_by = data.get("s_created_by", "FORM_USER")
 
+    form_filler_email = data.get("form_filler_email")
+
     form_sr_no = queries.insert_requisition_form(data, created_by)
     initiator_email = queries.get_initiator_email(request_id)
 
@@ -631,7 +633,8 @@ def submit_form():
         request_id=request_id,
         token=token,
         user0_email=initiator_email,
-        submitted_by=created_by
+        submitted_by=created_by,
+        sender_email=form_filler_email   
     )
 
     return {"status": "submitted successfully"}
@@ -672,7 +675,7 @@ def approve():
         next_email,
         "Approval Required",
         body,
-        SYSTEM_SMTP_EMAIL
+        sender_email=approver_email  
     )
 
     return jsonify({"status": "MOVED"})
@@ -731,7 +734,7 @@ def approval_action():
             next_email,
             "Approval Required",
             body,
-            SYSTEM_SMTP_EMAIL
+            sender_email=token_data['approver_email']
         )
 
     return f"Request {result}"
@@ -750,10 +753,11 @@ def resend_approval():
 
     link = f"{BASE_URL}/approval?token={token}&action=APPROVE"
 
-    send_mail(
-        data['approver_email'],
-        "Reminder: Approval Required",
-        f"<a href='{link}'>Approve / Reject</a>"
+    send_mail_async(
+        to_email=data['approver_email'],
+        subject="Reminder: Approval Required",
+        body=f"<a href='{link}'>Approve / Reject</a>",
+        sender_email=session['user']['email']
     )
 
     return {"status": "resent successfully"}
@@ -862,7 +866,7 @@ def update_form():
             Review Again
         </a>
         """,
-        sender_email=SYSTEM_SMTP_EMAIL
+        sender_email=session['user']['email']
     )
 
     return {"status": "resubmitted"}
@@ -922,15 +926,15 @@ def resubmit_form():
     token = generate_token(request_id, reject_level, rejector_email)
 
     send_mail_async(
-        rejector_email,
-        "Requisition Resubmitted - Review Again",
+        to_email=rejector_email,
+        subject="Requisition Resubmitted - Review Again",
         body=f"""
         <p>The requisition form has been corrected and resubmitted.</p>
         <a href="{BASE_URL}/approval?token={token}">
             Review Again
         </a>
         """,
-        sender_email=SYSTEM_SMTP_EMAIL
+        sender_email=session['user']['email']
     )
 
     return {"status": "resubmitted"}
