@@ -52,6 +52,21 @@ function vehicleChecklistApp() {
     label.appendChild(star);
   }
 }
+function formatLocation(code) {
+  if (!code) return "";
+  const m = code.match(/^([A-Z]+)(\d+)$/);
+  return m ? `${m[1]}-${m[2].padStart(2, "0")}` : code;
+}
+function formatDateTimeDDMMYYYY(dt) {
+  if (!dt) return "";
+  const [datePart, timePart] = dt.replace("T", " ").split(" ");
+
+  if (!datePart || !timePart) return dt;
+
+  const [yyyy, mm, dd] = datePart.split("-");
+
+  return `${dd}-${mm}-${yyyy} ${timePart}`;
+}
 
 function clearMandatory(input) {
   input.classList.remove("mandatory-error");
@@ -112,9 +127,9 @@ function renderPage() {
       totalRecords - (start + index);
 
     tr.querySelector(".location").textContent =
-      r.s_location_code || "";
+      formatLocation(r.s_location_code);
     tr.querySelector(".datetime").textContent =
-      r.dt_entry_datetime || "";
+      formatDateTimeDDMMYYYY(r.dt_entry_datetime);
     tr.querySelector(".vehicleno").textContent =
       r.s_vehicle_no || "";
     tr.querySelector(".vehicletype").textContent =
@@ -189,8 +204,8 @@ function renderPage() {
     hidePagination();
 
     $("#s_location_code")
-      .val(USER_LOCATION)
-      .prop("readonly", true);
+    .val(formatLocation(USER_LOCATION))
+    .prop("readonly", true);
     renderChecklist();
   };
 
@@ -267,34 +282,41 @@ function renderPage() {
     });
   }
 
-  /* ============ EDIT ============ */
-  $("#masterTable").on("click", ".edit", function () {
-    const r = $(this).closest("tr").data("record");
 
-    isEdit = true;
-    editId = r.n_vc_id;
+/* ============ EDIT ============ */
+$("#masterTable").on("click", ".edit", function () {
+  const r = $(this).closest("tr").data("record");
 
-    $("#paginationBar").hide();
-    $("#listView").hide();
-    $("#step1").show();
-    $("#step2").show();
+  isEdit = true;
+  editId = r.n_vc_id;
 
-    $("#s_location_code")
-      .val(USER_LOCATION)
-      .prop("readonly", true);
+  $("#paginationBar").hide();
+  $("#listView").hide();
+  $("#step1").show();
+  $("#step2").show();
 
-    $("#s_vehicle_no").val(r.s_vehicle_no);
-    $("#s_vehicle_type").val(r.s_vehicle_type);
-    $("#s_driver_name").val(r.s_driver_name);
-    $("#s_contact_no").val(r.s_contact_no);
-    $("#s_occupants_name").val(r.s_occupants_name);
-    $("#dt_entry_datetime").val(
-      r.dt_entry_datetime ? r.dt_entry_datetime.replace(" ", "T") : ""
-    );
-    $("#s_purpose_of_entry").val(r.s_purpose_of_entry);
+  $("#s_location_code")
+    .val(formatLocation(USER_LOCATION))
+    .prop("readonly", true);
 
-    renderChecklist(r.checklist || []);
-  });
+  $("#s_vehicle_no").val(r.s_vehicle_no);
+  $("#s_vehicle_type").val(r.s_vehicle_type);
+  $("#s_driver_name").val(r.s_driver_name);
+  $("#s_contact_no").val(r.s_contact_no);
+  $("#s_occupants_name").val(r.s_occupants_name);
+
+  $("#s_transporter_name").val(r.s_transporter_name || "");
+  $("#s_id_card_no").val(r.s_id_card_no || "");
+  $("#s_dl_no").val(r.s_dl_no || "");
+
+  $("#dt_entry_datetime").val(
+    r.dt_entry_datetime ? r.dt_entry_datetime.replace(" ", "T") : ""
+  );
+
+  $("#s_purpose_of_entry").val(r.s_purpose_of_entry);
+
+  renderChecklist(r.checklist || []);
+});
 
 
   /* ============ SAVE / UPDATE ============ */
@@ -307,6 +329,30 @@ function renderPage() {
   const driverInput   = document.getElementById("s_driver_name");
   const contactInput  = document.getElementById("s_contact_no");
   const datetimeInput = document.getElementById("dt_entry_datetime");
+  const transporterInput = document.getElementById("s_transporter_name");
+  const idCardInput = document.getElementById("s_id_card_no");
+  const dlInput = document.getElementById("s_dl_no");
+
+  if (!/^[A-Z]{2}\d{2}\s?\d{11}$/.test(dlInput.value.trim())) {
+    alert("DL No must be in valid format (e.g. MH14 20110012345)");
+    dlInput.focus();
+    markMandatory(dlInput);
+    return;
+  }
+
+  if (!/^[A-Z]{2,5}-\d{3,10}$/.test(idCardInput.value.trim())) {
+    alert("ID Card No must be in format like EMP-12345");
+    idCardInput.focus();
+    markMandatory(idCardInput);
+    return;
+  }
+
+  if (!/^[A-Za-z ]{3,50}$/.test(transporterInput.value.trim())) {
+    alert("Transporter Name must contain only letters and spaces");
+    transporterInput.focus();
+    markMandatory(transporterInput);
+    return;
+  }
 
   if (!vehicleNoInput.value.trim()) {
     markMandatory(vehicleNoInput);
@@ -400,6 +446,9 @@ function renderPage() {
       s_contact_no: contactInput.value.trim(),
       s_occupants_name: $("#s_occupants_name").val(),
       dt_entry_datetime: datetimeInput.value,
+      s_transporter_name: transporterInput.value.trim(),
+      s_id_card_no: idCardInput.value.trim(),
+      s_dl_no: dlInput.value.trim(),
       s_purpose_of_entry: $("#s_purpose_of_entry").val()
     },
     checklist
@@ -465,12 +514,15 @@ worksheet.getCell("A1").alignment = {
   /* ===== ONE BLANK ROW ===== */
 worksheet.addRow([]);
 
- const masterFields = [
+const masterFields = [
   ["Vehicle No", record.s_vehicle_no ?? ""],
   ["Vehicle Type", record.s_vehicle_type ?? ""],
   ["Driver Name", record.s_driver_name ?? ""],
   ["Contact No", record.s_contact_no ?? ""],
-  ["Entry Date / Time", record.dt_entry_datetime ?? ""]
+  ["Transporter Name", record.s_transporter_name ?? ""],
+  ["ID Card No", record.s_id_card_no ?? ""],
+  ["Driving License No", record.s_dl_no ?? ""],
+  ["Entry Date / Time", formatDateTimeDDMMYYYY(record.dt_entry_datetime ?? "")]
 ];
 
 masterFields.forEach(([label, value]) => {
@@ -566,6 +618,9 @@ const headers = [
   "Vehicle Type",
   "Driver Name",
   "Contact No",
+  "Transporter Name",
+  "ID Card No",
+  "Driving License No",
   "Purpose of Entry"
 ];
 
@@ -584,12 +639,15 @@ worksheet.getRow(3).eachCell(cell => {
 allData.forEach((r, index) => {
   worksheet.addRow([
     index + 1,
-    r.s_location_code ?? "",
-    r.dt_entry_datetime ?? "",
+    formatLocation(r.s_location_code ?? ""),
+    formatDateTimeDDMMYYYY(r.dt_entry_datetime ?? ""),
     r.s_vehicle_no ?? "",
     r.s_vehicle_type ?? "",
     r.s_driver_name ?? "",
     r.s_contact_no ?? "",
+    r.s_transporter_name ?? "",
+    r.s_id_card_no ?? "",
+    r.s_dl_no ?? "",
     r.s_purpose_of_entry ?? ""
   ]);
 });

@@ -348,10 +348,13 @@ button {
 }
 
 .field label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  margin-bottom: 4px;
   color: #333;
+  white-space: nowrap;
 }
 
 /* Ensure inputs inside field behave correctly */
@@ -378,11 +381,9 @@ button {
   background-color: #fff5f5;
 }
 
-.field label {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-weight: 600;
+.mandatory-error:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.2);
 }
 
 .mandatory-star {

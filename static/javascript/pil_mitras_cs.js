@@ -167,7 +167,7 @@ function editRow(btn) {
   [4, 5, 6, 7, 8].forEach(i => {
     const val = row.children[i].innerText;
 
-    if (i === 6) {
+    if (i === 7) {
       const cleanMobile = val.replace(/[^0-9]/g, '').slice(0, 10);
 
       row.children[i].innerHTML = `
@@ -205,7 +205,7 @@ function validateMandatoryFields() {
     const dateInput   = row.children[2]?.querySelector("input");
     const timeInput = row.children[3]?.querySelector("input");
     const nameInput   = row.children[4]?.querySelector("input");
-    const mobileInput = row.children[6]?.querySelector("input");
+    const mobileInput = row.children[7]?.querySelector("input");
 
     [dateInput,timeInput, nameInput, mobileInput].forEach(input => {
       if (input && !input.value.trim()) {
@@ -242,14 +242,13 @@ function saveTable() {
   let hasNew = false;
   let hasEdit = false;
 
-  // ✅ MOBILE VALIDATION (ONLY ONCE)
   for (let row of rows) {
     if (row.dataset.new) hasNew = true;
     if (row.dataset.edited && !row.dataset.new) hasEdit = true;
 
     if (!row.dataset.new && !row.dataset.edited) continue;
 
-    const mobileInput = row.children[6]?.querySelector("input");
+    const mobileInput = row.children[7]?.querySelector("input");
     if (!mobileInput) continue;
 
     const mobile = mobileInput.value.trim();

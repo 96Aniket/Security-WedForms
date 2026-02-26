@@ -559,6 +559,7 @@ def insert_pipeline_mitra_record(cursor, data, n_sr_no, username):
         n_sr_no,
         s_location_code,
         d_entry_date,
+        t_entry_time,
         s_chainage_no,
         s_pm_name,
         s_pm_village_name,
@@ -566,13 +567,14 @@ def insert_pipeline_mitra_record(cursor, data, n_sr_no, username):
         s_remarks,
         s_created_by
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 
     cursor.execute(sql, (
         n_sr_no,
         data.get("s_location_code"),
         data.get("d_entry_date"),
+        data.get("t_entry_time"),     
         data.get("s_chainage_no"),
         data.get("s_pm_name"),
         data.get("s_pm_village_name"),
@@ -580,7 +582,6 @@ def insert_pipeline_mitra_record(cursor, data, n_sr_no, username):
         data.get("s_remarks"),
         username
     ))
-
 
 # ------------ READ -----------------
 def get_pipeline_mitra_data(user_role, user_location):
@@ -595,6 +596,7 @@ def get_pipeline_mitra_data(user_role, user_location):
                     n_sr_no,
                     s_location_code,
                     d_entry_date,
+                    t_entry_time,
                     s_chainage_no,
                     s_pm_name,
                     s_pm_village_name,
@@ -611,6 +613,7 @@ def get_pipeline_mitra_data(user_role, user_location):
                     n_sr_no,
                     s_location_code,
                     d_entry_date,
+                    t_entry_time,
                     s_chainage_no,
                     s_pm_name,
                     s_pm_village_name,
@@ -630,13 +633,13 @@ def get_pipeline_mitra_data(user_role, user_location):
                 "n_sr_no": r[0],
                 "s_location_code": r[1],
                 "d_entry_date": str(r[2]),
-                "s_chainage_no": r[3],
-                "s_pm_name": r[4],
-                "s_pm_village_name": r[5],
-                "s_pm_mobile_no": r[6],
-                "s_remarks": r[7]
+                "t_entry_time": str(r[3]) if r[3] else None,
+                "s_chainage_no": r[4],
+                "s_pm_name": r[5],
+                "s_pm_village_name": r[6],
+                "s_pm_mobile_no": r[7],
+                "s_remarks": r[8]
             })
-
         cursor.close()
         conn.close()
 
@@ -653,23 +656,25 @@ def update_pipeline_mitra_data(data, username="system"):
         cursor = conn.cursor()
 
         sql = """
-        UPDATE dbo.PIPELINE_MITRA_REGISTER
-        SET
-            s_location_code = ?,
-            d_entry_date = ?,
-            s_chainage_no = ?,
-            s_pm_name = ?,
-            s_pm_village_name = ?,
-            s_pm_mobile_no = ?,
-            s_remarks = ?,
-            dt_updated_at = GETDATE(),
-            s_updated_by = ?
-        WHERE n_sr_no = ?
-        """
+            UPDATE dbo.PIPELINE_MITRA_REGISTER
+            SET
+                s_location_code = ?,
+                d_entry_date = ?,
+                t_entry_time = ?,           
+                s_chainage_no = ?,
+                s_pm_name = ?,
+                s_pm_village_name = ?,
+                s_pm_mobile_no = ?,
+                s_remarks = ?,
+                dt_updated_at = GETDATE(),
+                s_updated_by = ?
+            WHERE n_sr_no = ?
+            """
 
         cursor.execute(sql, (
             data["s_location_code"],
             data["d_entry_date"],
+            data.get("t_entry_time"),   
             data["s_chainage_no"],
             data["s_pm_name"],
             data["s_pm_village_name"],
@@ -789,12 +794,15 @@ def save_vehicle_checklist_full(data, username="system"):
                 s_driver_name,
                 s_contact_no,
                 s_occupants_name,
+                s_transporter_name,
+                s_id_card_no,
+                s_dl_no,
                 s_purpose_of_entry,
                 s_created_by,
                 n_flag
             )
             OUTPUT INSERTED.n_vc_id
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
         """, (
             master["s_location_code"],
             entry_dt,
@@ -803,6 +811,9 @@ def save_vehicle_checklist_full(data, username="system"):
             master.get("s_driver_name"),
             master.get("s_contact_no"),
             master.get("s_occupants_name"),
+            master.get("s_transporter_name"),
+            master.get("s_id_card_no"),
+            master.get("s_dl_no"),
             master.get("s_purpose_of_entry"),
             username
         ))
@@ -855,6 +866,9 @@ def get_vehicle_checklist_data(user_role, user_location):
                     s_driver_name,
                     s_contact_no,
                     s_occupants_name,
+                    s_transporter_name,
+                    s_id_card_no,
+                    s_dl_no,
                     s_purpose_of_entry
                 FROM dbo.VEHICLE_CHECKLIST_MASTER
                 WHERE n_flag = 1
@@ -871,6 +885,9 @@ def get_vehicle_checklist_data(user_role, user_location):
                     s_driver_name,
                     s_contact_no,
                     s_occupants_name,
+                    s_transporter_name,
+                    s_id_card_no,
+                    s_dl_no,
                     s_purpose_of_entry
                 FROM dbo.VEHICLE_CHECKLIST_MASTER
                 WHERE n_flag = 1
@@ -904,7 +921,10 @@ def get_vehicle_checklist_data(user_role, user_location):
                 "s_driver_name": m[5],
                 "s_contact_no": m[6],
                 "s_occupants_name": m[7],
-                "s_purpose_of_entry": m[8],
+                "s_transporter_name": m[8],
+                "s_id_card_no": m[9],
+                "s_dl_no": m[10],
+                "s_purpose_of_entry": m[11],
                 "checklist": [
                     {
                         "n_sr_no": c[0],
@@ -949,6 +969,9 @@ def update_vehicle_checklist_data(data, username="system"):
                 s_driver_name = ?,
                 s_contact_no = ?,
                 s_occupants_name = ?,
+                s_transporter_name = ?,
+                s_id_card_no = ?,
+                s_dl_no = ?,
                 s_purpose_of_entry = ?,
                 dt_updated_at = GETDATE(),
                 s_updated_by = ?
@@ -961,6 +984,9 @@ def update_vehicle_checklist_data(data, username="system"):
             master.get("s_driver_name"),
             master.get("s_contact_no"),
             master.get("s_occupants_name"),
+            master.get("s_transporter_name"),
+            master.get("s_id_card_no"),
+            master.get("s_dl_no"),
             master.get("s_purpose_of_entry"),
             username,
             master["n_vc_id"]
