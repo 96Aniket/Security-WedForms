@@ -89,6 +89,7 @@ def delete_patrolling_data():
 # =====================================================
 # BBA TEST RECORD REGISTER
 # =====================================================
+
 def save_bba_test_data_fn():
     try:
         data = request.get_json()
@@ -110,7 +111,6 @@ def get_bba_test_data():
         user_location = user.get("location")
 
         success, data = queries.get_bba_test_data(user_role, user_location)
-
         return success_response(data=data) if success else error_response("Failed to fetch data")
 
     except Exception as e:
@@ -137,15 +137,12 @@ def delete_bba_test_data():
         if not data or "n_sr_no" not in data:
             return error_response("Invalid delete request")
 
-        
-        data["deleted_by"] = session.get("user", {}).get("email", "system")
-
         username = session.get("user", {}).get("email", "system")
         success, msg = queries.delete_bba_test_data(data, username)
+
         return success_response(msg) if success else error_response(msg)
     except Exception as e:
         return error_response(str(e), 500)
-
 
 # =====================================================
 # PIPELINE MITRA REGISTER

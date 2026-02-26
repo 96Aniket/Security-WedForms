@@ -117,8 +117,11 @@ th {
   white-space: normal;
 }
 
-td {
-  white-space: nowrap;
+#mitraTable td.remarks {
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 250px;
 }
 
 /* ================= ICON BUTTONS ================= */

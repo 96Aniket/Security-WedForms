@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Casual Labour Register</title>
+  <title>Temporary Entry Permit</title>
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/casual_labour.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -19,7 +19,7 @@
       </a>
     </div>
 
-    <h2 style="text-align:center;">Casual Labour Register</h2>
+    <h2 style="text-align:center;">Temporary Entry Permit</h2>
 
     <div id="profileAvatar" style="display:flex;align-items:center;cursor:pointer;background:#fff;
         padding:6px 10px;border-radius:50px;">
@@ -157,7 +157,7 @@
         </div>
 
         <div class="field">
-          <label for="labour_card">Temp Card No</label>
+          <label for="labour_card">Temporary Card No</label>
           <input id="labour_card" required>
         </div>
       </div>
@@ -204,6 +204,7 @@
             <th>Age</th>
             <th>Sex</th>
             <th>Address</th>
+            <th>Temporary Card No</th>
             <th>Mobile</th>
 
             {% if user_role != 'admin' %}

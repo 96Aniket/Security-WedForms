@@ -303,11 +303,46 @@ def save_bba_test_data(data, username="system"):
         conn = get_connection()
         cursor = conn.cursor()
 
-        # Get next SR NO
         cursor.execute("SELECT ISNULL(MAX(n_sr_no), 0) + 1 FROM dbo.BAA_Test_Record_Register")
         next_sr_no = cursor.fetchone()[0]
 
-        insert_bba_test_record(cursor, data, next_sr_no, username)
+        sql = """
+        INSERT INTO dbo.BAA_Test_Record_Register
+        (
+            n_sr_no,
+            s_location_code,
+            d_test_date,
+            t_test_time,
+            s_test_record_no,
+            s_individual_name,
+            s_card_no,
+            s_person_type,
+            s_test_result,
+            n_bac_count,
+            img_attachment,
+            s_security_personnel_name,
+            s_remarks,
+            s_created_by
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+
+        cursor.execute(sql, (
+            next_sr_no,
+            data.get("s_location_code"),
+            data.get("d_test_date"),
+            data.get("t_test_time"),
+            data.get("s_test_record_no"),
+            data.get("s_individual_name"),
+            data.get("s_card_no"),
+            data.get("s_person_type"),
+            data.get("s_test_result"),
+            None if data.get("n_bac_count") in ("", None) else data.get("n_bac_count"),
+            data.get("img_attachment"),
+            data.get("s_security_personnel_name"),
+            data.get("s_remarks"),
+            username
+        ))
 
         conn.commit()
         cursor.close()
@@ -317,7 +352,6 @@ def save_bba_test_data(data, username="system"):
 
     except Exception as e:
         return False, str(e)
-
 
 def insert_bba_test_record(cursor, data, n_sr_no, username):
     sql = """
@@ -356,54 +390,36 @@ def insert_bba_test_record(cursor, data, n_sr_no, username):
         username
     ))
 
-
 # ----------- READ ----------------
 def get_bba_test_data(user_role, user_location):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        if user_role == "admin":
-            # Admin sees all locations
-            cursor.execute("""
-                SELECT
-                    n_sr_no,
-                    s_location_code,
-                    d_test_date,
-                    t_test_time,
-                    s_test_record_no,
-                    s_individual_name,
-                    s_person_type,
-                    s_test_result,
-                    n_bac_count,
-                    img_attachment,
-                    s_security_personnel_name,
-                    s_remarks
-                FROM dbo.BAA_Test_Record_Register
-                WHERE ISNULL(delete_flag, 0) = 0
-                ORDER BY n_sr_no DESC
-            """)
+        base_query = """
+            SELECT
+                n_sr_no,
+                s_location_code,
+                d_test_date,
+                t_test_time,
+                s_test_record_no,
+                s_individual_name,
+                s_card_no,
+                s_person_type,
+                s_test_result,
+                n_bac_count,
+                img_attachment,
+                s_security_personnel_name,
+                s_remarks
+            FROM dbo.BAA_Test_Record_Register
+            WHERE ISNULL(delete_flag, 0) = 0
+        """
+
+        if user_role != "admin":
+            base_query += " AND s_location_code = ?"
+            cursor.execute(base_query + " ORDER BY n_sr_no DESC", (user_location,))
         else:
-            # Normal user sees only own location
-            cursor.execute("""
-                SELECT
-                    n_sr_no,
-                    s_location_code,
-                    d_test_date,
-                    t_test_time,
-                    s_test_record_no,
-                    s_individual_name,
-                    s_person_type,
-                    s_test_result,
-                    n_bac_count,
-                    img_attachment,
-                    s_security_personnel_name,
-                    s_remarks
-                FROM dbo.BAA_Test_Record_Register
-                WHERE ISNULL(delete_flag, 0) = 0
-                AND s_location_code = ?
-                ORDER BY n_sr_no DESC
-            """, (user_location,))
+            cursor.execute(base_query + " ORDER BY n_sr_no DESC")
 
         rows = cursor.fetchall()
 
@@ -416,12 +432,13 @@ def get_bba_test_data(user_role, user_location):
                 "t_test_time": str(r[3]),
                 "s_test_record_no": r[4],
                 "s_individual_name": r[5],
-                "s_person_type": r[6],
-                "s_test_result": r[7],
-                "n_bac_count": r[8],
-                "img_attachment": r[9],
-                "s_security_personnel_name": r[10],
-                "s_remarks": r[11]
+                "s_card_no": r[6],
+                "s_person_type": r[7],
+                "s_test_result": r[8],
+                "n_bac_count": r[9],
+                "img_attachment": r[10],
+                "s_security_personnel_name": r[11],
+                "s_remarks": r[12]
             })
 
         cursor.close()
@@ -431,7 +448,6 @@ def get_bba_test_data(user_role, user_location):
 
     except Exception as e:
         return False, str(e)
-
 
 # ----------- UPDATE ---------------
 def update_bba_test_data(data, username="system"):
@@ -447,9 +463,10 @@ def update_bba_test_data(data, username="system"):
             t_test_time = ?,
             s_test_record_no = ?,
             s_individual_name = ?,
+            s_card_no = ?,
             s_person_type = ?,
             s_test_result = ?,
-            n_bac_count = ?,
+            n_bac_count = COALESCE(?, n_bac_count),
             img_attachment = ISNULL(?, img_attachment),
             s_security_personnel_name = ?,
             s_remarks = ?,
@@ -459,19 +476,20 @@ def update_bba_test_data(data, username="system"):
         """
 
         cursor.execute(sql, (
-            data["s_location_code"],
-            data["d_test_date"],
-            data["t_test_time"],
-            data["s_test_record_no"],
-            data["s_individual_name"],
-            data["s_person_type"],
-            data["s_test_result"],
-            data["n_bac_count"],
+            data.get("s_location_code"),
+            data.get("d_test_date"),
+            data.get("t_test_time"),
+            data.get("s_test_record_no"),
+            data.get("s_individual_name"),
+            data.get("s_card_no"),
+            data.get("s_person_type"),
+            data.get("s_test_result"),
+            None if data.get("n_bac_count") in ("", None) else int(data.get("n_bac_count")),
             data.get("img_attachment"),
-            data["s_security_personnel_name"],
-            data["s_remarks"],
+            data.get("s_security_personnel_name"),
+            data.get("s_remarks"),
             username,
-            data["n_sr_no"]
+            int(data.get("n_sr_no"))   # 🔥 IMPORTANT
         ))
 
         conn.commit()
@@ -481,102 +499,8 @@ def update_bba_test_data(data, username="system"):
         return True, "BBA Test record updated successfully"
 
     except Exception as e:
-        return False, str(e)
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        sql = """
-        UPDATE dbo.BAA_Test_Record_Register
-        SET
-            s_location_code = ?,
-            d_test_date = ?,
-            t_test_time = ?,
-            s_test_record_no = ?,
-            s_individual_name = ?,
-            s_person_type = ?,
-            s_test_result = ?,
-            n_bac_count = ?,
-            img_attachment = ISNULL(?, img_attachment),
-            s_security_personnel_name = ?,
-            s_remarks = ?,
-            dt_updated_at = GETDATE(),
-            s_updated_by = ?
-        WHERE n_sr_no = ?
-        """
-
-        cursor.execute(sql, (
-            data["s_location_code"],
-            data["d_test_date"],
-            data["t_test_time"],
-            data["s_test_record_no"],
-            data["s_individual_name"],
-            data["s_person_type"],
-            data["s_test_result"],
-            data["n_bac_count"],
-            data.get("img_attachment"), 
-            data["s_security_personnel_name"],
-            data["s_remarks"],
-            username,
-            data["n_sr_no"]
-        ))
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return True, "BBA Test record updated successfully"
-
-    except Exception as e:
-        return False, str(e)
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        sql = """
-        UPDATE dbo.BAA_Test_Record_Register
-        SET
-            s_location_code = ?,
-            d_test_date = ?,
-            t_test_time = ?,
-            s_test_record_no = ?,
-            s_individual_name = ?,
-            s_person_type = ?,
-            s_test_result = ?,
-            n_bac_count = ?,
-            s_security_personnel_name = ?,
-            s_remarks = ?,
-            dt_updated_at = GETDATE(),
-            s_updated_by = ?
-        WHERE n_sr_no = ?
-        """
-
-        cursor.execute(sql, (
-            data["s_location_code"],
-            data["d_test_date"],
-            data["t_test_time"],
-            data["s_test_record_no"],
-            data["s_individual_name"],
-            data["s_person_type"],
-            data["s_test_result"],
-            data["n_bac_count"],
-            data["s_security_personnel_name"],
-            data["s_remarks"],
-            username,
-            data["n_sr_no"]
-        ))
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return True, "BBA Test record updated successfully"
-
-    except Exception as e:
-        return False, str(e)
-
+        print("UPDATE ERROR:", e)  # 🔥 MUST SEE REAL ERROR
+        return False, str(e)       
 
 # ----------- DELETE ----------------
 def delete_bba_test_data(data, username):
@@ -601,7 +525,7 @@ def delete_bba_test_data(data, username):
 
     except Exception as e:
         return False, str(e)
-
+    
 # ------------ START PIPELINE MITRA REGISTER -----------------
 
 # ------------ CREATE -----------------

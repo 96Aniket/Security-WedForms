@@ -18,8 +18,33 @@ function pipelineMitraApp() {
     }
     return tpl.content.cloneNode(true);
   }
-
-  
+  function formatLocation(code) {
+    const m = code.match(/^([A-Z]+)(\d+)$/);
+    return m ? `${m[1]}-${m[2].padStart(2,'0')}` : code;
+  }
+  function formatDateDDMMYYYY(d){
+    if(!d) return "";
+    const [y,m,dd] = d.split("-");
+    return `${dd}-${m}-${y}`;
+  }
+  function formatDateForInput(d) {
+    if (!d) return "";
+    const [dd, mm, yyyy] = d.split("-");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  function recalculateSrNo() {
+    const rows = document.querySelectorAll("#mitraTable tbody tr");
+    rows.forEach((row, index) => {
+      const cell = row.querySelector(".sr-no");
+      if (cell) {
+        cell.innerText = index + 1;
+      }
+    });
+  }
+  function formatTimeHHMM(t) {
+    if (!t) return "";
+    return t.substring(0, 5);
+  }
 
 
   /* ================= LOAD ================= */
@@ -63,8 +88,12 @@ function pipelineMitraApp() {
     const srNo = totalRecords - (start + index);
     row.querySelector(".sr-no").innerText = srNo;
 
-    row.querySelector(".loc").innerText = r.s_location_code || "";
-    row.querySelector(".date").innerText = r.d_entry_date || "";
+    row.querySelector(".loc").innerText =
+      formatLocation(r.s_location_code);
+    row.querySelector(".date").innerText =
+      formatDateDDMMYYYY(r.d_entry_date);
+    row.querySelector(".time").innerText =
+      formatTimeHHMM(r.t_entry_time);
     row.querySelector(".chainage").innerText = r.s_chainage_no || "";
     row.querySelector(".name").innerText = r.s_pm_name || "";
     row.querySelector(".village").innerText = r.s_pm_village_name || "";
@@ -73,7 +102,7 @@ function pipelineMitraApp() {
 
     tbody.appendChild(row);
   });
-
+  recalculateSrNo();
   updatePaginationButtons();
 }
 
@@ -109,10 +138,13 @@ function pipelineMitraApp() {
 
     row.dataset.new = "true";
     row.dataset.edited = "true";
-    row.querySelector(".loc").innerText = USER_LOCATION;
+
+    row.querySelector(".loc").innerText =
+      formatLocation(USER_LOCATION);
 
     tbody.prepend(row);
-    
+
+    recalculateSrNo();
 
     document.getElementById("saveBtn").style.display = "inline-block";
   }
@@ -123,12 +155,16 @@ function editRow(btn) {
   const row = btn.closest("tr");
   row.dataset.edited = "true";
 
-  row.querySelector(".loc").innerText = USER_LOCATION;
+  row.querySelector(".loc").innerText = formatLocation(USER_LOCATION);
 
   const d = row.children[2].innerText;
-  row.children[2].innerHTML = `<input type="date" value="${d}">`;
+  row.children[2].innerHTML =
+    `<input type="date" value="${formatDateForInput(d)}">`;
+  const t = row.children[3].innerText;
+  row.children[3].innerHTML =
+    `<input type="time" value="${t}">`;
 
-  [3, 4, 5, 6, 7].forEach(i => {
+  [4, 5, 6, 7, 8].forEach(i => {
     const val = row.children[i].innerText;
 
     if (i === 6) {
@@ -167,10 +203,11 @@ function validateMandatoryFields() {
 
   rows.forEach(row => {
     const dateInput   = row.children[2]?.querySelector("input");
+    const timeInput = row.children[3]?.querySelector("input");
     const nameInput   = row.children[4]?.querySelector("input");
     const mobileInput = row.children[6]?.querySelector("input");
 
-    [dateInput, nameInput, mobileInput].forEach(input => {
+    [dateInput,timeInput, nameInput, mobileInput].forEach(input => {
       if (input && !input.value.trim()) {
         isValid = false;
         input.classList.add("mandatory-error");
@@ -197,100 +234,93 @@ function validateMandatoryFields() {
 
   /* ================= SAVE ================= */
 
-  function saveTable() {
-     if (!validateMandatoryFields()) return;
+function saveTable() {
+  if (!validateMandatoryFields()) return;
+
   const rows = document.querySelectorAll("#mitraTable tbody tr");
 
   let hasNew = false;
   let hasEdit = false;
 
-  rows.forEach(row => {
+  // ✅ MOBILE VALIDATION (ONLY ONCE)
+  for (let row of rows) {
     if (row.dataset.new) hasNew = true;
     if (row.dataset.edited && !row.dataset.new) hasEdit = true;
-  });
 
-  
+    if (!row.dataset.new && !row.dataset.edited) continue;
+
+    const mobileInput = row.children[6]?.querySelector("input");
+    if (!mobileInput) continue;
+
+    const mobile = mobileInput.value.trim();
+
+    if (!/^\d{10}$/.test(mobile)) {
+      alert("Mobile number must be exactly 10 digits");
+      mobileInput.focus();
+      return; // 🔥 EXIT saveTable fully
+    }
+  }
+
   if (!hasNew && !hasEdit) {
     alert("Nothing to save");
     return;
   }
 
-  
   let confirmMsg = "Do you want to save changes?";
   if (hasNew && !hasEdit) confirmMsg = "Do you want to add this record?";
   if (!hasNew && hasEdit) confirmMsg = "Do you want to update this record?";
   if (hasNew && hasEdit) confirmMsg = "Do you want to add and update records?";
 
-  
   if (!confirm(confirmMsg)) return;
 
-  //Proceed with save
+  // ✅ INSERT / UPDATE
   rows.forEach(row => {
+    if (!row.dataset.new && !row.dataset.edited) return;
+
     const td = row.children;
 
     const payload = {
       s_location_code: USER_LOCATION,
       d_entry_date: td[2].querySelector("input")?.value,
-      s_chainage_no: td[3].querySelector("input")?.value,
-      s_pm_name: td[4].querySelector("input")?.value,
-      s_pm_village_name: td[5].querySelector("input")?.value,
-      s_pm_mobile_no: td[6].querySelector("input")?.value,
-      s_remarks: td[7].querySelector("input")?.value
+      t_entry_time: td[3].querySelector("input")?.value,
+      s_chainage_no: td[4].querySelector("input")?.value,
+      s_pm_name: td[5].querySelector("input")?.value,
+      s_pm_village_name: td[6].querySelector("input")?.value,
+      s_pm_mobile_no: td[7].querySelector("input")?.value,
+      s_remarks: td[8].querySelector("input")?.value
     };
 
-
-
-for (let row of rows) {
-  if (!row.dataset.new && !row.dataset.edited) continue;
-
-  const mobileInput = row.children[6].querySelector("input");
-  if (!mobileInput) continue;
-
-  const mobile = mobileInput.value.trim();
-
-  if (!/^\d{10}$/.test(mobile)) {
-    alert("Mobile number must be exactly 10 digits");
-    mobileInput.focus();
-    return; 
-  }
-}
-
-
-
     // INSERT
-   if (row.dataset.new) {
-  $.ajax({
-    url: "/save_pipeline_mitra_data",
-    method: "POST",
-    contentType: "application/json",
-    data: JSON.stringify(payload)
-  });
-}
+    if (row.dataset.new) {
+      $.ajax({
+        url: "/save_pipeline_mitra_data",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(payload)
+      });
+    }
 
-    
-    
-// UPDATE
-if (row.dataset.edited && !row.dataset.new) {
-  payload.n_sr_no = row.dataset.id;
-  $.ajax({
-    url: "/update_pipeline_mitra_data",
-    method: "POST",
-    contentType: "application/json",
-    data: JSON.stringify(payload)
-  });
-}
+    // UPDATE
+    if (row.dataset.edited && !row.dataset.new) {
+      payload.n_sr_no = row.dataset.id;
+      $.ajax({
+        url: "/update_pipeline_mitra_data",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(payload)
+      });
+    }
   });
 
-  // Final success popup
-  if (hasNew && hasEdit) {
-    alert("Records added and updated successfully");
-  } else if (hasNew) {
-    alert("Record added successfully");
-  } else {
-    alert("Record updated successfully");
-  }
+  alert(
+    hasNew && hasEdit
+      ? "Records added and updated successfully"
+      : hasNew
+      ? "Record added successfully"
+      : "Record updated successfully"
+  );
+
   document.getElementById("saveBtn").style.display = "none";
-
   loadData();
 }
 
@@ -358,15 +388,16 @@ async function downloadTable() {
 
   /* ===== HEADERS ===== */
   const headers = [
-    "Sr No",
-    "Location",
-    "Date",
-    "Chainage No",
-    "Pipeline Mitra Name",
-    "Village Name",
-    "Mobile No",
-    "Remarks"
-  ];
+  "Sr No",
+  "Location",
+  "Date",
+  "Time",
+  "Chainage No",
+  "Pipeline Mitra Name",
+  "Village Name",
+  "Mobile No",
+  "Remarks"
+];
 
   const headerRowIndex = worksheet.lastRow.number + 1;
   worksheet.addRow(headers);
@@ -388,6 +419,7 @@ async function downloadTable() {
       srNo++,
       r.s_location_code ?? "",
       r.d_entry_date ?? "",
+      formatTimeHHMM(r.t_entry_time ?? ""),
       r.s_chainage_no ?? "",
       r.s_pm_name ?? "",
       r.s_pm_village_name ?? "",

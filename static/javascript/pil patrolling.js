@@ -19,7 +19,47 @@ function patrollingApp() {
     return tpl.content.cloneNode(true);
   }
 
-  
+  function recalculateSrNo() {
+    const rows = document.querySelectorAll("#patrolTable tbody tr");
+    rows.forEach((row, index) => {
+      const cell = row.querySelector(".sr-no");
+      if (cell) {
+        cell.innerText = index + 1; // TOP → BOTTOM
+      }
+    });
+  }
+
+  function formatLocation(code) {
+    if (!code) return "";
+
+    if (/^[A-Z]{2}-\d{2}$/.test(code)) return code;
+
+    // CS01 → CS-01
+    const match = code.match(/^([A-Z]+)(\d+)$/);
+    if (!match) return code;
+
+    const prefix = match[1];
+    const num = match[2].padStart(2, "0");
+
+    return `${prefix}-${num}`;
+  }
+  function formatDateDDMMYYYY(dateStr) {
+    if (!dateStr) return "";
+
+    if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) return dateStr;
+
+    const [yyyy, mm, dd] = dateStr.split("-");
+    return `${dd}-${mm}-${yyyy}`;
+  }
+
+  function formatDateForInput(dateStr) {
+    if (!dateStr) return "";
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+
+    const [dd, mm, yyyy] = dateStr.split("-");
+    return `${yyyy}-${mm}-${dd}`;
+  }
 
   /* ================= LOAD ================= */
 
@@ -42,7 +82,6 @@ function patrollingApp() {
   const tbody = document.querySelector("#patrolTable tbody");
   tbody.innerHTML = "";
 
-  const totalRecords = allData.length;
   const start = (currentPage - 1) * rowsPerPage;
   const end = start + rowsPerPage;
 
@@ -57,12 +96,8 @@ function patrollingApp() {
 
     row.dataset.id = r.n_sr_no;
 
-    // ✅ REVERSE + CONTINUOUS SR NO
-    const srNo = totalRecords - (start + index);
-    row.querySelector(".sr-no").innerText = srNo;
-
-    row.querySelector(".loc").innerText = r.s_location_code || "";
-    row.querySelector(".date").innerText = r.d_patrol_date || "";
+    row.querySelector(".loc").innerText = formatLocation(r.s_location_code);
+    row.querySelector(".date").innerText = formatDateDDMMYYYY(r.d_patrol_date);
     row.querySelector(".from").innerText = r.t_from_time || "";
     row.querySelector(".to").innerText = r.t_to_time || "";
 
@@ -86,6 +121,7 @@ function patrollingApp() {
     tbody.appendChild(row);
   });
 
+  recalculateSrNo();
   updatePaginationButtons();
 }
 
@@ -116,24 +152,37 @@ function patrollingApp() {
 
   /* ================= ADD ================= */
 
-  function addRow() {
-    const tbody = document.querySelector("#patrolTable tbody");
-    const fragment = cloneTemplate("addRowTemplate");
-    const row = fragment.querySelector("tr");
+function addRow() {
+  const tbody = document.querySelector("#patrolTable tbody");
+  const fragment = cloneTemplate("addRowTemplate");
+  const row = fragment.querySelector("tr");
 
-    row.dataset.new = "true";
-    row.dataset.edited = "true";
-    row.querySelector(".location").innerText = USER_LOCATION;
+  row.dataset.new = "true";
+  row.dataset.edited = "true";
 
-    row.querySelectorAll(".ok").forEach(td => {
+  // LOCATION FORMAT
+  row.querySelector(".location").innerText = formatLocation(USER_LOCATION);
+
+  const okCells = row.querySelectorAll(".ok");
+
+  okCells.forEach((td, idx) => {
+    if (idx === 2 || idx === 3) {
+      td.appendChild(cloneTemplate("foundNotFoundTemplate"));
+    } else if (idx === 5 || idx === 7 || idx === 8) {
+      td.appendChild(cloneTemplate("yesNoTemplate"));
+    } else {
       td.appendChild(cloneTemplate("okNotOkTemplate"));
-    });
+    }
+  });
 
-    tbody.prepend(row);
-    
+  // Add row at top
+  tbody.prepend(row);
 
-    document.getElementById("saveBtn").style.display = "inline-block";
-  }
+  // ✅ FIX SR NO FOR ALL ROWS
+  recalculateSrNo();
+
+  document.getElementById("saveBtn").style.display = "inline-block";
+}
 
   /* ================= EDIT ================= */
 
@@ -141,26 +190,42 @@ function patrollingApp() {
     const row = btn.closest("tr");
     row.dataset.edited = "true";
 
-    row.querySelector(".loc").innerText = USER_LOCATION;
+    row.querySelector(".loc").innerText = formatLocation(USER_LOCATION);
 
     ["date", "from", "to"].forEach((cls, i) => {
       const td = row.children[2 + i];
       const val = row.querySelector("." + cls).innerText;
-      td.innerHTML = `<input type="${cls === "date" ? "date" : "time"}" value="${val}">`;
+
+      if (cls === "date") {
+        td.innerHTML = `<input type="date" value="${formatDateForInput(val)}">`;
+      } else {
+        td.innerHTML = `<input type="time" value="${val}">`;
+      }
     });
 
     for (let i = 5; i <= 13; i++) {
       const val = row.children[i].innerText;
       row.children[i].innerHTML = "";
-      const sel = cloneTemplate("okNotOkTemplate");
+      let sel;
+
+      if (i === 7 || i === 8) {
+        sel = cloneTemplate("foundNotFoundTemplate");
+      } else if (i === 10 || i === 12 || i === 13) {
+        sel = cloneTemplate("yesNoTemplate");
+      } else {
+        sel = cloneTemplate("okNotOkTemplate");
+      }
+
       sel.querySelector("select").value = val;
       row.children[i].appendChild(sel);
     }
 
-    row.children[14].innerHTML = `<textarea>${row.querySelector(".remarks").innerText}</textarea>`;
-    row.children[15].innerHTML = `<input value="${row.querySelector(".guard").innerText}">`;
-    
-    btn.disabled = true;
+    row.children[14].innerHTML =
+    `<textarea>${row.querySelector(".remarks").innerText}</textarea>`;
+
+    row.children[15].innerHTML =
+      `<input type="text" value="${row.querySelector(".guard").innerText}">`;
+        btn.disabled = true;
 
     document.getElementById("saveBtn").style.display = "inline-block";
   }
@@ -313,7 +378,9 @@ if (!cell.querySelector(".mandatory-star")) {
   if (row.dataset.new) {
     if (!confirm("Are you sure you want to delete this row?")) return;
     row.remove();
-    
+
+    // ✅ UPDATE SR NO IMMEDIATELY
+    recalculateSrNo();
     return;
   }
 
@@ -328,9 +395,11 @@ if (!cell.querySelector(".mandatory-star")) {
     }),
     success: res => {
       if (res.success) {
-        row.remove();
-        
-        alert("Deleted successfully");
+      row.remove();
+
+      recalculateSrNo();
+
+      alert("Deleted successfully");
       } else {
         alert(res.message || "Delete failed");
       }
@@ -397,8 +466,8 @@ worksheet.addRow(headers);
   allData.forEach(r => {
     worksheet.addRow([
       srNo++,   
-      r.s_location_code ?? "",
-      r.d_patrol_date ?? "",
+      formatLocation(r.s_location_code),
+      formatDateDDMMYYYY(r.d_patrol_date),
       r.t_from_time ?? "",
       r.t_to_time ?? "",
       r.s_boundary_wall_condition ?? "",

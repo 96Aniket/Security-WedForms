@@ -119,8 +119,37 @@ function showFile(base64, type, name) {
     return document.getElementById(id).content.cloneNode(true);
   }
 
+  function formatLocation(code) {
+    if (!code) return "";
+    if (/^[A-Z]{2}-\d{2}$/.test(code)) return code;
+
+    const match = code.match(/^([A-Z]+)(\d+)$/);
+    if (!match) return code;
+
+    return `${match[1]}-${match[2].padStart(2, "0")}`;
+  }
   
-  
+  function formatDateDDMMYYYY(dateStr) {
+    if (!dateStr) return "";
+    if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) return dateStr;
+
+    const [yyyy, mm, dd] = dateStr.split("-");
+    return `${dd}-${mm}-${yyyy}`;
+  }
+  function formatDateForInput(dateStr) {
+    if (!dateStr) return "";
+    const [dd, mm, yyyy] = dateStr.split("-");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  function recalculateSrNo() {
+    const rows = document.querySelectorAll("#bbaTable tbody tr");
+    rows.forEach((row, index) => {
+      const cell = row.querySelector(".sr-no");
+      if (cell) {
+        cell.innerText = index + 1; 
+      }
+    });
+  }
 
 
 function openFromInput(btn) {
@@ -179,13 +208,13 @@ function openFromInput(btn) {
     const row = tpl.querySelector("tr");
 
     row.dataset.new = "true";
-    row.querySelector(".loc").innerText = USER_LOCATION;
+    row.querySelector(".loc").innerText = formatLocation(USER_LOCATION);
 
     const previewDiv = row.querySelector(".img-preview");
     if (previewDiv) previewDiv.innerHTML = "";
 
     tbody.prepend(row);
-  
+    recalculateSrNo();
     document.getElementById("saveBtn").style.display = "inline-block";
 
   }
@@ -197,7 +226,7 @@ function openFromInput(btn) {
     if (row.dataset.new === "true") {
       if (!confirm("Are you sure you want to delete this row?")) return;
       row.remove();
-      
+      recalculateSrNo(); 
       return;
     }
 
@@ -227,53 +256,63 @@ function openFromInput(btn) {
   function editRow(btn) {
     const row = btn.closest("tr");
     row.dataset.edited = "true";
-    row.querySelector(".loc").innerText = USER_LOCATION;
 
+    // Date & Time
     ["date", "time"].forEach((cls, i) => {
       const td = row.children[2 + i];
       const val = row.querySelector("." + cls).innerText;
       td.innerHTML = "";
       const input = document.createElement("input");
       input.type = cls === "date" ? "date" : "time";
+      input.value = cls === "date" ? formatDateForInput(val) : val;
+      td.appendChild(input);
+    });
+
+    // Text inputs
+    [4, 5, 6, 11].forEach(idx => {
+      const td = row.children[idx];
+      const val = td.innerText;
+      td.innerHTML = "";
+      const input = document.createElement("input");
       input.value = val;
       td.appendChild(input);
     });
 
-    [4, 5, 8, 10, 11].forEach((idx) => {
-      const val = row.children[idx].innerText;
-      row.children[idx].innerHTML = "";
-      const input = document.createElement("input");
-      input.value = val;
-      row.children[idx].appendChild(input);
-    });
-
-    [6, 7].forEach((idx) => {
-      const val = row.children[idx].innerText;
-      row.children[idx].innerHTML = "";
-
+    // Selects
+    [
+      { idx: 7, options: ["Employee", "Contractor", "Others"] },
+      { idx: 8, options: ["Negative", "Positive"] }
+    ].forEach(({ idx, options }) => {
+      const td = row.children[idx];
+      const val = td.innerText;
+      td.innerHTML = "";
       const select = document.createElement("select");
-      const options =
-        idx === 6
-          ? ["Employee", "Contractor", "Others"]
-          : ["Negative", "Positive"];
-
-      options.forEach((v) => {
+      options.forEach(opt => {
         const o = document.createElement("option");
-        o.value = v;
-        o.text = v;
-        if (v === val) o.selected = true;
+        o.value = opt;
+        o.text = opt;
+        if (opt === val) o.selected = true;
         select.appendChild(o);
       });
-
-      row.children[idx].appendChild(select);
+      td.appendChild(select);
     });
 
+    // ✅ BAC FIX (CRITICAL)
+    const bacTd = row.children[9];
+    const bacVal = bacTd.innerText;
+    bacTd.innerHTML = "";
+    const bacInput = document.createElement("input");
+    bacInput.type = "number";
+    bacInput.value = bacVal || "";
+    bacInput.style.width = "100%";
+    bacTd.appendChild(bacInput);
+
+    // Attachment
     const existingBase64 = row.dataset.attachment || null;
     const existingType = row.dataset.fileType || "application/pdf";
     const existingName = row.dataset.fileName || "Attachment";
 
-    row.children[9].innerHTML = "";
-
+    row.children[10].innerHTML = "";
     const fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.onchange = function () {
@@ -284,26 +323,35 @@ function openFromInput(btn) {
     previewDiv.className = "img-preview";
 
     if (existingBase64) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.innerText = "View Document";
-      btn.onclick = () => showFile(existingBase64, existingType, existingName);
-      previewDiv.appendChild(btn);
+      const btnView = document.createElement("button");
+      btnView.type = "button";
+      btnView.innerText = "View Document";
+      btnView.onclick = () =>
+        showFile(existingBase64, existingType, existingName);
+      previewDiv.appendChild(btnView);
     }
 
-    row.children[9].appendChild(fileInput);
-    row.children[9].appendChild(previewDiv);
+    row.children[10].appendChild(fileInput);
+    row.children[10].appendChild(previewDiv);
+
+    // Remarks
+    const remarksTd = row.children[12];
+    const remarksVal = remarksTd.innerText;
+    remarksTd.innerHTML = "";
+    const textarea = document.createElement("textarea");
+    textarea.value = remarksVal;
+    textarea.rows = 2;
+    textarea.style.width = "100%";
+    remarksTd.appendChild(textarea);
 
     btn.disabled = true;
     btn.innerText = "Editing";
     document.getElementById("saveBtn").style.display = "inline-block";
-
   }
 
   function validateMandatoryFields() {
   let isValid = true;
 
-  // clear old errors
   document.querySelectorAll(".mandatory-error").forEach(el =>
     el.classList.remove("mandatory-error")
   );
@@ -317,8 +365,8 @@ function openFromInput(btn) {
   rows.forEach(row => {
     const dateInput     = row.children[2]?.querySelector("input"); // date
     const timeInput     = row.children[3]?.querySelector("input"); // time
-    const nameInput     = row.children[5]?.querySelector("input"); // name
-    const securityInput = row.children[10]?.querySelector("input"); // security
+    const nameInput     = row.children[5]?.querySelector("input");  // Name
+    const securityInput = row.children[11]?.querySelector("input"); // Security
 
     [dateInput, timeInput, nameInput, securityInput].forEach(input => {
       if (input && !input.value) {
@@ -373,23 +421,25 @@ function openFromInput(btn) {
 
     rows.forEach((row) => {
       const td = row.children;
+      const bacVal = td[9].querySelector("input")?.value;
 
       const payload = {
-        s_location_code: USER_LOCATION,
-        d_test_date: td[2].querySelector("input")?.value,
-        t_test_time: td[3].querySelector("input")?.value,
-        s_test_record_no: td[4].querySelector("input")?.value,
-        s_individual_name: td[5].querySelector("input")?.value,
-        s_person_type: td[6].querySelector("select")?.value,
-        s_test_result: td[7].querySelector("select")?.value,
-        n_bac_count: td[8].querySelector("input")?.value,
-        img_attachment:
-          td[9].querySelector("input")?.dataset.base64 ||
-          row.dataset.attachment ||
-          null,
-        s_security_personnel_name: td[10].querySelector("input")?.value,
-        s_remarks: td[11].querySelector("input")?.value,
-      };
+      s_location_code: USER_LOCATION,
+      d_test_date: td[2].querySelector("input")?.value,
+      t_test_time: td[3].querySelector("input")?.value,
+      s_test_record_no: td[4].querySelector("input")?.value,
+      s_individual_name: td[5].querySelector("input")?.value,
+      s_card_no: td[6].querySelector("input")?.value,
+      s_person_type: td[7].querySelector("select")?.value,
+      s_test_result: td[8].querySelector("select")?.value,
+      n_bac_count: bacVal === "" ? null : Number(bacVal),
+      img_attachment:
+        td[10].querySelector("input")?.dataset.base64 ||
+        row.dataset.attachment ||
+        null,
+      s_security_personnel_name: td[11].querySelector("input")?.value,
+      s_remarks: td[12].querySelector("textarea")?.value,
+    };
 
       // INSERT
       if (row.dataset.new === "true") {
@@ -457,23 +507,30 @@ function openFromInput(btn) {
     const srNo = totalRecords - (start + index);
     row.querySelector(".sr-no").innerText = srNo;
 
-    row.querySelector(".loc").innerText = r.s_location_code;
-    row.querySelector(".date").innerText = r.d_test_date;
+    row.querySelector(".loc").innerText =
+      formatLocation(r.s_location_code);
+    row.querySelector(".date").innerText =
+      formatDateDDMMYYYY(r.d_test_date);
     row.querySelector(".time").innerText = r.t_test_time;
     row.querySelector(".record").innerText = r.s_test_record_no;
     row.querySelector(".name").innerText = r.s_individual_name;
+    row.querySelector(".card").innerText = r.s_card_no || "";
     row.querySelector(".type").innerText = r.s_person_type;
     row.querySelector(".result").innerText = r.s_test_result;
     row.querySelector(".bac").innerText = r.n_bac_count;
 
+    row.querySelector(".bac").innerText = r.n_bac_count ?? "";
+
     if (r.img_attachment) {
-      row.children[9].innerHTML = `
-        <button onclick="showFile(
+      row.children[10].innerHTML = `
+        <button type="button" onclick="showFile(
           '${r.img_attachment}',
           '${r.s_file_type || "application/pdf"}',
           'Attachment'
         )">View Document</button>
       `;
+    } else {
+      row.children[10].innerText = "";
     }
 
     row.querySelector(".security").innerText =
@@ -482,7 +539,7 @@ function openFromInput(btn) {
 
     tbody.appendChild(row);
   });
-
+  recalculateSrNo();
   updatePaginationButtons();
 }
 
@@ -541,6 +598,7 @@ async function downloadTable() {
     "Test Time",
     "Test Record No",
     "Individual Name",
+    "Card No",
     "Person Type",
     "Test Result",
     "BAC Count",
@@ -572,6 +630,7 @@ async function downloadTable() {
       r.t_test_time ?? "",
       r.s_test_record_no ?? "",
       r.s_individual_name ?? "",
+      r.s_card_no ?? "",
       r.s_person_type ?? "",
       r.s_test_result ?? "",
       r.n_bac_count ?? "",

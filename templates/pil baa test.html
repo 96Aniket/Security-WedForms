@@ -50,6 +50,7 @@
           <th>Time</th>
           <th>Test Record No</th>
           <th>Name</th>
+          <th>Card No</th>
           <th>Type</th>
           <th>Result</th>
           <th>BAC</th>
@@ -90,9 +91,9 @@
       <td class="loc"></td>
       <td><input type="date"></td>
       <td><input type="time"></td>
-      <td><input type="text"></td>
-      <td><input type="text"></td>
-
+      <td><input type="text"></td>            <!-- Test Record No -->
+      <td><input type="text"></td>            <!-- Name -->
+      <td><input type="text" placeholder="Card No"></td>
       <td>
         <select>
           <option>Employee</option>
@@ -100,7 +101,6 @@
           <option>Others</option>
         </select>
       </td>
-
       <td>
         <select>
           <option>Negative</option>
@@ -114,8 +114,8 @@
         <div class="img-preview"></div>
       </td>
 
-      <td><input type="text"></td>
-      <td><input type="text"></td>
+      <td><input type="text" placeholder="Security Name"></td>
+      <td><textarea placeholder="Remarks"></textarea></td>
 
       {% if user_role != 'admin' %}
       <td class="action-col">
@@ -140,6 +140,7 @@
       <td class="time"></td>
       <td class="record"></td>
       <td class="name"></td>
+      <td class="card"></td>
       <td class="type"></td>
       <td class="result"></td>
       <td class="bac"></td>

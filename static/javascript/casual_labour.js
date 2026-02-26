@@ -434,6 +434,7 @@ function renderLabours() {
         <td>${l.n_age || ""}</td>
         <td>${l.s_sex || ""}</td>
         <td>${l.s_address || ""}</td>
+        <td>${l.s_temp_access_card_no || ""}</td>
         <td>${l.s_mobile_no || ""}</td>
         ${actionColumn}
       </tr>
@@ -610,7 +611,7 @@ if (!workValid) {
     const worksheet = workbook.addWorksheet("Labour Details");
     /* ===== TITLE ===== */
     worksheet.mergeCells("A1:G1");
-    worksheet.getCell("A1").value = "Casual Labour Details";
+    worksheet.getCell("A1").value = "Temporary Entry Permit";
     worksheet.getCell("A1").font = { bold: true, size: 14 };
     worksheet.getCell("A1").alignment = {
       horizontal: "center",
@@ -646,6 +647,7 @@ if (!workValid) {
       "Age",
       "Sex",
       "Address",
+      "Temporary Card No",
       "Mobile No",
       "ID Type",
       "Govt ID No",
@@ -665,6 +667,7 @@ if (!workValid) {
         l.n_age ?? "",
         l.s_sex ?? "",
         l.s_address ?? "",
+        l.s_temp_access_card_no ??"",
         l.s_mobile_no ?? "",
         l.s_id_type ?? "",
         l.s_govt_id_no ?? "",
@@ -690,7 +693,7 @@ if (!workValid) {
 
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "Casual_Labour_Details.xlsx";
+    link.download = "Temporary Entry Permit.xlsx";
     link.click();
   }
 
@@ -703,10 +706,10 @@ if (!workValid) {
     }
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Casual Labour Register");
+    const worksheet = workbook.addWorksheet("Temporary Entry Permit");
     /* ===== TITLE ===== */
     worksheet.mergeCells("A1:E1");
-    worksheet.getCell("A1").value = "Casual Labour Register";
+    worksheet.getCell("A1").value = "Temporary Entry Permit";
     worksheet.getCell("A1").font = { bold: true, size: 14 };
     worksheet.getCell("A1").alignment = {
       horizontal: "center",
@@ -764,7 +767,7 @@ if (!workValid) {
 
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "Casual_Labour_Register.xlsx";
+    link.download = "Temporary Entry Permit.xlsx";
     link.click();
   }
 
