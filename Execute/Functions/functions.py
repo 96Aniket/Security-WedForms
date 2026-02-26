@@ -271,6 +271,7 @@ def delete_vehicle_checklist_data_fn():
 # =====================================================
 # VISITOR REGISTER
 # =====================================================
+
 def save_visitor_declaration_data_fn():
     try:
         data = request.get_json(force=True)
@@ -387,68 +388,6 @@ def delete_casual_labour_data_fn():
     except Exception as e:
         return error_response(str(e), 500)
 
-# =====================================================
-# Requisition Form
-# =====================================================
-
-# def save_requisition_form_fn():
-#     try:
-#         data = request.get_json(force=True)
-#         if not data:
-#             return error_response("No data received")
-
-#         username = session.get("user", {}).get("email", "system")
-#         success, msg = queries.create_requisition_form(data, username)
-
-#         return success_response(msg) if success else error_response(msg)
-
-#     except Exception as e:
-#         return error_response(str(e), 500)
-
-
-# def get_requisition_form_fn():
-#     try:
-#         user = session.get("user", {})
-#         user_role = user.get("role")
-#         user_location = user.get("location")
-
-#         success, data = queries.get_requisition_forms(user_role, user_location)
-
-#         return success_response(data=data) if success else error_response("Failed to fetch data")
-
-#     except Exception as e:
-#         return error_response(str(e), 500)
-
-
-# def update_requisition_form_fn():
-#     try:
-#         data = request.get_json(force=True)
-#         if not data:
-#             return error_response("No data received")
-
-#         username = session.get("user", {}).get("email", "system")
-#         success, msg = queries.update_requisition_form(data, username)
-
-#         return success_response(msg) if success else error_response(msg)
-
-#     except Exception as e:
-#         return error_response(str(e), 500)
-
-
-# def delete_requisition_form_fn():
-#     try:
-#         data = request.get_json(force=True)
-#         if not data or "n_sr_no" not in data:
-#             return error_response("Invalid delete request")
-
-#         username = session.get("user", {}).get("email", "system")
-#         success, msg = queries.delete_requisition_form(data, username)
-
-#         return success_response(msg) if success else error_response(msg)
-
-#     except Exception as e:
-#         return error_response(str(e), 500)
-
 
 # =====================================================
 # REPORT MASTER TABLE CONFIG
@@ -543,13 +482,14 @@ def download_filtered_excel():
         }), 500
 
 
-
 def get_report_tables_fn():
     return jsonify(get_report_master_tables())
 
 
 def get_report_tables():
     return get_report_tables_fn()
+
+
 def get_locations_fn():
     try:
         user = session.get("user", {})
@@ -665,6 +605,7 @@ def approve():
 
     return jsonify({"status": "MOVED"})
 
+
 def reject():
     data = request.json
 
@@ -724,6 +665,7 @@ def approval_action():
 
     return f"Request {result}"
 
+
 def resend_approval():
     data = request.json
 
@@ -746,6 +688,7 @@ def resend_approval():
     )
 
     return {"status": "resent successfully"}
+
 
 def save_form():
     data = request.json
@@ -791,6 +734,7 @@ def save_form():
         "form_sr_no": result[0]
     }
 
+
 def approval_page_fn(request):
     token = request.args.get("token")
 
@@ -813,7 +757,6 @@ def approval_page_fn(request):
     )
 
 
-
 def get_timeline_fn(request_id):
     rows = queries.get_request_timeline(request_id)
     return jsonify([{
@@ -827,6 +770,7 @@ def get_timeline_fn(request_id):
 
 def dashboard_requests_fn():
     return jsonify(queries.get_dashboard_requests())
+
 
 def update_form():
     data = request.form
@@ -855,6 +799,7 @@ def update_form():
     )
 
     return {"status": "resubmitted"}
+
 
 def resubmit_form():
     data = request.form

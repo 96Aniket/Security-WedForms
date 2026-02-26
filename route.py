@@ -1,9 +1,6 @@
 from flask import Blueprint, render_template , session, jsonify
 from Execute.Functions import functions
 from flask import request, send_file
-from Execute.vehicle_checklist_export import generate_vehicle_checklist_excel
-from Execute.vehicle_checklist_pdf import generate_vehicle_checklist_pdf
-from Execute.visitor_slip_pdf import generate_visitor_slip_pdf
 from Execute.Functions.functions import download_filtered_excel_logic , get_report_tables_fn
 from utils.token import validate_token
 from Execute.executesql import get_connection
@@ -62,43 +59,6 @@ def pil_vehicle():
         **get_user_context()
     )
 
-# @routes_bp.route('/download_vehicle_checklist', methods=['POST'])
-# def download_vehicle_checklist():
-#     data = request.get_json()
-
-#     output, filename = generate_vehicle_checklist_excel(data)
-
-#     return send_file(
-#         output,
-#         as_attachment=True,
-#         download_name=filename,
-#         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-#     )
-@routes_bp.route('/download_vehicle_checklist_pdf', methods=['POST'])
-def download_vehicle_checklist_pdf():
-    data = request.get_json()
-
-    output, filename = generate_vehicle_checklist_pdf(data)
-
-    return send_file(
-        output,
-        as_attachment=True,
-        download_name=filename,
-        mimetype="application/pdf"
-    )
-
-@routes_bp.route('/download_visitor_slip_pdf', methods=['POST'])
-def download_visitor_slip_pdf():
-    data = request.get_json()
-    output, filename = generate_visitor_slip_pdf(data)
-
-    return send_file(
-        output,
-        as_attachment=True,
-        download_name=filename,
-        mimetype="application/pdf"
-    )
-
 
 @routes_bp.route('/pil-visitor')
 def pil_visitor():
@@ -107,15 +67,6 @@ def pil_visitor():
         **get_user_context()
     )
 
-
-
-# @routes_bp.route('/government-visitor')
-# def gov_visitor():
-#     return render_template('government visitor.html')
-
-# @routes_bp.route('/approval-form')
-# def approval_form():
-#     return render_template('approval_form.html')
 
 @routes_bp.route('/form-fill')
 def form_fill():
@@ -187,12 +138,6 @@ routes_bp.add_url_rule('/save_casual_labour_data',view_func=functions.save_casua
 routes_bp.add_url_rule('/get_casual_labour_data',view_func=functions.get_casual_labour_data_fn,methods=['GET'])
 routes_bp.add_url_rule('/update_casual_labour_data',view_func=functions.update_casual_labour_data_fn,methods=['POST'])
 routes_bp.add_url_rule('/delete_casual_labour_data',view_func=functions.delete_casual_labour_data_fn,methods=['POST'])
-
-# ------------ REQUISITION FORM -----------------
-# routes_bp.add_url_rule('/save_requisition_form',view_func=functions.save_requisition_form_fn,methods=['POST'])
-# routes_bp.add_url_rule('/get_requisition_form',view_func=functions.get_requisition_form_fn,methods=['GET'])
-# routes_bp.add_url_rule('/update_requisition_form',view_func=functions.update_requisition_form_fn,methods=['POST'])
-# routes_bp.add_url_rule('/delete_requisition_form',view_func=functions.delete_requisition_form_fn,methods=['POST'])
 
 #----------- report excel_bp --------------
 routes_bp.add_url_rule('/download_filtered_excel',view_func=functions.download_filtered_excel,methods=['POST'])
