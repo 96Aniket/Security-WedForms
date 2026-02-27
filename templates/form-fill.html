@@ -11,10 +11,6 @@
 </head>
 
 <body>
-
-<input type="hidden" name="s_created_by"
-       value="{{ session['user']['email'] }}">
-
 <!-- ================= CONTAINER ================= -->
 <div class="container">
 
@@ -60,7 +56,7 @@
 
 <div class="row">
   <div class="field">
-    <label>Photo</label>
+    <label>Upload Your Passport Size Photo</label>
     <input type="file" name="s_photo">
   </div>
 </div>
@@ -258,15 +254,21 @@
 document.getElementById("requisitionForm").addEventListener("submit", e => {
   e.preventDefault();
 
-  const data = Object.fromEntries(new FormData(e.target).entries());
+  const form = e.target;
+  const formData = new FormData(form);
 
   ["s_police_verification_cert","s_medical_certificate","s_govt_id_proof","s_hsse_training"]
-    .forEach(k => data[k] = data[k] ? 1 : 0);
+    .forEach(k => {
+      if (!formData.has(k)) {
+        formData.append(k, 0);
+      } else {
+        formData.set(k, 1);
+      }
+    });
 
   fetch("/api/submit-form", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
+    body: formData  
   })
   .then(r => r.json())
   .then(() => {

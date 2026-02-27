@@ -11,6 +11,11 @@ from utils.notification import send_approval_mail_to_user0
 from config import BASE_URL
 from utils.email_templates import approval_email_template
 from utils.async_mail import send_mail_async
+from werkzeug.utils import secure_filename
+import os
+
+UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # =====================================================
 # COMMON RESPONSE HELPERS
@@ -533,25 +538,86 @@ def create_request():
 
 
 def submit_form():
-    data = request.json
-    request_id = data.get("request_id")
+    data = request.form
+    files = request.files
 
+    request_id = data.get("request_id")
     if not request_id:
         return {"error": "request_id missing"}, 400
 
     created_by = data.get("s_created_by", "FORM_USER")
 
-    form_filler_email = data.get("form_filler_email")
+    # ---------- PHOTO ----------
+    photo = files.get("s_photo")
+    photo_name = None
 
-    form_sr_no = queries.insert_requisition_form(data, created_by)
+    if photo and photo.filename:
+        photo_name = secure_filename(photo.filename)
+        photo_path = os.path.join(UPLOAD_FOLDER, photo_name)
+        photo.save(photo_path)
+
+    # ---------- CHECKBOX ----------
+    def chk(name):
+        return int(data.get(name, 0))
+
+    # ---------- FORM DATA ----------
+    form_data = {
+        "s_location": data.get("s_location"),
+        "dt_request_date": data.get("dt_request_date"),
+        "s_first_name": data.get("s_first_name"),
+        "s_middle_name": data.get("s_middle_name"),
+        "s_last_name": data.get("s_last_name"),
+        "s_photo": photo_name,
+        "dt_date_of_birth": data.get("dt_date_of_birth"),
+        "n_age": data.get("n_age"),
+        "s_gender": data.get("s_gender"),
+
+        "s_agency_name": data.get("s_agency_name"),
+        "s_sap_vendor_code": data.get("s_sap_vendor_code"),
+        "s_nature_of_job": data.get("s_nature_of_job"),
+        "s_work_order_no": data.get("s_work_order_no"),
+        "dt_work_order_validity": data.get("dt_work_order_validity"),
+        "dt_date_of_joining": data.get("dt_date_of_joining"),
+        "s_exact_work_location": data.get("s_exact_work_location"),
+
+        "n_height_cm": data.get("n_height_cm"),
+        "s_blood_group": data.get("s_blood_group"),
+        "s_identification_mark": data.get("s_identification_mark"),
+
+        "s_aadhar_card_no": data.get("s_aadhar_card_no"),
+        "s_contact_no": data.get("s_contact_no"),
+
+        "s_present_address": data.get("s_present_address"),
+        "s_present_city": data.get("s_present_city"),
+        "s_present_state": data.get("s_present_state"),
+        "s_present_pincode": data.get("s_present_pincode"),
+
+        "s_emergency_contact_details": data.get("s_emergency_contact_details"),
+        "s_emergency_city": data.get("s_emergency_city"),
+        "s_emergency_state": data.get("s_emergency_state"),
+        "s_emergency_pincode": data.get("s_emergency_pincode"),
+        "s_emergency_contact_no": data.get("s_emergency_contact_no"),
+
+        "s_police_verification_cert": chk("s_police_verification_cert"),
+        "s_medical_certificate": chk("s_medical_certificate"),
+        "s_govt_id_proof": chk("s_govt_id_proof"),
+        "s_hsse_training": chk("s_hsse_training"),
+    }
+
+    # ---------- DB INSERT ----------
+    form_sr_no = queries.insert_requisition_form(form_data, created_by)
+
     initiator_email = queries.get_initiator_email(request_id)
+    if not initiator_email:
+        return {"error": "Initiator email not found"}, 400
 
     queries.update_request_after_submit(
-        request_id,
-        form_sr_no,
-        initiator_email
+        request_id=request_id,
+        form_sr_no=form_sr_no,
+        approver_email=initiator_email
     )
 
+    # ---------- SEND MAIL TO USER-0 ----------
     token = generate_token(request_id, 0, initiator_email)
 
     send_approval_mail_to_user0(
@@ -559,10 +625,10 @@ def submit_form():
         token=token,
         user0_email=initiator_email,
         submitted_by=created_by,
-        sender_email=form_filler_email   
+        sender_email=created_by
     )
 
-    return {"status": "submitted successfully"}
+    return jsonify({"status": "submitted successfully"})
 
 
 def approve():
