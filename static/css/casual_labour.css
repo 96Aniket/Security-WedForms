@@ -305,3 +305,73 @@ button {
 #addLabourBtn.update-mode:hover {
   background-color: #1565c0;
 }
+@media (max-width: 768px) {
+
+  /* Stack form fields */
+  .row {
+    flex-direction: column;
+  }
+
+  /* Table horizontal scroll */
+  .container {
+    overflow-x: auto;
+  }
+
+  table {
+    min-width: 700px;
+  }
+
+  /* Header spacing */
+  .header-dashboard {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px;
+  }
+
+  /* Bigger touch buttons */
+  button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .table-footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+@media (max-width: 768px) {
+
+  /* Stack form fields */
+  .row {
+    flex-direction: column;
+  }
+
+  /* Table horizontal scroll */
+  .container {
+    overflow-x: auto;
+  }
+
+  table {
+    min-width: 700px;
+  }
+
+  /* Header spacing */
+  .header-dashboard {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px;
+  }
+
+  /* Bigger touch buttons */
+  button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .table-footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

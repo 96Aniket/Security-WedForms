@@ -401,3 +401,447 @@ button {
   padding: 10px 24px;
   font-size: 15px;
 }
+/* ================= RESET & BASE ================= */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  font-family: Arial, sans-serif;
+  background: #f2f4f8;
+}
+
+/* ================= NAVBAR ================= */
+.header-dashboard {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 60px;
+  width: 100%;
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background-color: #002244;
+  color: #fff;
+  margin-bottom: 30px;
+}
+
+.hamburger-dashboard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.logo-dashboard {
+  height: 40px;
+  border-radius: 6px;
+}
+
+/* ================= PROFILE ================= */
+#profileAvatar {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 50px;
+}
+
+#profileInitials {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #007bff;
+  color: #fff;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#profileAvatar span {
+  margin-left: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* ================= CONTAINER ================= */
+.container {
+  max-width: 100%;
+  padding: 0 20px;
+}
+
+/* ================= TOOLBAR / PAGINATION ================= */
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 20px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background: #455a64;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#pageInfo {
+  font-weight: 600;
+}
+
+/* ================= LIST HEADER ================= */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* ================= LIST VIEW ================= */
+#listView {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* ================= MASTER TABLE ================= */
+#masterTable {
+  min-width: 1200px;
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 14px;
+}
+
+#masterTable th,
+#masterTable td {
+  border: 1px solid #cfd6dd;
+  padding: 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#masterTable th {
+  background: #1f3a5f;
+  color: #fff;
+  font-weight: 600;
+}
+
+#masterTable td {
+  white-space: nowrap;
+}
+
+/* ================= FORM BOX ================= */
+.form-box {
+  display: none;
+  max-width: 1100px;
+  margin: 20px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.form-box h3 {
+  margin-top: 0;
+}
+
+/* ================= FORM ROW ================= */
+.row {
+  display: flex;
+  flex-wrap: wrap;  
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+input, textarea, select {
+  width: 100%;
+  font-size: 14px;
+  padding: 7px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* ================= ITEM TABLE ================= */
+#itemTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+#itemTable th,
+#itemTable td {
+  border: 1px solid #cfd6dd;
+  padding: 8px;
+  text-align: center;
+}
+
+#itemTable th {
+  background: #1f3a5f;
+  color: #fff;
+}
+
+/* ================= BUTTONS ================= */
+button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-add {
+  background: #1976d2;
+  color: #fff;
+}
+
+.btn-save {
+  background: #2e7d32;
+  color: #fff;
+}
+
+.secondary {
+  background: #6c757d;
+  color: #fff;
+}
+
+.danger {
+  background: #dc3545;
+  color: #fff;
+}
+
+/* ================= ICON BUTTONS ================= */
+.icon-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 6px;
+}
+
+.icon-btn.edit {
+  color: #000;
+}
+
+.icon-btn.delete {
+  color: #dc3545;
+}
+
+.icon-btn:hover {
+  transform: scale(1.2);
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+  }
+}
+
+/* ================= PRINT ================= */
+@media print {
+  .toolbar,
+  .pagination,
+  button {
+    display: none;
+  }
+
+  input, textarea {
+    border: none;
+  }
+}
+
+/* ================= TABLE FOOTER ================= */
+.table-footer {
+  display: flex;
+  justify-content: center;
+  gap: 15px; 
+  margin: 20px 0;
+}
+
+/* ================= FIELD (LABEL ABOVE INPUT) ================= */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 250px;
+}
+
+.field label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+}
+.btn-download {
+    background: #28a745;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-download:hover {
+    background: #218838;
+}
+.mandatory-error {
+  border: 2px solid red !important;
+  background-color: #fff5f5;
+}
+
+.field label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.mandatory-star {
+  color: red;
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* ================= DOCUMENT CHECKBOX FIX ================= */
+
+.doc-row {
+  margin-top: 10px;
+}
+
+.doc-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px 14px;
+  border: 1px solid #cfd6dd;
+  border-radius: 8px;
+
+  background: #f9fafc;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+/* hover */
+.doc-label:hover {
+  background: #eef3f9;
+  border-color: #90caf9;
+}
+
+/* checkbox size */
+.doc-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* text */
+.doc-label span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* checked state */
+.doc-label input:checked + span {
+  color: #1f3a5f;
+}
+
+/* show checked visually */
+.doc-label input:checked {
+  accent-color: #1f3a5f;
+}
+
+/* responsive */
+@media (max-width: 768px) {
+  .doc-label {
+    padding: 10px;
+  }
+}
+
+/* ================= CENTER SUBMIT BUTTON ================= */
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.form-actions .btn-save {
+  min-width: 160px;
+  padding: 10px 24px;
+  font-size: 15px;
+}
+@media (max-width: 768px) {
+  .header-dashboard {
+    padding: 0 10px;
+  }
+
+  #profileAvatar span {
+    display: none; /* hide username */
+  }
+
+  .hamburger-dashboard {
+    font-size: 22px;
+  }
+
+  .logo-dashboard {
+    height: 32px;
+  }
+}
+#listView {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 768px) {
+  button {
+    padding: 12px 18px;
+    font-size: 15px;
+  }
+
+  .table-footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+@media (max-width: 768px) {
+  .table-footer {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding: 10px;
+    z-index: 100;
+  }
+}

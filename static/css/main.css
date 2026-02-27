@@ -113,3 +113,43 @@ background: linear-gradient(171deg, rgba(8, 2, 110, 1) 0%, rgba(16, 16, 199, 1) 
 .logo-dashboard {
   cursor: pointer;
 }
+@media (max-width: 768px) {
+
+  .header-dashboard {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px;
+  }
+
+  h2 {
+    font-size: 18px;
+    text-align: center;
+  }
+
+  #username {
+    display: none; /* hide name, show initials only */
+  }
+
+  .btn.btn-primary.w-100 {
+    height: auto;
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  #hamburgerMenu {
+    left: 5px;
+    right: 5px;
+    min-width: unset;
+    width: calc(100% - 10px);
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-dashboard {
+    height: 32px;
+  }
+
+  .hamburger-dashboard {
+    font-size: 22px;
+  }
+}

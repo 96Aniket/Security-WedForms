@@ -282,3 +282,40 @@ td.mandatory-cell {
   font-size: 14px;
   pointer-events: none;
 }
+@media (max-width: 768px) {
+
+  /* Header stacks better */
+  .header-dashboard {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px;
+  }
+
+  /* Hide username on small screens */
+  #username {
+    display: none;
+  }
+
+  /* Footer buttons stack */
+  .table-footer {
+    flex-direction: column;
+    bottom: 10px;
+    gap: 10px;
+  }
+
+  .table-footer button {
+    width: 90%;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .logo-dashboard {
+    height: 32px;
+  }
+
+  .hamburger-dashboard {
+    font-size: 22px;
+  }
+}

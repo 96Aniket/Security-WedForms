@@ -14,6 +14,18 @@ function casualLabourApp() {
   const prevBtn = document.getElementById("prevBtn");
   const nextBtn = document.getElementById("nextBtn");
 
+  function formatLocation(loc) {
+  if (!loc) return "";
+  if (/^[A-Z]{2}-\d{2}$/.test(loc)) {
+    return loc;
+  }
+  const match = loc.match(/^([A-Z]{2})(\d{2})$/);
+  if (match) {
+    return `${match[1]}-${match[2]}`;
+  }
+  return loc;
+}
+
  function markMandatory(input) {
   if (!input) return;
 
@@ -141,7 +153,7 @@ document.addEventListener("input", e => {
     allData.forEach((r) => {
       const tr = $(`
         <tr>
-          <td>${r.s_location || ""}</td>
+          <td>${formatLocation(r.s_location)}</td>
           <td>${r.s_contractor_name || ""}</td>
           <td>${r.s_nature_of_work || ""}</td>
           <td>${r.dt_work_datetime || ""}</td>
@@ -196,14 +208,12 @@ function renderPage() {
         </td>
       `;
     }
-
-    // ✅ REVERSE + CONTINUOUS SR NO
-    const srNo = totalRecords - (start + index);
+    const srNo = start + index + 1;
 
     const tr = $(`
       <tr>
         <td class="sr-no">${srNo}</td>
-        <td>${r.s_location || ""}</td>
+        <td>${formatLocation(r.s_location)}</td>
         <td>${r.s_contractor_name || ""}</td>
         <td>${r.s_nature_of_work || ""}</td>
         <td>${r.s_place_of_work || ""}</td>

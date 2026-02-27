@@ -124,7 +124,7 @@ function renderPage() {
 
     
     tr.querySelector(".sr").textContent =
-      totalRecords - (start + index);
+      start + index + 1;
 
     tr.querySelector(".location").textContent =
       formatLocation(r.s_location_code);

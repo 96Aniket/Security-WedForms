@@ -33,6 +33,18 @@ function visitorDeclarationApp() {
   }
 }
 
+function formatLocation(loc) {
+  if (!loc) return "";
+  if (/^[A-Z]{2}-\d{2}$/.test(loc)) {
+    return loc;
+  }
+  const match = loc.match(/^([A-Z]{2})(\d{1,2})$/);
+  if (match) {
+    return `${match[1]}-${match[2].padStart(2, "0")}`;
+  }
+  return loc;
+}
+
 function clearMandatory(input) {
   input.classList.remove("mandatory-error");
 
@@ -80,11 +92,11 @@ function renderTable() {
     const clone = template.content.cloneNode(true);
     const tr = clone.querySelector("tr");
 
-    const srNo = totalRecords - (start + index);
+    const srNo = start + index + 1;
     tr.querySelector(".sr-no").textContent = srNo;
 
     tr.querySelector(".location").textContent =
-      r.s_location || "";
+      formatLocation(r.s_location);
     tr.querySelector(".visitor-name").textContent =
       r.s_visitor_name || "";
     tr.querySelector(".pass-no").textContent =
@@ -378,7 +390,7 @@ worksheet.addRow([]);
 
   /* ===== VISITOR DETAILS (ONCE) ===== */
  const masterFields = [
-  ["Location", record.s_location ?? ""],
+  ["Location", formatLocation(record.s_location ?? "")],
   ["Visitor Name", record.s_visitor_name ?? ""],
   ["Visitor Pass No", record.s_visitor_pass_no ?? ""],
   ["Whom To Meet", record.s_whom_to_meet ?? ""],
@@ -482,7 +494,7 @@ async function downloadTable() {
 
   allData.forEach(r => {
     worksheet.addRow([
-      r.s_location ?? "",
+      formatLocation(r.s_location ?? ""),
       r.s_visitor_name ?? "",
       r.s_visitor_pass_no ?? "",
       r.dt_visit_datetime ?? ""

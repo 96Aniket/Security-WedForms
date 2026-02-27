@@ -131,3 +131,61 @@ html, body {
 #downloadBtn:hover {
   background: #218838;
 }
+/* ================= RESPONSIVE – REPORTS PAGE ================= */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .filter-box {
+    justify-content: space-between;
+    gap: 15px;
+  }
+
+  .filter-item {
+    min-width: 45%;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .reports-container {
+    padding: 0 12px;
+  }
+
+  .filter-box {
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .filter-item {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .filter-item label {
+    font-size: 13px;
+  }
+
+  .filter-item select,
+  .filter-item input {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  #downloadBtn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .filter-box {
+    padding: 14px;
+  }
+
+  #downloadBtn {
+    font-size: 15px;
+  }
+}
