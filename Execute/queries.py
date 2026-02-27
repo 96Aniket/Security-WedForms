@@ -1,6 +1,7 @@
 from Execute.executesql import get_connection
 from datetime import datetime , date
 import pandas as pd
+import pyodbc
 
 
 #------------start Patrolling Observation Register-----------------
@@ -1865,65 +1866,81 @@ def insert_requisition_form(data, created_by):
     cursor = conn.cursor()
 
     cursor.execute("""
-    INSERT INTO REQUISITION_FORM_MASTER
-    (
-        s_location, dt_request_date, s_first_name, s_middle_name, s_last_name,
-        s_photo, dt_date_of_birth, n_age, s_gender,
-        s_agency_name, s_sap_vendor_code, s_nature_of_job, s_work_order_no,
-        dt_work_order_validity, dt_date_of_joining, s_exact_work_location,
-        n_height_cm, s_blood_group, s_identification_mark,
-        s_aadhar_card_no, s_contact_no,
-        s_present_address, s_present_city, s_present_state, s_present_pincode,
-        s_emergency_contact_details, s_emergency_city, s_emergency_state,
-        s_emergency_pincode, s_emergency_contact_no,
-        s_police_verification_cert, s_medical_certificate,
-        s_govt_id_proof, s_hsse_training,
-        dt_created_at, s_created_by
-    )
-    OUTPUT INSERTED.n_sr_no
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,GETDATE(),?)
+        INSERT INTO REQUISITION_FORM_MASTER
+        (
+            s_location,
+            dt_request_date,
+            s_first_name,
+            s_middle_name,
+            s_last_name,
+            s_photo,
+            dt_date_of_birth,
+            n_age,
+            s_agency_name,
+            s_sap_vendor_code,
+            s_nature_of_job,
+            s_work_order_no,
+            dt_work_order_validity,
+            dt_date_of_joining,
+            s_exact_work_location,
+            n_height_cm,
+            s_gender,
+            s_blood_group,
+            s_identification_mark,
+            s_aadhar_card_no,
+            s_present_address,
+            s_present_city,
+            s_present_state,
+            s_present_pincode,
+            s_contact_no,
+            s_emergency_contact_details,
+            s_emergency_city,
+            s_emergency_state,
+            s_emergency_pincode,
+            s_emergency_contact_no,
+            s_police_verification_cert,
+            s_medical_certificate,
+            s_govt_id_proof,
+            s_hsse_training,
+            s_created_by
+        )
+        OUTPUT INSERTED.n_sr_no
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     """, (
-        data["s_location"],
-        data["dt_request_date"],
-        data["s_first_name"],
-        data["s_middle_name"],
-        data["s_last_name"],
-        data["s_photo"],
-        data["dt_date_of_birth"],
-        data["n_age"],
-        data["s_gender"],
-
-        data["s_agency_name"],
-        data["s_sap_vendor_code"],
-        data["s_nature_of_job"],
-        data["s_work_order_no"],
-        data["dt_work_order_validity"],
-        data["dt_date_of_joining"],
-        data["s_exact_work_location"],
-
-        data["n_height_cm"],
-        data["s_blood_group"],
-        data["s_identification_mark"],
-
-        data["s_aadhar_card_no"],
-        data["s_contact_no"],
-
-        data["s_present_address"],
-        data["s_present_city"],
-        data["s_present_state"],
-        data["s_present_pincode"],
-
-        data["s_emergency_contact_details"],
-        data["s_emergency_city"],
-        data["s_emergency_state"],
-        data["s_emergency_pincode"],
-        data["s_emergency_contact_no"],
-
-        data["s_police_verification_cert"],
-        data["s_medical_certificate"],
-        data["s_govt_id_proof"],
-        data["s_hsse_training"],
-
+        data.get("s_location"),
+        data.get("dt_request_date"),
+        data.get("s_first_name"),
+        data.get("s_middle_name"),
+        data.get("s_last_name"),
+        pyodbc.Binary(data.get("s_photo")) if data.get("s_photo") else None,
+        data.get("dt_date_of_birth"),
+        data.get("n_age"),
+        data.get("s_agency_name"),
+        data.get("s_sap_vendor_code"),
+        data.get("s_nature_of_job"),
+        data.get("s_work_order_no"),
+        data.get("dt_work_order_validity"),
+        data.get("dt_date_of_joining"),
+        data.get("s_exact_work_location"),
+        data.get("n_height_cm"),
+        data.get("s_gender"),
+        data.get("s_blood_group"),
+        data.get("s_identification_mark"),
+        data.get("s_aadhar_card_no"),
+        data.get("s_present_address"),
+        data.get("s_present_city"),
+        data.get("s_present_state"),
+        data.get("s_present_pincode"),
+        data.get("s_contact_no"),
+        data.get("s_emergency_contact_details"),
+        data.get("s_emergency_city"),
+        data.get("s_emergency_state"),
+        data.get("s_emergency_pincode"),
+        data.get("s_emergency_contact_no"),
+        data.get("s_police_verification_cert"),
+        data.get("s_medical_certificate"),
+        data.get("s_govt_id_proof"),
+        data.get("s_hsse_training"),
         created_by
     ))
 

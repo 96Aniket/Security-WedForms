@@ -14,8 +14,6 @@ from utils.async_mail import send_mail_async
 from werkzeug.utils import secure_filename
 import os
 
-UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # =====================================================
 # COMMON RESPONSE HELPERS
@@ -547,69 +545,53 @@ def submit_form():
 
     created_by = data.get("s_created_by", "FORM_USER")
 
-    # ---------- PHOTO ----------
+    # ---------- PHOTO (DB ONLY) ----------
     photo = files.get("s_photo")
-    photo_name = None
+    photo_bytes = photo.read() if photo and photo.filename else None
 
-    if photo and photo.filename:
-        photo_name = secure_filename(photo.filename)
-        photo_path = os.path.join(UPLOAD_FOLDER, photo_name)
-        photo.save(photo_path)
-
-    # ---------- CHECKBOX ----------
     def chk(name):
         return int(data.get(name, 0))
 
-    # ---------- FORM DATA ----------
     form_data = {
         "s_location": data.get("s_location"),
         "dt_request_date": data.get("dt_request_date"),
         "s_first_name": data.get("s_first_name"),
-        "s_middle_name": data.get("s_middle_name"),
+        "s_middle_name": data.get("s_middle_name"),   # ✅ ADDED
         "s_last_name": data.get("s_last_name"),
-        "s_photo": photo_name,
+        "s_photo": photo_bytes,                        # ✅ IMAGE BYTES
         "dt_date_of_birth": data.get("dt_date_of_birth"),
         "n_age": data.get("n_age"),
-        "s_gender": data.get("s_gender"),
-
         "s_agency_name": data.get("s_agency_name"),
-        "s_sap_vendor_code": data.get("s_sap_vendor_code"),
+        "s_sap_vendor_code": data.get("s_sap_vendor_code"),  # ✅ ADDED
         "s_nature_of_job": data.get("s_nature_of_job"),
         "s_work_order_no": data.get("s_work_order_no"),
         "dt_work_order_validity": data.get("dt_work_order_validity"),
         "dt_date_of_joining": data.get("dt_date_of_joining"),
         "s_exact_work_location": data.get("s_exact_work_location"),
-
-        "n_height_cm": data.get("n_height_cm"),
-        "s_blood_group": data.get("s_blood_group"),
-        "s_identification_mark": data.get("s_identification_mark"),
-
+        "n_height_cm": data.get("n_height_cm"),        # ✅ ADDED
+        "s_gender": data.get("s_gender"),
+        "s_blood_group": data.get("s_blood_group"),    # ✅ ADDED
+        "s_identification_mark": data.get("s_identification_mark"),  # ✅ ADDED
         "s_aadhar_card_no": data.get("s_aadhar_card_no"),
-        "s_contact_no": data.get("s_contact_no"),
-
         "s_present_address": data.get("s_present_address"),
         "s_present_city": data.get("s_present_city"),
         "s_present_state": data.get("s_present_state"),
         "s_present_pincode": data.get("s_present_pincode"),
-
+        "s_contact_no": data.get("s_contact_no"),
         "s_emergency_contact_details": data.get("s_emergency_contact_details"),
         "s_emergency_city": data.get("s_emergency_city"),
         "s_emergency_state": data.get("s_emergency_state"),
         "s_emergency_pincode": data.get("s_emergency_pincode"),
         "s_emergency_contact_no": data.get("s_emergency_contact_no"),
-
-        "s_police_verification_cert": chk("s_police_verification_cert"),
-        "s_medical_certificate": chk("s_medical_certificate"),
-        "s_govt_id_proof": chk("s_govt_id_proof"),
-        "s_hsse_training": chk("s_hsse_training"),
+        "s_police_verification_cert": chk("s_police_verification_cert"),  # ✅ ADDED
+        "s_medical_certificate": chk("s_medical_certificate"),            # ✅ ADDED
+        "s_govt_id_proof": chk("s_govt_id_proof"),                          # ✅ ADDED
+        "s_hsse_training": chk("s_hsse_training"),                          # ✅ ADDED
     }
 
-    # ---------- DB INSERT ----------
     form_sr_no = queries.insert_requisition_form(form_data, created_by)
 
     initiator_email = queries.get_initiator_email(request_id)
-    if not initiator_email:
-        return {"error": "Initiator email not found"}, 400
 
     queries.update_request_after_submit(
         request_id=request_id,
@@ -617,7 +599,6 @@ def submit_form():
         approver_email=initiator_email
     )
 
-    # ---------- SEND MAIL TO USER-0 ----------
     token = generate_token(request_id, 0, initiator_email)
 
     send_approval_mail_to_user0(
