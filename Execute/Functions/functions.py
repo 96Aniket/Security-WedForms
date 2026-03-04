@@ -866,13 +866,14 @@ def resubmit_form():
     """, (request_id,))
 
     row = cursor.fetchone()
+
     if not row:
         cursor.close()
         conn.close()
         return {"error": "No reject record found"}, 400
 
     rejector_email = row.approver_email
-    reject_level   = row.approval_level
+    reject_level = row.approval_level
 
     cursor.execute("""
         INSERT INTO APPROVAL_ACTION_LOGS
@@ -880,7 +881,7 @@ def resubmit_form():
         VALUES (?, ?, ?, ?, ?)
     """, (
         request_id,
-        reject_level - 1,
+        reject_level,
         session['user']['email'],
         'RESUBMITTED',
         'Form corrected and resubmitted'

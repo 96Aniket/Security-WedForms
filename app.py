@@ -3,6 +3,8 @@ from utils.scheduler import start_scheduler
 from dotenv import load_dotenv
 import os
 
+load_dotenv()
+
 def create_app():
     app = Flask(__name__)
     app.secret_key = 'super_secret_key'
@@ -12,7 +14,7 @@ def create_app():
     @app.before_request
     def set_default_user():
 
-        email = "Pilsecurity.CS01@pipelineinfra.com"
+        email = os.getenv("DEFAULT_USER_EMAIL")
 
         username_part = email.split('@')[0]
         location = username_part.split('.')[-1].upper()
@@ -33,10 +35,9 @@ def create_app():
 
     from route import routes_bp
     app.register_blueprint(routes_bp)
-    
+
     if os.environ.get("RUN_MAIN") == "true":
         start_scheduler()
-
 
     return app
 

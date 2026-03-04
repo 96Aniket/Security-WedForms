@@ -6,6 +6,7 @@ function visitorDeclarationApp() {
   let items = [];
   let isEdit = false;
   let editId = null;
+    
 
   let currentPage = 1;
   const rowsPerPage = 10;
@@ -99,6 +100,8 @@ function renderTable() {
       formatLocation(r.s_location);
     tr.querySelector(".visitor-name").textContent =
       r.s_visitor_name || "";
+    tr.querySelector(".host-name").textContent =
+    r.s_host_name || "";
     tr.querySelector(".pass-no").textContent =
       r.s_visitor_pass_no || "";
     tr.querySelector(".visit-datetime").textContent =
@@ -175,6 +178,7 @@ function renderTable() {
       .prop("readonly", true);
 
     $("#s_visitor_name").val(r.s_visitor_name);
+    $("#s_host_name").val(r.s_host_name || "");
     $("#s_visitor_pass_no").val(r.s_visitor_pass_no);
     $("#s_whom_to_meet").val(r.s_whom_to_meet);
     $("#dt_visit_datetime").val(r.dt_visit_datetime.replace(" ", "T"));
@@ -317,7 +321,8 @@ function renderTable() {
       s_visitor_name: visitorInput.value.trim(),
       s_visitor_pass_no: $("#s_visitor_pass_no").val(),
       s_whom_to_meet: meetInput.value.trim(),
-      dt_visit_datetime: datetimeInput.value
+      dt_visit_datetime: datetimeInput.value,
+      s_host_name: $("#s_host_name").val()
     },
     items
   };
@@ -392,6 +397,7 @@ worksheet.addRow([]);
  const masterFields = [
   ["Location", formatLocation(record.s_location ?? "")],
   ["Visitor Name", record.s_visitor_name ?? ""],
+  ["Host Name", record.s_host_name ?? ""],
   ["Visitor Pass No", record.s_visitor_pass_no ?? ""],
   ["Whom To Meet", record.s_whom_to_meet ?? ""],
   ["Visit Date / Time", record.dt_visit_datetime ?? ""]

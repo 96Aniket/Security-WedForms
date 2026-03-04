@@ -3,15 +3,17 @@ from datetime import datetime , date
 import pandas as pd
 import pyodbc
 
+# =====================================================
+#------------start Patrolling Observation Register-----
+# =====================================================
 
-#------------start Patrolling Observation Register-----------------
 def save_patrolling_data(data, username="system"):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
         
-        cursor.execute("SELECT ISNULL(MAX(n_sr_no), 0) + 1 FROM dbo.Patrolling_Observation_Register")
+        cursor.execute("SELECT ISNULL(MAX(n_sr_no), 0) + 1 FROM dbo.tbl_SECURITY_Patrolling_Observation_Register")
         next_sr_no = cursor.fetchone()[0]
 
         insert_patrolling_record(cursor, data, next_sr_no, username)
@@ -28,7 +30,7 @@ def save_patrolling_data(data, username="system"):
 #--------------create---------------
 def insert_patrolling_record(cursor, data, n_sr_no, username):
     sql = """
-    INSERT INTO dbo.Patrolling_Observation_Register
+    INSERT INTO dbo.tbl_SECURITY_Patrolling_Observation_Register
     (
         n_sr_no,
         s_location_code,
@@ -97,7 +99,7 @@ def get_patrolling_data(user_role, user_location):
                     s_other_observations_status,
                     s_remarks,
                     s_patrolling_guard_name
-                FROM dbo.Patrolling_Observation_Register
+                FROM dbo.tbl_SECURITY_Patrolling_Observation_Register
                 WHERE ISNULL(delete_flag, 0) = 0
                 ORDER BY n_sr_no DESC
             """)
@@ -121,7 +123,7 @@ def get_patrolling_data(user_role, user_location):
                     s_other_observations_status,
                     s_remarks,
                     s_patrolling_guard_name
-                FROM dbo.Patrolling_Observation_Register
+                FROM dbo.tbl_SECURITY_Patrolling_Observation_Register
                 WHERE ISNULL(delete_flag, 0) = 0
                 AND s_location_code = ?
                 ORDER BY n_sr_no DESC
@@ -165,7 +167,7 @@ def update_patrolling_data(data, username="system"):
         cursor = conn.cursor()
 
         sql = """
-        UPDATE dbo.Patrolling_Observation_Register
+        UPDATE dbo.tbl_SECURITY_Patrolling_Observation_Register
         SET
             s_location_code = ?,
             d_patrol_date = ?,
@@ -215,6 +217,7 @@ def update_patrolling_data(data, username="system"):
 
     except Exception as e:
         return False, str(e)
+
 #----------------delete-----------------------
 def delete_patrolling_data(data, username):
     try:
@@ -222,7 +225,7 @@ def delete_patrolling_data(data, username):
         cursor = conn.cursor()
 
         sql = """
-        UPDATE dbo.Patrolling_Observation_Register
+        UPDATE dbo.tbl_SECURITY_Patrolling_Observation_Register
         SET
             delete_flag = 1,
             deleted_at = GETDATE(),
@@ -244,59 +247,9 @@ def delete_patrolling_data(data, username):
     except Exception as e:
         return False, str(e)
 
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        sql = """
-        UPDATE dbo.Patrolling_Observation_Register
-        SET
-            delete_flag = 1,
-            deleted_at = GETDATE(),
-            deleted_by = ?
-        WHERE n_sr_no = ?
-        """
-
-        cursor.execute(sql, (
-            username,
-            data["n_sr_no"]
-        ))
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return True, "Record deleted successfully"
-
-    except Exception as e:
-        return False, str(e)
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        sql = """
-UPDATE dbo.Patrolling_Observation_Register
-SET
-    delete_flag = 1,
-    deleted_at = GETDATE(),
-    deleted_by = ?
-WHERE n_sr_no = ?
-"""
-        cursor.execute(sql, (data["n_sr_no"],))
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return True, "Record deleted successfully"
-
-    except Exception as e:
-        return False, str(e)
-    
-
-
-# ------------ START BBA Test Record Register -----------------
+# =====================================================
+# ------------ START BBA Test Record Register ---------
+# =====================================================
 
 # ----------- CREATE ---------------
 def save_bba_test_data(data, username="system"):
@@ -304,11 +257,11 @@ def save_bba_test_data(data, username="system"):
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT ISNULL(MAX(n_sr_no), 0) + 1 FROM dbo.BAA_Test_Record_Register")
+        cursor.execute("SELECT ISNULL(MAX(n_sr_no), 0) + 1 FROM dbo.tbl_SECURITY_BAA_Test_Record_Register")
         next_sr_no = cursor.fetchone()[0]
 
         sql = """
-        INSERT INTO dbo.BAA_Test_Record_Register
+        INSERT INTO dbo.tbl_SECURITY_BAA_Test_Record_Register
         (
             n_sr_no,
             s_location_code,
@@ -356,7 +309,7 @@ def save_bba_test_data(data, username="system"):
 
 def insert_bba_test_record(cursor, data, n_sr_no, username):
     sql = """
-    INSERT INTO dbo.BAA_Test_Record_Register
+    INSERT INTO dbo.tbl_SECURITY_BAA_Test_Record_Register
     (
         n_sr_no,
         s_location_code,
@@ -412,7 +365,7 @@ def get_bba_test_data(user_role, user_location):
                 img_attachment,
                 s_security_personnel_name,
                 s_remarks
-            FROM dbo.BAA_Test_Record_Register
+            FROM dbo.tbl_SECURITY_BAA_Test_Record_Register
             WHERE ISNULL(delete_flag, 0) = 0
         """
 
@@ -457,7 +410,7 @@ def update_bba_test_data(data, username="system"):
         cursor = conn.cursor()
 
         sql = """
-        UPDATE dbo.BAA_Test_Record_Register
+        UPDATE dbo.tbl_SECURITY_BAA_Test_Record_Register
         SET
             s_location_code = ?,
             d_test_date = ?,
@@ -500,7 +453,7 @@ def update_bba_test_data(data, username="system"):
         return True, "BBA Test record updated successfully"
 
     except Exception as e:
-        print("UPDATE ERROR:", e)  # 🔥 MUST SEE REAL ERROR
+        print("UPDATE ERROR:", e)  
         return False, str(e)       
 
 # ----------- DELETE ----------------
@@ -510,7 +463,7 @@ def delete_bba_test_data(data, username):
         cursor = conn.cursor()
 
         cursor.execute("""
-            UPDATE dbo.BAA_Test_Record_Register
+            UPDATE dbo.tbl_SECURITY_BAA_Test_Record_Register
             SET
                 delete_flag = 1,
                 deleted_by = ?,
@@ -527,7 +480,9 @@ def delete_bba_test_data(data, username):
     except Exception as e:
         return False, str(e)
     
-# ------------ START PIPELINE MITRA REGISTER -----------------
+# =====================================================
+# ------------ START PIPELINE MITRA REGISTER ----------
+# =====================================================
 
 # ------------ CREATE -----------------
 def save_pipeline_mitra_data(data, username="system"):
@@ -537,7 +492,7 @@ def save_pipeline_mitra_data(data, username="system"):
 
         cursor.execute("""
             SELECT ISNULL(MAX(n_sr_no), 0) + 1 
-            FROM dbo.PIPELINE_MITRA_REGISTER
+            FROM dbo.tbl_SECURITY_PIPELINE_MITRA_REGISTER
         """)
         next_sr_no = cursor.fetchone()[0]
 
@@ -555,7 +510,7 @@ def save_pipeline_mitra_data(data, username="system"):
 
 def insert_pipeline_mitra_record(cursor, data, n_sr_no, username):
     sql = """
-    INSERT INTO dbo.PIPELINE_MITRA_REGISTER
+    INSERT INTO dbo.tbl_SECURITY_PIPELINE_MITRA_REGISTER
     (
         n_sr_no,
         s_location_code,
@@ -603,7 +558,7 @@ def get_pipeline_mitra_data(user_role, user_location):
                     s_pm_village_name,
                     s_pm_mobile_no,
                     s_remarks
-                FROM dbo.PIPELINE_MITRA_REGISTER
+                FROM dbo.tbl_SECURITY_PIPELINE_MITRA_REGISTER
                 WHERE ISNULL(delete_flag, 0) = 0
                 ORDER BY n_sr_no DESC
             """)
@@ -620,7 +575,7 @@ def get_pipeline_mitra_data(user_role, user_location):
                     s_pm_village_name,
                     s_pm_mobile_no,
                     s_remarks
-                FROM dbo.PIPELINE_MITRA_REGISTER
+                FROM dbo.tbl_SECURITY_PIPELINE_MITRA_REGISTER
                 WHERE ISNULL(delete_flag, 0) = 0
                 AND s_location_code = ?
                 ORDER BY n_sr_no DESC
@@ -649,7 +604,6 @@ def get_pipeline_mitra_data(user_role, user_location):
     except Exception as e:
         return False, str(e)
 
-
 # ------------ UPDATE -----------------
 def update_pipeline_mitra_data(data, username="system"):
     try:
@@ -657,7 +611,7 @@ def update_pipeline_mitra_data(data, username="system"):
         cursor = conn.cursor()
 
         sql = """
-            UPDATE dbo.PIPELINE_MITRA_REGISTER
+            UPDATE dbo.tbl_SECURITY_PIPELINE_MITRA_REGISTER
             SET
                 s_location_code = ?,
                 d_entry_date = ?,
@@ -702,7 +656,7 @@ def delete_pipeline_mitra_data(data):
         cursor = conn.cursor()
 
         cursor.execute("""
-            UPDATE dbo.PIPELINE_MITRA_REGISTER
+            UPDATE dbo.tbl_SECURITY_PIPELINE_MITRA_REGISTER
             SET
                 delete_flag = 1,
                 deleted_at = GETDATE(),
@@ -722,51 +676,51 @@ def delete_pipeline_mitra_data(data):
     except Exception as e:
         return False, str(e)
 
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
+    # try:
+    #     conn = get_connection()
+    #     cursor = conn.cursor()
 
-        sql = """
-        UPDATE dbo.PIPELINE_MITRA_REGISTER
-        SET
-            delete_flag = 1,
-            deleted_at = GETDATE(),
-            deleted_by = ?
-        WHERE n_sr_no = ?
-        """
+    #     sql = """
+    #     UPDATE dbo.tbl_SECURITY_PIPELINE_MITRA_REGISTER
+    #     SET
+    #         delete_flag = 1,
+    #         deleted_at = GETDATE(),
+    #         deleted_by = ?
+    #     WHERE n_sr_no = ?
+    #     """
 
-        # deleted_by → session user email will be passed from function layer
-        cursor.execute(sql, (
-            data.get("deleted_by", "system"),
-            data["n_sr_no"]
-        ))
+    #     # deleted_by → session user email will be passed from function layer
+    #     cursor.execute(sql, (
+    #         data.get("deleted_by", "system"),
+    #         data["n_sr_no"]
+    #     ))
 
-        conn.commit()
-        cursor.close()
-        conn.close()
+    #     conn.commit()
+    #     cursor.close()
+    #     conn.close()
 
-        return True, "Pipeline Mitra record deleted successfully"
+    #     return True, "Pipeline Mitra record deleted successfully"
 
-    except Exception as e:
-        return False, str(e)
+    # except Exception as e:
+    #     return False, str(e)
 
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
+    # try:
+    #     conn = get_connection()
+    #     cursor = conn.cursor()
 
-        cursor.execute(
-            "DELETE FROM dbo.PIPELINE_MITRA_REGISTER WHERE n_sr_no = ?",
-            (data["n_sr_no"],)
-        )
+    #     cursor.execute(
+    #         "DELETE FROM dbo.tbl_SECURITY_PIPELINE_MITRA_REGISTER WHERE n_sr_no = ?",
+    #         (data["n_sr_no"],)
+    #     )
 
-        conn.commit()
-        cursor.close()
-        conn.close()
+    #     conn.commit()
+    #     cursor.close()
+    #     conn.close()
 
-        return True, "Pipeline Mitra record deleted successfully"
+    #     return True, "Pipeline Mitra record deleted successfully"
 
-    except Exception as e:
-        return False, str(e)
+    # except Exception as e:
+    #     return False, str(e)
 
 # =====================================================
 # VEHICLE CHECKLIST
@@ -786,7 +740,7 @@ def save_vehicle_checklist_full(data, username="system"):
 
         # ---------- INSERT MASTER ----------
         cursor.execute("""
-            INSERT INTO dbo.VEHICLE_CHECKLIST_MASTER
+            INSERT INTO dbo.tbl_SECURITY_VEHICLE_CHECKLIST_MASTER
             (
                 s_location_code,
                 dt_entry_datetime,
@@ -824,7 +778,7 @@ def save_vehicle_checklist_full(data, username="system"):
         # ---------- INSERT CHECKLIST ----------
         for row in checklist:
             cursor.execute("""
-                INSERT INTO dbo.VEHICLE_CHECKLIST
+                INSERT INTO dbo.tbl_SECURITY_VEHICLE_CHECKLIST
                 (
                     n_vc_id,
                     s_check_code,
@@ -850,7 +804,8 @@ def save_vehicle_checklist_full(data, username="system"):
     except Exception as e:
         conn.rollback()
         return False, str(e)
-    
+
+
 def get_vehicle_checklist_data(user_role, user_location):
     try:
         conn = get_connection()
@@ -871,7 +826,7 @@ def get_vehicle_checklist_data(user_role, user_location):
                     s_id_card_no,
                     s_dl_no,
                     s_purpose_of_entry
-                FROM dbo.VEHICLE_CHECKLIST_MASTER
+                FROM dbo.tbl_SECURITY_VEHICLE_CHECKLIST_MASTER
                 WHERE n_flag = 1
                 ORDER BY n_vc_id DESC
             """)
@@ -890,7 +845,7 @@ def get_vehicle_checklist_data(user_role, user_location):
                     s_id_card_no,
                     s_dl_no,
                     s_purpose_of_entry
-                FROM dbo.VEHICLE_CHECKLIST_MASTER
+                FROM dbo.tbl_SECURITY_VEHICLE_CHECKLIST_MASTER
                 WHERE n_flag = 1
                 AND s_location_code = ?
                 ORDER BY n_vc_id DESC
@@ -907,7 +862,7 @@ def get_vehicle_checklist_data(user_role, user_location):
                     s_check_label,
                     s_status,
                     s_remark
-                FROM dbo.VEHICLE_CHECKLIST
+                FROM dbo.tbl_SECURITY_VEHICLE_CHECKLIST
                 WHERE n_vc_id = ? AND n_flag = 1
             """, (m[0],))
 
@@ -946,7 +901,6 @@ def get_vehicle_checklist_data(user_role, user_location):
         return False, str(e)
 
 
-
 def update_vehicle_checklist_data(data, username="system"):
     try:
         conn = get_connection()
@@ -961,7 +915,7 @@ def update_vehicle_checklist_data(data, username="system"):
 
         # ---------- UPDATE MASTER ----------
         cursor.execute("""
-            UPDATE dbo.VEHICLE_CHECKLIST_MASTER
+            UPDATE dbo.tbl_SECURITY_VEHICLE_CHECKLIST_MASTER
             SET
                 s_location_code = ?,
                 dt_entry_datetime = ?,
@@ -995,7 +949,7 @@ def update_vehicle_checklist_data(data, username="system"):
 
         # ---------- SOFT DELETE OLD CHECKLIST ----------
         cursor.execute("""
-            UPDATE dbo.VEHICLE_CHECKLIST
+            UPDATE dbo.tbl_SECURITY_VEHICLE_CHECKLIST
             SET n_flag = 0
             WHERE n_vc_id = ?
         """, (master["n_vc_id"],))
@@ -1003,7 +957,7 @@ def update_vehicle_checklist_data(data, username="system"):
         # ---------- INSERT NEW CHECKLIST ----------
         for row in checklist:
             cursor.execute("""
-                INSERT INTO dbo.VEHICLE_CHECKLIST
+                INSERT INTO dbo.tbl_SECURITY_VEHICLE_CHECKLIST
                 (
                     n_vc_id,
                     s_check_code,
@@ -1039,7 +993,7 @@ def delete_vehicle_checklist_data(data, username="system"):
         n_vc_id = data["n_vc_id"]
 
         cursor.execute("""
-            UPDATE dbo.VEHICLE_CHECKLIST_MASTER
+            UPDATE dbo.tbl_SECURITY_VEHICLE_CHECKLIST_MASTER
             SET
                 n_flag = 0,
                 dt_deleted_at = GETDATE(),
@@ -1048,7 +1002,7 @@ def delete_vehicle_checklist_data(data, username="system"):
         """, (username, n_vc_id))
 
         cursor.execute("""
-            UPDATE dbo.VEHICLE_CHECKLIST
+            UPDATE dbo.tbl_SECURITY_VEHICLE_CHECKLIST
             SET
                 n_flag = 0,
                 dt_deleted_at = GETDATE(),
@@ -1063,8 +1017,9 @@ def delete_vehicle_checklist_data(data, username="system"):
         conn.rollback()
         return False, str(e)
 
-
+# =====================================================
 #------------- visitor start --------------
+# =====================================================
 
 def save_visitor_declaration_data(data, username="system"):
     try:
@@ -1080,24 +1035,26 @@ def save_visitor_declaration_data(data, username="system"):
 
         # ---- INSERT MASTER ----
         cursor.execute("""
-            INSERT INTO dbo.VISITOR_DECLARATION_SLIP_MASTER
+            INSERT INTO dbo.tbl_SECURITY_VISITOR_DECLARATION_SLIP_MASTER
             (
                 s_location,
                 dt_visit_datetime,
                 s_visitor_name,
                 s_visitor_pass_no,
                 s_whom_to_meet,
+                s_host_name,
                 s_created_by,
                 n_flag
             )
             OUTPUT INSERTED.n_sl_no
-            VALUES (?, ?, ?, ?, ?, ?, 1)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 1)
         """, (
             master["s_location"],
             visit_dt,
             master["s_visitor_name"],
             master["s_visitor_pass_no"],
             master["s_whom_to_meet"],
+            master["s_host_name"],
             username
         ))
 
@@ -1106,7 +1063,7 @@ def save_visitor_declaration_data(data, username="system"):
         # ---- INSERT CHILD ----
         for row in items:
             cursor.execute("""
-                INSERT INTO dbo.VISITOR_DECLARATION_SLIP
+                INSERT INTO dbo.tbl_SECURITY_VISITOR_DECLARATION_SLIP
                 (
                     n_sl_no,
                     s_item_code_description,
@@ -1146,8 +1103,9 @@ def get_visitor_declaration_data(user_role, user_location):
                     dt_visit_datetime,
                     s_visitor_name,
                     s_visitor_pass_no,
-                    s_whom_to_meet
-                FROM dbo.VISITOR_DECLARATION_SLIP_MASTER
+                    s_whom_to_meet,
+                    s_host_name
+                FROM dbo.tbl_SECURITY_VISITOR_DECLARATION_SLIP_MASTER
                 WHERE n_flag = 1
                 ORDER BY n_sl_no DESC
             """)
@@ -1159,8 +1117,9 @@ def get_visitor_declaration_data(user_role, user_location):
                     dt_visit_datetime,
                     s_visitor_name,
                     s_visitor_pass_no,
-                    s_whom_to_meet
-                FROM dbo.VISITOR_DECLARATION_SLIP_MASTER
+                    s_whom_to_meet,
+                    s_host_name
+                FROM dbo.tbl_SECURITY_VISITOR_DECLARATION_SLIP_MASTER
                 WHERE n_flag = 1
                 AND s_location = ?
                 ORDER BY n_sl_no DESC
@@ -1176,7 +1135,7 @@ def get_visitor_declaration_data(user_role, user_location):
                     s_item_code_description,
                     s_uom,
                     n_quantity
-                FROM dbo.VISITOR_DECLARATION_SLIP
+                FROM dbo.tbl_SECURITY_VISITOR_DECLARATION_SLIP
                 WHERE n_sl_no = ? AND n_flag = 1
             """, (m[0],))
 
@@ -1189,6 +1148,7 @@ def get_visitor_declaration_data(user_role, user_location):
                 "s_visitor_name": m[3],
                 "s_visitor_pass_no": m[4],
                 "s_whom_to_meet": m[5],
+                "s_host_name": m[6],
                 "items": [
                     {
                         "n_sr_no": i[0],
@@ -1222,13 +1182,14 @@ def update_visitor_declaration_data(data, username="system"):
 
         # ---- UPDATE MASTER ----
         cursor.execute("""
-            UPDATE dbo.VISITOR_DECLARATION_SLIP_MASTER
+            UPDATE dbo.tbl_SECURITY_VISITOR_DECLARATION_SLIP_MASTER
             SET
                 s_location = ?,
                 dt_visit_datetime = ?,
                 s_visitor_name = ?,
                 s_visitor_pass_no = ?,
                 s_whom_to_meet = ?,
+                s_host_name = ?,
                 dt_updated_at = GETDATE(),
                 s_updated_by = ?
             WHERE n_sl_no = ?
@@ -1238,13 +1199,14 @@ def update_visitor_declaration_data(data, username="system"):
             master["s_visitor_name"],
             master["s_visitor_pass_no"],
             master["s_whom_to_meet"],
+            master["s_host_name"],
             username,
             master["n_sl_no"]
         ))
 
         # ---- SOFT DELETE OLD CHILD ----
         cursor.execute("""
-            UPDATE dbo.VISITOR_DECLARATION_SLIP
+            UPDATE dbo.tbl_SECURITY_VISITOR_DECLARATION_SLIP
             SET n_flag = 0
             WHERE n_sl_no = ?
         """, (master["n_sl_no"],))
@@ -1252,7 +1214,7 @@ def update_visitor_declaration_data(data, username="system"):
         # ---- INSERT NEW CHILD ----
         for row in items:
             cursor.execute("""
-                INSERT INTO dbo.VISITOR_DECLARATION_SLIP
+                INSERT INTO dbo.tbl_SECURITY_VISITOR_DECLARATION_SLIP
                 (
                     n_sl_no,
                     s_item_code_description,
@@ -1286,7 +1248,7 @@ def delete_visitor_declaration_data(data, username="system"):
         n_sl_no = data["n_sl_no"]
 
         cursor.execute("""
-            UPDATE dbo.VISITOR_DECLARATION_SLIP_MASTER
+            UPDATE dbo.tbl_SECURITY_VISITOR_DECLARATION_SLIP_MASTER
             SET
                 n_flag = 0,
                 dt_deleted_at = GETDATE(),
@@ -1295,7 +1257,7 @@ def delete_visitor_declaration_data(data, username="system"):
         """, (username, n_sl_no))
 
         cursor.execute("""
-            UPDATE dbo.VISITOR_DECLARATION_SLIP
+            UPDATE dbo.tbl_SECURITY_VISITOR_DECLARATION_SLIP
             SET
                 n_flag = 0,
                 dt_deleted_at = GETDATE(),
@@ -1329,24 +1291,26 @@ def save_casual_labour_data(data, username="system"):
 
         # ---- INSERT MASTER ----
         cursor.execute("""
-            INSERT INTO dbo.CASUAL_LABOUR_LIST_MASTER
+            INSERT INTO dbo.tbl_SECURITY_CASUAL_LABOUR_LIST_MASTER
             (
                 s_location,
                 s_contractor_name,
                 s_nature_of_work,
                 s_place_of_work,
                 dt_work_datetime,
+                s_host_name,
                 s_created_by,
                 n_flag
             )
             OUTPUT INSERTED.n_sl_no
-            VALUES (?, ?, ?, ?, ?, ?, 1)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 1)
         """, (
             master["s_location"],
             master["s_contractor_name"],
             master["s_nature_of_work"],
             master["s_place_of_work"],
             work_dt,
+            master["s_host_name"],
             username
         ))
 
@@ -1355,7 +1319,7 @@ def save_casual_labour_data(data, username="system"):
         # ---- INSERT CHILD ----
         for row in labours:
             cursor.execute("""
-                INSERT INTO dbo.CASUAL_LABOUR_LIST
+                INSERT INTO dbo.tbl_SECURITY_CASUAL_LABOUR_LIST
                 (
                     n_sl_no,
                     s_labour_name,
@@ -1404,8 +1368,9 @@ def get_casual_labour_data(user_role, user_location):
                     m.s_contractor_name,
                     m.s_nature_of_work,
                     m.s_place_of_work,
-                    m.dt_work_datetime
-                FROM dbo.CASUAL_LABOUR_LIST_MASTER m
+                    m.dt_work_datetime,
+                    m.s_host_name
+                FROM dbo.tbl_SECURITY_CASUAL_LABOUR_LIST_MASTER m
                 WHERE m.n_flag = 1
                 ORDER BY m.n_sl_no DESC
             """)
@@ -1418,8 +1383,9 @@ def get_casual_labour_data(user_role, user_location):
                     m.s_contractor_name,
                     m.s_nature_of_work,
                     m.s_place_of_work,
-                    m.dt_work_datetime
-                FROM dbo.CASUAL_LABOUR_LIST_MASTER m
+                    m.dt_work_datetime,
+                    m.s_host_name
+                FROM dbo.tbl_SECURITY_CASUAL_LABOUR_LIST_MASTER m
                 WHERE m.n_flag = 1
                 AND m.s_location = ?
                 ORDER BY m.n_sl_no DESC
@@ -1440,7 +1406,7 @@ def get_casual_labour_data(user_role, user_location):
                     s_mobile_no,
                     s_id_type,
                     s_govt_id_no
-                FROM dbo.CASUAL_LABOUR_LIST
+                FROM dbo.tbl_SECURITY_CASUAL_LABOUR_LIST
                 WHERE n_sl_no = ? AND n_flag = 1
             """, (m[0],))
 
@@ -1453,6 +1419,7 @@ def get_casual_labour_data(user_role, user_location):
                 "s_nature_of_work": m[3],
                 "s_place_of_work": m[4],
                 "dt_work_datetime": str(m[5]),
+                "s_host_name": m[6],
                 "labours": [
                     {
                         "n_sr_no": l[0],
@@ -1490,13 +1457,14 @@ def update_casual_labour_data(data, username="system"):
 
         # ---- UPDATE MASTER ----
         cursor.execute("""
-            UPDATE dbo.CASUAL_LABOUR_LIST_MASTER
+            UPDATE dbo.tbl_SECURITY_CASUAL_LABOUR_LIST_MASTER
             SET
                 s_location = ?,
                 s_contractor_name = ?,
                 s_nature_of_work = ?,
                 s_place_of_work = ?,
                 dt_work_datetime = ?,
+                s_host_name = ?,
                 dt_updated_at = GETDATE(),
                 s_updated_by = ?
             WHERE n_sl_no = ?
@@ -1506,13 +1474,14 @@ def update_casual_labour_data(data, username="system"):
             master["s_nature_of_work"],
             master["s_place_of_work"],
             work_dt,
+            master["s_host_name"],
             username,
             master["n_sl_no"]
         ))
 
         # ---- SOFT DELETE OLD CHILD ----
         cursor.execute("""
-            UPDATE dbo.CASUAL_LABOUR_LIST
+            UPDATE dbo.tbl_SECURITY_CASUAL_LABOUR_LIST
             SET n_flag = 0
             WHERE n_sl_no = ?
         """, (master["n_sl_no"],))
@@ -1520,7 +1489,7 @@ def update_casual_labour_data(data, username="system"):
         # ---- INSERT NEW CHILD ----
         for row in labours:
             cursor.execute("""
-                INSERT INTO dbo.CASUAL_LABOUR_LIST
+                INSERT INTO dbo.tbl_SECURITY_CASUAL_LABOUR_LIST
                 (
                     n_sl_no,
                     s_labour_name,
@@ -1563,7 +1532,7 @@ def delete_casual_labour_data(data, username="system"):
         n_sl_no = data["n_sl_no"]
 
         cursor.execute("""
-            UPDATE dbo.CASUAL_LABOUR_LIST_MASTER
+            UPDATE dbo.tbl_SECURITY_CASUAL_LABOUR_LIST_MASTER
             SET
                 n_flag = 0,
                 dt_deleted_at = GETDATE(),
@@ -1572,7 +1541,7 @@ def delete_casual_labour_data(data, username="system"):
         """, (username, n_sl_no))
 
         cursor.execute("""
-            UPDATE dbo.CASUAL_LABOUR_LIST
+            UPDATE dbo.tbl_SECURITY_CASUAL_LABOUR_LIST
             SET
                 n_flag = 0,
                 dt_deleted_at = GETDATE(),
@@ -1594,7 +1563,7 @@ def delete_casual_labour_data(data, username="system"):
 
 
 REPORT_COLUMNS = {
-    "Patrolling_Observation_Register": [
+    "tbl_SECURITY_Patrolling_Observation_Register": [
         ("s_location_code", "Location Code"),
         ("d_patrol_date", "Patrol Date"),
         ("t_from_time", "From Time"),
@@ -1612,7 +1581,7 @@ REPORT_COLUMNS = {
         ("s_patrolling_guard_name", "Guard Name")
     ],
 
-    "BAA_Test_Record_Register": [
+    "tbl_SECURITY_BAA_Test_Record_Register": [
         ("s_location_code", "Location Code"),
         ("d_test_date", "Test Date"),
         ("t_test_time", "Test Time"),
@@ -1625,7 +1594,7 @@ REPORT_COLUMNS = {
         ("s_remarks", "Remarks")
     ],
 
-    "PIPELINE_MITRA_REGISTER": [
+    "tbl_SECURITY_PIPELINE_MITRA_REGISTER": [
         ("s_location_code", "Location Code"),
         ("d_entry_date", "Entry Date"),
         ("s_chainage_no", "Chainage No"),
@@ -1635,7 +1604,7 @@ REPORT_COLUMNS = {
         ("s_remarks", "Remarks")
     ],
 
-    "VEHICLE_CHECKLIST_MASTER": [
+    "tbl_SECURITY_VEHICLE_CHECKLIST_MASTER": [
         ("s_location_code", "Location Code"),
         ("dt_entry_datetime", "Entry Date & Time"),
         ("s_vehicle_no", "Vehicle No"),
@@ -1646,7 +1615,7 @@ REPORT_COLUMNS = {
         ("s_purpose_of_entry", "Purpose of Entry")
     ],
 
-    "VISITOR_DECLARATION_SLIP_MASTER": [
+    "tbl_SECURITY_VISITOR_DECLARATION_SLIP_MASTER": [
         ("s_location", "Location"),
         ("dt_visit_datetime", "Visit Date & Time"),
         ("s_visitor_name", "Visitor Name"),
@@ -1654,7 +1623,7 @@ REPORT_COLUMNS = {
         ("s_whom_to_meet", "Whom To Meet")
     ],
 
-    "CASUAL_LABOUR_LIST_MASTER": [
+    "tbl_SECURITY_CASUAL_LABOUR_LIST_MASTER": [
         ("s_location", "Location"),
         ("s_contractor_name", "Contractor Name"),
         ("s_nature_of_work", "Nature Of Work"),
@@ -1662,44 +1631,45 @@ REPORT_COLUMNS = {
         ("dt_work_datetime", "Work Date & Time")
     ]
 }
+
 REPORT_TABLES = [
     {
-        "table": "Patrolling_Observation_Register",
+        "table": "tbl_SECURITY_Patrolling_Observation_Register",
         "label": "Patrolling Observation Register",
         "date_column": "d_patrol_date",
         "location_column": "s_location_code",
         "where": "ISNULL(delete_flag,0) = 0"
     },
     {
-        "table": "BAA_Test_Record_Register",
+        "table": "tbl_SECURITY_BAA_Test_Record_Register",
         "label": "BBA Test Record Register",
         "date_column": "d_test_date",
         "location_column": "s_location_code",
         "where": "ISNULL(delete_flag,0) = 0"
     },
     {
-        "table": "PIPELINE_MITRA_REGISTER",
+        "table": "tbl_SECURITY_PIPELINE_MITRA_REGISTER",
         "label": "Pipeline Mitra Register",
         "date_column": "d_entry_date",
         "location_column": "s_location_code",
         "where": "ISNULL(delete_flag,0) = 0"
     },
     {
-        "table": "VEHICLE_CHECKLIST_MASTER",
+        "table": "tbl_SECURITY_VEHICLE_CHECKLIST_MASTER",
         "label": "Vehicle Checklist Register",
         "date_column": "dt_entry_datetime",
         "location_column": "s_location_code",
         "where": "n_flag = 1"
     },
     {
-        "table": "VISITOR_DECLARATION_SLIP_MASTER",
+        "table": "tbl_SECURITY_VISITOR_DECLARATION_SLIP_MASTER",
         "label": "Visitor Declaration Register",
         "date_column": "dt_visit_datetime",
         "location_column": "s_location",
         "where": "n_flag = 1"
     },
     {
-        "table": "CASUAL_LABOUR_LIST_MASTER",
+        "table": "tbl_SECURITY_CASUAL_LABOUR_LIST_MASTER",
         "label": "Casual Labour Register",
         "date_column": "dt_work_datetime",
         "location_column": "s_location",
@@ -1717,7 +1687,7 @@ def get_all_locations():
 
     cursor.execute("""
         SELECT DISTINCT s_location_code
-        FROM Patrolling_Observation_Register
+        FROM tbl_SECURITY_Patrolling_Observation_Register
         WHERE ISNULL(delete_flag, 0) = 0
           AND s_location_code IS NOT NULL
         ORDER BY s_location_code
@@ -2009,6 +1979,7 @@ def get_dashboard_requests():
         "sla_breached": r.sla_breached
     } for r in rows]
 
+
 def is_final_level(level):
     conn = get_connection()
     cursor = conn.cursor()
@@ -2024,6 +1995,7 @@ def is_final_level(level):
     conn.close()
 
     return bool(row and row.is_final)
+
 
 def get_previous_approver(request_id, current_level):
     conn = get_connection()
@@ -2043,6 +2015,7 @@ def get_previous_approver(request_id, current_level):
 
     return row.approver_email if row else None
 
+
 def reject_email_template(request_id, remark):
     return f"""
     <h3>Requisition Rejected</h3>
@@ -2051,6 +2024,7 @@ def reject_email_template(request_id, remark):
 
     <p>Please review and take action.</p>
     """
+
 
 def update_requisition_form(data):
     conn = get_connection()
@@ -2075,6 +2049,7 @@ def update_requisition_form(data):
     conn.commit()
     cursor.close()
     conn.close()
+
 
 def get_current_level(request_id):
     conn = get_connection()
@@ -2108,6 +2083,7 @@ def get_current_approver(request_id):
     conn.close()
 
     return row.current_approver_email if row else None
+
 
 def get_rejector(request_id):
     conn = get_connection()
