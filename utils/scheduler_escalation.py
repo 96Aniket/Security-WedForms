@@ -9,8 +9,8 @@ def escalate_sla_breach():
         SELECT r.request_id,
                r.current_approver_email,
                s.escalation_email
-        FROM APPROVAL_REQUEST_MASTER r
-        JOIN APPROVAL_SLA_CONFIG s
+        FROM Atbl_SECURITY_APPROVAL_REQUEST_MASTER r
+        JOIN tbl_SECURITY_APPROVAL_SLA_CONFIG s
           ON r.current_level = s.approval_level
         WHERE r.overall_status = 'PENDING'
           AND DATEDIFF(HOUR, r.last_action_time, GETDATE()) >= s.sla_hours
@@ -30,7 +30,7 @@ def escalate_sla_breach():
         )
 
         cursor.execute("""
-            UPDATE APPROVAL_REQUEST_MASTER
+            UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER
             SET sla_breached = 1
             WHERE request_id = ?
         """, r.request_id)

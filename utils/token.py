@@ -10,7 +10,7 @@ def generate_token(request_id, level, approver_email):
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO APPROVAL_TOKENS
+        INSERT INTO tbl_SECURITY_APPROVAL_TOKENS
         (token, request_id, approval_level, approver_email, expires_at)
         VALUES (?, ?, ?, ?, ?)
     """, (token, request_id, level, approver_email, expiry))
@@ -29,7 +29,7 @@ def validate_token(token):
     cursor.execute("""
         SELECT request_id, approval_level, approver_email,
                expires_at, is_used
-        FROM APPROVAL_TOKENS
+        FROM tbl_SECURITY_APPROVAL_TOKENS
         WHERE token = ?
     """, token)
 
@@ -56,7 +56,7 @@ def mark_token_used(token):
     cursor = conn.cursor()
 
     cursor.execute("""
-        UPDATE APPROVAL_TOKENS
+        UPDATE tbl_SECURITY_APPROVAL_TOKENS
         SET is_used = 1
         WHERE token = ?
     """, token)

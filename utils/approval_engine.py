@@ -11,7 +11,7 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
 
     try:
         cursor.execute("""
-            INSERT INTO APPROVAL_ACTION_LOGS
+            INSERT INTO tbl_SECURITY_APPROVAL_ACTION_LOGS
             (request_id, approval_level, approver_email, action_taken, remark)
             VALUES (?, ?, ?, ?, ?)
         """, (request_id, level, approver_email, action, remark))
@@ -20,7 +20,7 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
 
             cursor.execute("""
                 SELECT TOP 1 approver_email
-                FROM APPROVAL_ACTION_LOGS
+                FROM tbl_SECURITY_APPROVAL_ACTION_LOGS
                 WHERE request_id = ?
                   AND approval_level < ?
                 ORDER BY action_time DESC
@@ -31,7 +31,7 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
 
             if prev_email:
                 cursor.execute("""
-                    UPDATE APPROVAL_REQUEST_MASTER
+                    UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER
                     SET
                         rejected_from_level = ?,
                         current_level = ?,
@@ -61,7 +61,7 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
                 return "REJECTED_BACK"
 
             cursor.execute("""
-                UPDATE APPROVAL_REQUEST_MASTER
+                UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER
                 SET
                     overall_status = 'REJECTED',
                     last_action_time = GETDATE()
@@ -76,7 +76,7 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
 
         cursor.execute("""
             SELECT rejected_from_level
-            FROM APPROVAL_REQUEST_MASTER
+            FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
             WHERE request_id = ?
         """, (request_id,))
         row = cursor.fetchone()
@@ -85,14 +85,30 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
 
         cursor.execute("""
             SELECT is_final
-            FROM APPROVAL_LEVEL_CONFIG
+            FROM tbl_SECURITY_APPROVAL_LEVEL_CONFIG
             WHERE level_no = ?
-        """, (next_level,))
+        """, (level,))
         final_row = cursor.fetchone()
 
         if final_row and final_row.is_final:
             cursor.execute("""
-                UPDATE APPROVAL_REQUEST_MASTER
+                UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER
+                SET
+                    overall_status = 'APPROVED',
+                    current_level = -1,
+                    current_approver_email = NULL,
+                    rejected_from_level = NULL,
+                    last_action_time = GETDATE()
+                WHERE request_id = ?
+            """, (request_id,))
+
+            conn.commit()
+            send_final_summary(request_id, "APPROVED")
+            return "APPROVED"
+
+        if final_row and final_row.is_final:
+            cursor.execute("""
+                UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER
                 SET
                     overall_status = 'APPROVED',
                     current_level = -1,               
@@ -107,7 +123,7 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
             return "APPROVED"
 
         cursor.execute("""
-            UPDATE APPROVAL_REQUEST_MASTER
+            UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER
             SET
                 current_level = ?,
                 current_approver_email = ?,

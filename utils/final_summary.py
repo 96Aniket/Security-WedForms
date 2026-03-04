@@ -10,7 +10,7 @@ def send_final_summary(request_id, final_status):
     # Initiator (User-0)
     cursor.execute("""
         SELECT initiator_email
-        FROM APPROVAL_REQUEST_MASTER
+        FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
         WHERE request_id = ?
     """, (request_id,))
     initiator = cursor.fetchone().initiator_email
@@ -18,10 +18,10 @@ def send_final_summary(request_id, final_status):
     # Form filler (User-1)
     cursor.execute("""
         SELECT s_created_by
-        FROM REQUISITION_FORM_MASTER
+        FROM tbl_SECURITY_REQUISITION_FORM_MASTER
         WHERE n_sr_no = (
             SELECT form_sr_no
-            FROM APPROVAL_REQUEST_MASTER
+            FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
             WHERE request_id = ?
         )
     """, (request_id,))
@@ -30,7 +30,7 @@ def send_final_summary(request_id, final_status):
     # Timeline
     cursor.execute("""
         SELECT approver_email, action_taken, remark, action_time
-        FROM APPROVAL_ACTION_LOGS
+        FROM tbl_SECURITY_APPROVAL_ACTION_LOGS
         WHERE request_id = ?
         ORDER BY action_time
     """, (request_id,))

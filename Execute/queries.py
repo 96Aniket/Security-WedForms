@@ -1773,7 +1773,7 @@ def create_request(sender_email, receiver_email):
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO APPROVAL_REQUEST_MASTER
+        INSERT INTO tbl_SECURITY_APPROVAL_REQUEST_MASTER
         (
             form_sr_no,
             initiator_email,
@@ -1799,7 +1799,7 @@ def get_initiator_email(request_id):
 
     cursor.execute("""
         SELECT initiator_email
-        FROM APPROVAL_REQUEST_MASTER
+        FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
         WHERE request_id = ?
     """, (request_id,))
 
@@ -1814,7 +1814,7 @@ def update_request_after_submit(request_id, form_sr_no, approver_email):
     cursor = conn.cursor()
 
     cursor.execute("""
-        UPDATE APPROVAL_REQUEST_MASTER
+        UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER
         SET form_sr_no = ?,
             current_level = 0,
             current_approver_email = ?,
@@ -1836,7 +1836,7 @@ def insert_requisition_form(data, created_by):
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO REQUISITION_FORM_MASTER
+        INSERT INTO tbl_SECURITY_REQUISITION_FORM_MASTER
         (
             s_location,
             dt_request_date,
@@ -1927,10 +1927,10 @@ def get_form_by_request_id(request_id):
 
     cursor.execute("""
         SELECT *
-        FROM REQUISITION_FORM_MASTER
+        FROM tbl_SECURITY_REQUISITION_FORM_MASTER
         WHERE n_sr_no = (
             SELECT form_sr_no
-            FROM APPROVAL_REQUEST_MASTER
+            FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
             WHERE request_id = ?
         )
     """, (request_id,))
@@ -1962,7 +1962,7 @@ def get_dashboard_requests():
     cursor.execute("""
         SELECT request_id, overall_status, current_level,
                current_approver_email, last_action_time, sla_breached
-        FROM APPROVAL_REQUEST_MASTER
+        FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
         ORDER BY request_id DESC
     """)
 
@@ -1986,7 +1986,7 @@ def is_final_level(level):
 
     cursor.execute("""
         SELECT is_final
-        FROM APPROVAL_LEVEL_CONFIG
+        FROM tbl_SECURITY_APPROVAL_LEVEL_CONFIG
         WHERE level_no = ?
     """, (level,))
 
@@ -2003,7 +2003,7 @@ def get_previous_approver(request_id, current_level):
 
     cursor.execute("""
         SELECT TOP 1 approver_email
-        FROM APPROVAL_ACTION_LOGS
+        FROM tbl_SECURITY_APPROVAL_ACTION_LOGS
         WHERE request_id = ?
           AND approval_level < ?
         ORDER BY action_time DESC
@@ -2031,13 +2031,13 @@ def update_requisition_form(data):
     cursor = conn.cursor()
 
     cursor.execute("""
-        UPDATE REQUISITION_FORM_MASTER
+        UPDATE tbl_SECURITY_REQUISITION_FORM_MASTER
         SET
             s_nature_of_job = ?,
             s_location      = ?
         WHERE n_sr_no = (
             SELECT form_sr_no
-            FROM APPROVAL_REQUEST_MASTER
+            FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
             WHERE request_id = ?
         )
     """, (
@@ -2057,7 +2057,7 @@ def get_current_level(request_id):
 
     cursor.execute("""
         SELECT current_level
-        FROM APPROVAL_REQUEST_MASTER
+        FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
         WHERE request_id = ?
     """, (request_id,))
 
@@ -2074,7 +2074,7 @@ def get_current_approver(request_id):
 
     cursor.execute("""
         SELECT current_approver_email
-        FROM APPROVAL_REQUEST_MASTER
+        FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
         WHERE request_id = ?
     """, (request_id,))
 
@@ -2091,7 +2091,7 @@ def get_rejector(request_id):
 
     cursor.execute("""
         SELECT rejected_from_level
-        FROM APPROVAL_REQUEST_MASTER
+        FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
         WHERE request_id = ?
     """, (request_id,))
 
@@ -2106,7 +2106,7 @@ def get_rejector(request_id):
 
     cursor.execute("""
         SELECT approver_email
-        FROM APPROVAL_ACTION_LOGS
+        FROM tbl_SECURITY_APPROVAL_ACTION_LOGS
         WHERE request_id = ?
           AND approval_level = ?
           AND action_taken = 'REJECT'

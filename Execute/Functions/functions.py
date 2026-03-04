@@ -623,7 +623,7 @@ def approve():
     cursor = conn.cursor()
 
     cursor.execute("""
-        UPDATE APPROVAL_REQUEST_MASTER
+        UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER
         SET
             current_level = 1,
             current_approver_email = ?,
@@ -859,7 +859,7 @@ def resubmit_form():
 
     cursor.execute("""
         SELECT TOP 1 approver_email, approval_level
-        FROM APPROVAL_ACTION_LOGS
+        FROM tbl_SECURITY_APPROVAL_ACTION_LOGS
         WHERE request_id = ?
           AND action_taken = 'REJECT'
         ORDER BY action_time DESC
@@ -876,7 +876,7 @@ def resubmit_form():
     reject_level = row.approval_level
 
     cursor.execute("""
-        INSERT INTO APPROVAL_ACTION_LOGS
+        INSERT INTO tbl_SECURITY_APPROVAL_ACTION_LOGS
         (request_id, approval_level, approver_email, action_taken, remark)
         VALUES (?, ?, ?, ?, ?)
     """, (
@@ -888,7 +888,7 @@ def resubmit_form():
     ))
 
     cursor.execute("""
-        UPDATE APPROVAL_REQUEST_MASTER
+        UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER
         SET
             current_level = ?,
             current_approver_email = ?,
