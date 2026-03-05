@@ -84,13 +84,13 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
         next_level = row.rejected_from_level if row and row.rejected_from_level is not None else level + 1
 
         cursor.execute("""
-            SELECT is_final
-            FROM tbl_SECURITY_APPROVAL_LEVEL_CONFIG
-            WHERE level_no = ?
-        """, (level,))
-        final_row = cursor.fetchone()
+        SELECT is_final
+        FROM tbl_SECURITY_APPROVAL_LEVEL_CONFIG
+        WHERE level_no = ?
+        """, (next_level,))
+        next_row = cursor.fetchone()
 
-        if final_row and final_row.is_final:
+        if next_row and next_row.is_final:
             cursor.execute("""
                 UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER
                 SET
@@ -106,21 +106,6 @@ def process_approval(request_id, level, approver_email, action, remark=None, nex
             send_final_summary(request_id, "APPROVED")
             return "APPROVED"
 
-        if final_row and final_row.is_final:
-            cursor.execute("""
-                UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER
-                SET
-                    overall_status = 'APPROVED',
-                    current_level = -1,               
-                    current_approver_email = NULL,
-                    rejected_from_level = NULL,
-                    last_action_time = GETDATE()
-                WHERE request_id = ?
-            """, (request_id,))
-
-            conn.commit()
-            send_final_summary(request_id, "APPROVED")
-            return "APPROVED"
 
         cursor.execute("""
             UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER

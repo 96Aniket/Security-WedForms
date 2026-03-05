@@ -1,52 +1,60 @@
 function requisitionDashboardApp() {
 
   /* ================= STATE ================= */
-
   let savedFormSrNo = null;
 
   /* ================= HELPERS ================= */
-
   function formatDateTime(dtStr) {
     if (!dtStr) return "-";
-    const dt = new Date(dtStr);
-    return `${dt.toISOString().slice(0, 10)} ${dt.toTimeString().slice(0, 8)}`;
+    const safeDate = dtStr.replace(" ", "T");
+    const dt = new Date(safeDate);
+    if (isNaN(dt.getTime())) return "-";
+    return `${dt.toISOString().slice(0,10)} ${dt.toTimeString().slice(0,8)}`;
   }
 
   /* ================= LOAD REQUESTS ================= */
-
   function loadRequests() {
     $.ajax({
       url: "/api/dashboard-requests",
       method: "GET",
       dataType: "json",
-      success: data => renderRequests(data)
+      success: renderRequests,
+      error: () => {
+        console.error("Failed to load requests");
+      }
     });
   }
 
-  /* ================= RENDER ================= */
-
+  /* ================= RENDER TABLE ================= */
   function renderRequests(data) {
-    let html = "";
-
-    data.forEach(r => {
-      const finalStatus =
-        r.overall_status === "APPROVED"
-          ? "APPROVED"
-          : r.overall_status === "REJECTED"
-          ? "REJECTED"
-          : "PENDING";
-
+    if (!Array.isArray(data)) {
+      console.error("Invalid dashboard data");
+      return;
+    }
+    const html = data.map(r => {
+      const status = r.overall_status || "PENDING";
       const statusClass =
-        finalStatus === "APPROVED"
+        status === "APPROVED"
           ? "status-approved"
-          : finalStatus === "REJECTED"
+          : status === "REJECTED"
           ? "status-rejected"
           : "status-pending";
 
-      html += `
+      const resendButton =
+        status === "PENDING" && r.current_level !== -1
+          ? `
+          <button class="action-btn btn-resend"
+            onclick="resendApproval(${r.request_id},
+              ${r.current_level},
+              '${r.current_approver_email || ""}')">
+            Resend
+          </button>`
+          : "";
+
+      return `
         <tr>
           <td>${r.request_id}</td>
-          <td class="${statusClass}">${finalStatus}</td>
+          <td class="${statusClass}">${status}</td>
           <td>${r.current_approver_email || "-"}</td>
           <td>${formatDateTime(r.last_action_time)}</td>
           <td class="action-cell">
@@ -54,20 +62,12 @@ function requisitionDashboardApp() {
               onclick="viewTimeline(${r.request_id})">
               Timeline
             </button>
-
-            ${
-              r.overall_status === "PENDING" && r.current_level !== -1
-                ? `<button class="action-btn btn-resend"
-                    onclick="resendApproval(${r.request_id},
-                      ${r.current_level},
-                      '${r.current_approver_email}')">
-                    Resend
-                  </button>`
-                : ""
-            }
+            ${resendButton}
           </td>
-        </tr>`;
-    });
+        </tr>
+      `;
+
+    }).join("");
 
     $("#requestTable").html(html);
   }
@@ -80,22 +80,31 @@ function requisitionDashboardApp() {
       method: "GET",
       dataType: "json",
       success: data => {
-        let html = "";
 
-        data.forEach(t => {
-          const dt = new Date(t.time);
-          html += `
+        if (!Array.isArray(data)) return;
+        const html = data.map(t => {
+          const safeDate = t.time ? t.time.replace(" ", "T") : null;
+          const dt = new Date(safeDate);
+          const date = isNaN(dt.getTime()) ? "-" : dt.toISOString().slice(0,10);
+          const time = isNaN(dt.getTime()) ? "-" : dt.toTimeString().slice(0,8);
+
+          return `
             <tr>
-              <td>${dt.toISOString().slice(0, 10)}</td>
-              <td>${dt.toTimeString().slice(0, 8)}</td>
-              <td>${t.email}</td>
-              <td><b>${t.action}</b></td>
+              <td>${date}</td>
+              <td>${time}</td>
+              <td>${t.email || "-"}</td>
+              <td><b>${t.action || "-"}</b></td>
               <td>${t.remark || "-"}</td>
-            </tr>`;
-        });
+            </tr>
+          `;
 
+        }).join("");
         $("#timelineBody").html(html);
         $("#timelineBox").show();
+
+      },
+      error: () => {
+        alert("Failed to load timeline");
       }
     });
   }
@@ -105,13 +114,12 @@ function requisitionDashboardApp() {
   }
 
   /* ================= RESEND ================= */
-
   function resendApproval(id, level, email) {
+
     if (!email) {
       alert("No current approver found");
       return;
     }
-
     $.ajax({
       url: "/api/resend-approval",
       method: "POST",
@@ -121,12 +129,14 @@ function requisitionDashboardApp() {
         current_level: level,
         approver_email: email
       }),
-      success: () => alert("Approval mail resent")
+
+      success: () => alert("Approval mail resent"),
+      error: () => alert("Failed to resend approval")
     });
+
   }
 
   /* ================= SAVE FORM ================= */
-
   function saveRequisition() {
     const payload = {
       s_location: $("#s_location").val(),
@@ -168,12 +178,14 @@ function requisitionDashboardApp() {
         $("#srValue").text(savedFormSrNo);
         $("#srDisplay").show();
         alert("Form saved successfully");
+      },
+      error: () => {
+        alert("Form save failed");
       }
     });
   }
 
   /* ================= CREATE REQUEST ================= */
-
   function createRequest() {
     const email = $("#user1Email").val();
 
@@ -186,16 +198,22 @@ function requisitionDashboardApp() {
       url: "/api/create-request",
       method: "POST",
       contentType: "application/json",
-      data: JSON.stringify({ first_user_email: email }),
+      data: JSON.stringify({
+        first_user_email: email
+      }),
       success: () => {
         alert("Mail sent successfully");
         loadRequests();
+
+      },
+      error: () => {
+        alert("Request creation failed");
       }
     });
   }
 
-  /* ================= EXPOSE ================= */
 
+  /* ================= EXPOSE ================= */
   window.viewTimeline = viewTimeline;
   window.closeTimeline = closeTimeline;
   window.resendApproval = resendApproval;
@@ -203,7 +221,6 @@ function requisitionDashboardApp() {
   window.createRequest = createRequest;
 
   /* ================= INIT ================= */
-
   loadRequests();
 }
 
