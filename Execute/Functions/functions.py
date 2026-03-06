@@ -4,15 +4,14 @@ from Execute.queries import fetch_data_with_date, get_report_master_tables
 from excel_bp import write_excel
 from services.approval_service import execute_sp
 from utils.token import generate_token, mark_token_used, validate_token
-from utils.mailer import send_mail, SYSTEM_SMTP_EMAIL
+from utils.mailer import SYSTEM_SMTP_EMAIL
 from Execute.executesql import get_connection
 from utils.approval_engine import process_approval
 from utils.notification import send_approval_mail_to_user0
 from config import BASE_URL
 from utils.email_templates import approval_email_template
 from utils.async_mail import send_mail_async
-from werkzeug.utils import secure_filename
-import os
+from utils.final_summary import send_final_summary
 
 
 # =====================================================
@@ -396,7 +395,6 @@ def delete_casual_labour_data_fn():
 # REPORT MASTER TABLE CONFIG
 # =====================================================
 
-from flask import jsonify, send_file, session
 
 def download_filtered_excel_logic(table, start, end, location):
     try:
@@ -463,7 +461,6 @@ def download_filtered_excel_logic(table, start, end, location):
 def download_filtered_excel():
     try:
         data = request.get_json(silent=True)
-        print("DEBUG JSON:", data)
 
         if not data:
             return jsonify({"success": False, "message": "Invalid JSON"}), 400
@@ -510,9 +507,14 @@ def get_locations_fn():
 # =====================================================
 
 def create_request():
-    data = request.json
+    data = request.get_json()
+    if not data:
+        return error_response("Invalid request body")
+
     receiver_email = data.get("first_user_email")
-    sender_email = session['user']['email']
+    sender_email = session.get("user", {}).get("email")
+    if not sender_email:
+        return error_response("User session expired", 401)
 
     if not receiver_email:
         return {"error": "Receiver email required"}, 400
@@ -523,11 +525,24 @@ def create_request():
 
     send_mail_async(
         receiver_email,
-        "Form Fill Required",
+        "Form Submission Request",
         f"""
-        <p>You have received a form request.</p>
         <p><b>Sent by:</b> {sender_email}</p>
-        <a href="{link}">Click here to fill the form</a>
+        <p>Dear Sir/Madam,</p>
+        <p>Greetings.</p>
+        <p>You have received a request to fill out the required form for the security records process.</p>
+        <p>Kindly fill the form using the link provided below:</p>
+        <p>
+            <a href="{link}" style="color:#1a73e8;font-weight:bold;">
+                Click here to fill the form
+            </a>
+        </p>
+        <p>Please ensure that all required details are filled accurately and submit the form at the earliest.</p>
+        <p>If you face any issue while filling the form, please feel free to contact us.</p>
+        <br>
+        <p>Best regards,<br>
+        Security Department<br>
+        Pipeline Infrastructure Limited</p>
         """,
         sender_email
     )
@@ -613,48 +628,26 @@ def submit_form():
 
 
 def approve():
-    data = request.json
+    data = request.get_json()
+    if not data:
+        return error_response("Invalid request body")
 
-    request_id = data['request_id']
-    next_email = data['next_approver_email']   
-    approver_email = data['approver_email']    
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER
-        SET
-            current_level = 1,
-            current_approver_email = ?,
-            last_action_time = GETDATE()
-        WHERE request_id = ?
-    """, (next_email, request_id))
-
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-    token = generate_token(
-        request_id,
-        1,             
-        next_email
+    result = process_approval(
+        data['request_id'],
+        data['current_level'],
+        data['approver_email'],
+        "APPROVE",
+        None,
+        data['next_approver_email']
     )
 
-    body = approval_email_template(token)
-
-    send_mail_async(
-        next_email,
-        "Approval Required",
-        body,
-        sender_email=approver_email  
-    )
-
-    return jsonify({"status": "MOVED"})
+    return jsonify({"status": result})
 
 
 def reject():
-    data = request.json
+    data = request.get_json()
+    if not data:
+        return error_response("Invalid request body")
 
     execute_sp(
         "sp_reject_request",
@@ -670,8 +663,15 @@ def reject():
 
 
 def approval_action():
-    used_token = request.form['token']
+
+    used_token = request.form.get('token')
+    if not used_token:
+        return error_response("Token missing")
+
     action = request.form['action']
+    if action not in ["APPROVE", "REJECT"]:
+        return error_response("Invalid action")
+
     remark = request.form.get('remark', '').strip()
 
     token_data, error = validate_token(used_token)
@@ -679,11 +679,16 @@ def approval_action():
         return error
 
     if action == "REJECT" and not remark:
-        return "Remark is mandatory for rejection", 400
+        return error_response("Remark is mandatory for rejection")
+
+    next_email = request.form.get('next_email', '').strip()
+
+    is_final = queries.is_final_level(token_data['approval_level'] + 1)
+
+    if action == "APPROVE" and not next_email and not is_final:
+        return error_response("Next approver email required")
 
     mark_token_used(used_token)
-
-    next_email = request.form.get('next_email')
 
     result = process_approval(
         token_data['request_id'],
@@ -694,7 +699,10 @@ def approval_action():
         next_email
     )
 
-    if result == "MOVED" and next_email:
+    # ================= NEXT APPROVER =================
+
+    if result == "MOVED":
+
         next_token = generate_token(
             token_data['request_id'],
             token_data['approval_level'] + 1,
@@ -703,18 +711,65 @@ def approval_action():
 
         body = approval_email_template(next_token)
 
-        send_mail_async(
-            next_email,
-            "Approval Required",
-            body,
-            sender_email=token_data['approver_email']
-        )
+        try:
+            send_mail_async(
+                next_email,
+                "Approval Required",
+                body,
+                sender_email=token_data['approver_email']
+            )
+        except Exception as e:
+            print("Next approver mail failed:", e)
 
-    return f"Request {result}"
+    # ================= REJECT BACK =================
+
+    elif result == "REJECTED_BACK":
+
+        prev_email = queries.get_current_approver(token_data['request_id'])
+
+        edit_link = f"{BASE_URL}/form-edit/{token_data['request_id']}"
+
+        try:
+            send_mail_async(
+                prev_email,
+                "Requisition Rejected – Please Review",
+                f"""
+                <h3>Requisition Rejected</h3>
+                <p><b>Request ID:</b> {token_data['request_id']}</p>
+                <p><b>Rejected By:</b> {token_data['approver_email']}</p>
+                <p><b>Remark:</b> {remark}</p>
+                <a href="{edit_link}">Review & Modify Form</a>
+                """,
+                sender_email=token_data['approver_email']
+            )
+        except Exception as e:
+            print("Reject mail failed:", e)
+
+    # ================= FINAL APPROVED =================
+
+    elif result == "APPROVED":
+
+        try:
+            send_final_summary(token_data['request_id'], "APPROVED")
+        except Exception as e:
+            print("Final summary mail failed:", e)
+
+    # ================= FINAL REJECT =================
+
+    elif result == "REJECTED_FINAL":
+
+        try:
+            send_final_summary(token_data['request_id'], "REJECTED")
+        except Exception as e:
+            print("Final reject mail failed:", e)
+
+    return jsonify({"status": result})
 
 
 def resend_approval():
-    data = request.json
+    data = request.get_json()
+    if not data:
+        return error_response("Invalid request body")
 
     level = queries.get_current_level(data['request_id'])
     approver = queries.get_current_approver(data['request_id'])
@@ -738,7 +793,9 @@ def resend_approval():
 
 
 def save_form():
-    data = request.json
+    data = request.get_json()
+    if not data:
+        return error_response("Invalid data")
 
     result = execute_sp(
         "sp_save_requisition_form",
@@ -833,7 +890,7 @@ def update_form():
         approver
     )
 
-    send_mail(
+    send_mail_async(
         to_email=approver,
         subject="Requisition Resubmitted",
         body=f"""
@@ -842,7 +899,7 @@ def update_form():
             Review Again
         </a>
         """,
-        sender_email=session['user']['email']
+        sender_email=session.get("user", {}).get("email", "system")
     )
 
     return {"status": "resubmitted"}
@@ -872,8 +929,8 @@ def resubmit_form():
         conn.close()
         return {"error": "No reject record found"}, 400
 
-    rejector_email = row.approver_email
-    reject_level = row.approval_level
+    rejector_email = row[0]
+    reject_level = row[1]
 
     cursor.execute("""
         INSERT INTO tbl_SECURITY_APPROVAL_ACTION_LOGS
@@ -882,7 +939,7 @@ def resubmit_form():
     """, (
         request_id,
         reject_level,
-        session['user']['email'],
+        session.get("user", {}).get("email", "system"),
         'RESUBMITTED',
         'Form corrected and resubmitted'
     ))

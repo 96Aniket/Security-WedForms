@@ -32,7 +32,11 @@ function requisitionDashboardApp() {
       return;
     }
     const html = data.map(r => {
-      const status = r.overall_status || "PENDING";
+      let status = r.overall_status || "PENDING";
+
+    if (r.current_level === 3 && r.overall_status === "PENDING") {
+      status = "APPROVED";
+    }
       const statusClass =
         status === "APPROVED"
           ? "status-approved"

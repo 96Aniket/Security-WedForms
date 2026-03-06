@@ -167,8 +167,6 @@ html, body {
   color: #999;
   margin-top: 4px;
 }
-
-/* Button styling */
 .primary-btn {
   padding: 10px 22px;
   font-size: 14px;
@@ -181,6 +179,23 @@ html, body {
 }
 
 .primary-btn:hover {
+  background: #0056b3;
+}
+
+/* Button styling */
+.primary-btnclose {
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: bold;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: -15px 0 10px -30px;
+}
+
+.primary-btnclose:hover {
   background: #0056b3;
 }
 
@@ -206,14 +221,42 @@ html, body {
 }
 
 /* ================= TIMELINE MODAL ================= */
-
 .timeline-modal {
   position: fixed;
   top: 20%;
   left: 50%;
   transform: translateX(-50%);
-  width: 50%;
+  width: 75%;
   z-index: 2000;
+
+  max-height: 500px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* vertical scroll only */
+#timelineTable tbody {
+  display: block;
+  max-height: 350px;
+  overflow-y: auto;
+  overflow-x: hidden;   /* disable horizontal scroll */
+}
+
+/* keep column alignment */
+#timelineTable thead,
+#timelineTable tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* prevent row wrap but don't create horizontal scroll */
+#timelineTable td,
+#timelineTable th {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .timeline-list {
