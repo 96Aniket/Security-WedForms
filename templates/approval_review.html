@@ -1,438 +1,426 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<title>Requisition Approval</title>
+  <title>Requisition Approval</title>
 
-<style>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 30px;
+    }
 
-body{
-  font-family: Arial, Helvetica, sans-serif;
-  background:#f4f6f8;
-  margin:0;
-  padding:30px;
-}
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
 
-.container{
-  max-width:900px;
-  margin:auto;
-}
+    .header {
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: white;
+      padding: 20px;
+      border-radius: 8px 8px 0 0;
+      font-size: 20px;
+      font-weight: bold;
+    }
 
-.header{
-  background:linear-gradient(135deg,#6a11cb,#2575fc);
-  color:white;
-  padding:20px;
-  border-radius:8px 8px 0 0;
-  font-size:20px;
-  font-weight:bold;
-}
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
 
-.card{
-  background:white;
-  padding:20px;
-  border-radius:8px;
-  margin-bottom:20px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
-}
+    .card h3 {
+      margin-top: 0;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
 
-.card h3{
-  margin-top:0;
-  border-bottom:1px solid #eee;
-  padding-bottom:10px;
-}
+    .info-grid {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
 
-.info-grid{
-  display:grid;
-  grid-template-columns:200px 1fr;
-  gap:10px;
-  margin-top:10px;
-}
+    .info-label {
+      font-weight: bold;
+      color: #555;
+    }
 
-.info-label{
-  font-weight:bold;
-  color:#555;
-}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
 
-table{
-  width:100%;
-  border-collapse:collapse;
-}
+    th,
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
 
-th, td{
-  padding:10px;
-  border-bottom:1px solid #eee;
-  text-align:left;
-}
+    th {
+      background: #f7f7f7;
+    }
 
-th{
-  background:#f7f7f7;
-}
+    .action-section {
+      text-align: center;
+    }
 
-.action-section{
-  text-align:center;
-}
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin: 10px;
+    }
 
-button{
-  padding:10px 20px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-weight:bold;
-  margin:10px;
-}
+    .approve-btn {
+      background: #28a745;
+      color: white;
+    }
 
-.approve-btn{
-  background:#28a745;
-  color:white;
-}
+    .reject-btn {
+      background: #dc3545;
+      color: white;
+    }
 
-.reject-btn{
-  background:#dc3545;
-  color:white;
-}
+    input,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-top: 5px;
+    }
 
-input, textarea{
-  width:100%;
-  padding:8px;
-  border:1px solid #ccc;
-  border-radius:4px;
-  margin-top:5px;
-}
-
-.footer{
-  text-align:center;
-  color:#888;
-  font-size:12px;
-  margin-top:20px;
-}
-
-</style>
+    .footer {
+      text-align: center;
+      color: #888;
+      font-size: 12px;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 
 
 <body>
 
-<div class="container">
+  <div class="container">
 
-<div class="header">
-  {% if is_final %}
-    Final Approval (User-3)
-  {% else %}
-    Approval Review (User-2)
-  {% endif %}
-</div>
+    <div class="header">
+      {% if is_final %}
+      Final Approval (User-3)
+      {% else %}
+      Approval Review (User-2)
+      {% endif %}
+    </div>
 
 
-<div class="card">
+    <div class="card">
 
-<p><b>Request ID:</b> {{ request_id }}</p>
+      <p><b>Request ID:</b> {{ request_id }}</p>
 
-</div>
+    </div>
 
 
-<!-- ================= FORM DETAILS ================= -->
+    <!-- ================= FORM DETAILS ================= -->
 
-<div class="card">
+    <div class="card">
 
-<h3>Worker Photo</h3>
+      <h3>Worker Photo</h3>
 
-{% if form.s_photo %}
-<img src="/photo/{{ request_id }}" 
-     style="height:120px;border-radius:6px;border:1px solid #ccc;">
-{% else %}
-<p>No photo uploaded</p>
-{% endif %}
+      {% if form.s_photo %}
+      <img src="/photo/{{ request_id }}" style="height:120px;border-radius:6px;border:1px solid #ccc;">
+      {% else %}
+      <p>No photo uploaded</p>
+      {% endif %}
 
 
-<h3>Basic Details</h3>
+      <h3>Basic Details</h3>
 
-<div class="info-grid">
+      <div class="info-grid">
 
-<div class="info-label">Location</div>
-<div>{{ form.s_location }}</div>
+        <div class="info-label">Location</div>
+        <div>{{ form.s_location }}</div>
 
-<div class="info-label">Request Date</div>
-<div>{{ form.dt_request_date }}</div>
+        <div class="info-label">Request Date</div>
+        <div>{{ form.dt_request_date }}</div>
 
-<div class="info-label">Full Name</div>
-<div>
-{{ form.s_first_name }} {{ form.s_middle_name }} {{ form.s_last_name }}
-</div>
+        <div class="info-label">Full Name</div>
+        <div>
+          {{ form.s_first_name }} {{ form.s_middle_name }} {{ form.s_last_name }}
+        </div>
 
-<div class="info-label">Date of Birth</div>
-<div>{{ form.dt_date_of_birth }}</div>
+        <div class="info-label">Date of Birth</div>
+        <div>{{ form.dt_date_of_birth }}</div>
 
-<div class="info-label">Age</div>
-<div>{{ form.n_age }}</div>
+        <div class="info-label">Age</div>
+        <div>{{ form.n_age }}</div>
 
-<div class="info-label">Gender</div>
-<div>{{ form.s_gender }}</div>
+        <div class="info-label">Gender</div>
+        <div>{{ form.s_gender }}</div>
 
-</div>
+      </div>
 
-</div>
+    </div>
 
 
 
-<div class="card">
+    <div class="card">
 
-<h3>Work Details</h3>
+      <h3>Work Details</h3>
 
-<div class="info-grid">
+      <div class="info-grid">
 
-<div class="info-label">Agency Name</div>
-<div>{{ form.s_agency_name }}</div>
+        <div class="info-label">Agency Name</div>
+        <div>{{ form.s_agency_name }}</div>
 
-<div class="info-label">SAP Vendor Code</div>
-<div>{{ form.s_sap_vendor_code }}</div>
+        <div class="info-label">SAP Vendor Code</div>
+        <div>{{ form.s_sap_vendor_code }}</div>
 
-<div class="info-label">Nature of Job</div>
-<div>{{ form.s_nature_of_job }}</div>
+        <div class="info-label">Nature of Job</div>
+        <div>{{ form.s_nature_of_job }}</div>
 
-<div class="info-label">Work Order No</div>
-<div>{{ form.s_work_order_no }}</div>
+        <div class="info-label">Work Order No</div>
+        <div>{{ form.s_work_order_no }}</div>
 
-<div class="info-label">Work Order Validity</div>
-<div>{{ form.dt_work_order_validity }}</div>
+        <div class="info-label">Work Order Validity</div>
+        <div>{{ form.dt_work_order_validity }}</div>
 
-<div class="info-label">Date of Joining</div>
-<div>{{ form.dt_date_of_joining }}</div>
+        <div class="info-label">Date of Joining</div>
+        <div>{{ form.dt_date_of_joining }}</div>
 
-<div class="info-label">Exact Work Location</div>
-<div>{{ form.s_exact_work_location }}</div>
+        <div class="info-label">Exact Work Location</div>
+        <div>{{ form.s_exact_work_location }}</div>
 
-</div>
+      </div>
 
-</div>
+    </div>
 
 
 
-<div class="card">
+    <div class="card">
 
-<h3>Identification Details</h3>
+      <h3>Identification Details</h3>
 
-<div class="info-grid">
+      <div class="info-grid">
 
-<div class="info-label">Height</div>
-<div>{{ form.n_height_cm }} cm</div>
+        <div class="info-label">Height</div>
+        <div>{{ form.n_height_cm }} cm</div>
 
-<div class="info-label">Blood Group</div>
-<div>{{ form.s_blood_group }}</div>
+        <div class="info-label">Blood Group</div>
+        <div>{{ form.s_blood_group }}</div>
 
-<div class="info-label">Identification Mark</div>
-<div>{{ form.s_identification_mark }}</div>
+        <div class="info-label">Identification Mark</div>
+        <div>{{ form.s_identification_mark }}</div>
 
-<div class="info-label">Aadhar Card</div>
-<div>{{ form.s_aadhar_card_no }}</div>
+        <div class="info-label">Aadhar Card</div>
+        <div>{{ form.s_aadhar_card_no }}</div>
 
-<div class="info-label">Contact No</div>
-<div>{{ form.s_contact_no }}</div>
+        <div class="info-label">Contact No</div>
+        <div>{{ form.s_contact_no }}</div>
 
-</div>
+      </div>
 
-</div>
+    </div>
 
 
 
-<div class="card">
+    <div class="card">
 
-<h3>Present Address</h3>
+      <h3>Present Address</h3>
 
-<div class="info-grid">
+      <div class="info-grid">
 
-<div class="info-label">Address</div>
-<div>{{ form.s_present_address }}</div>
+        <div class="info-label">Address</div>
+        <div>{{ form.s_present_address }}</div>
 
-<div class="info-label">City</div>
-<div>{{ form.s_present_city }}</div>
+        <div class="info-label">City</div>
+        <div>{{ form.s_present_city }}</div>
 
-<div class="info-label">State</div>
-<div>{{ form.s_present_state }}</div>
+        <div class="info-label">State</div>
+        <div>{{ form.s_present_state }}</div>
 
-<div class="info-label">Pincode</div>
-<div>{{ form.s_present_pincode }}</div>
+        <div class="info-label">Pincode</div>
+        <div>{{ form.s_present_pincode }}</div>
 
-</div>
+      </div>
 
-</div>
+    </div>
 
 
 
-<div class="card">
+    <div class="card">
 
-<h3>Emergency Contact</h3>
+      <h3>Emergency Contact</h3>
 
-<div class="info-grid">
+      <div class="info-grid">
 
-<div class="info-label">Contact Details</div>
-<div>{{ form.s_emergency_contact_details }}</div>
+        <div class="info-label">Contact Details</div>
+        <div>{{ form.s_emergency_contact_details }}</div>
 
-<div class="info-label">City</div>
-<div>{{ form.s_emergency_city }}</div>
+        <div class="info-label">City</div>
+        <div>{{ form.s_emergency_city }}</div>
 
-<div class="info-label">State</div>
-<div>{{ form.s_emergency_state }}</div>
+        <div class="info-label">State</div>
+        <div>{{ form.s_emergency_state }}</div>
 
-<div class="info-label">Pincode</div>
-<div>{{ form.s_emergency_pincode }}</div>
+        <div class="info-label">Pincode</div>
+        <div>{{ form.s_emergency_pincode }}</div>
 
-<div class="info-label">Emergency Contact No</div>
-<div>{{ form.s_emergency_contact_no }}</div>
+        <div class="info-label">Emergency Contact No</div>
+        <div>{{ form.s_emergency_contact_no }}</div>
 
-</div>
+      </div>
 
-</div>
+    </div>
 
 
 
-<div class="card">
+    <div class="card">
 
-<h3>Documents</h3>
+      <h3>Documents</h3>
 
-<div class="info-grid">
+      <div class="info-grid">
 
-<div class="info-label">Police Verification</div>
-<div>{{ "Yes" if form.s_police_verification_cert else "No" }}</div>
+        <div class="info-label">Police Verification</div>
+        <div>{{ "Yes" if form.s_police_verification_cert else "No" }}</div>
 
-<div class="info-label">Medical Certificate</div>
-<div>{{ "Yes" if form.s_medical_certificate else "No" }}</div>
+        <div class="info-label">Medical Certificate</div>
+        <div>{{ "Yes" if form.s_medical_certificate else "No" }}</div>
 
-<div class="info-label">Government ID Proof</div>
-<div>{{ "Yes" if form.s_govt_id_proof else "No" }}</div>
+        <div class="info-label">Government ID Proof</div>
+        <div>{{ "Yes" if form.s_govt_id_proof else "No" }}</div>
 
-<div class="info-label">HSSE Training</div>
-<div>{{ "Yes" if form.s_hsse_training else "No" }}</div>
+        <div class="info-label">HSSE Training</div>
+        <div>{{ "Yes" if form.s_hsse_training else "No" }}</div>
 
-</div>
+      </div>
 
-</div>
+    </div>
 
 
 
-<!-- ================= APPROVAL HISTORY ================= -->
+    <!-- ================= APPROVAL HISTORY ================= -->
 
-<div class="card">
+    <div class="card">
 
-<h3>Approval Timeline</h3>
+      <h3>Approval Timeline</h3>
 
-<table>
+      <table>
 
-<tr>
-<th>User</th>
-<th>Action</th>
-<th>Remark</th>
-<th>Time</th>
-</tr>
+        <tr>
+          <th>User</th>
+          <th>Action</th>
+          <th>Remark</th>
+          <th>Time</th>
+        </tr>
 
-{% for t in timeline %}
+        {% for t in timeline %}
 
-<tr>
-<td>{{ t.approver_email }}</td>
-<td><b>{{ t.action_taken }}</b></td>
-<td>{{ t.remark or '-' }}</td>
-<td>{{ t.action_time }}</td>
-</tr>
+        <tr>
+          <td>{{ t.approver_email }}</td>
+          <td><b>{{ t.action_taken }}</b></td>
+          <td>{{ t.remark or '-' }}</td>
+          <td>{{ t.action_time }}</td>
+        </tr>
 
-{% endfor %}
+        {% endfor %}
 
-</table>
+      </table>
 
-</div>
+    </div>
 
 
 
-<!-- ================= ACTION FORM ================= -->
+    <!-- ================= ACTION FORM ================= -->
 
-<div class="card">
+    <div class="card">
 
-<form method="POST" action="/approval-action">
+      <form method="POST" action="/approval-action">
 
-<input type="hidden" name="token" value="{{ token }}">
+        <input type="hidden" name="token" value="{{ token }}">
 
-{% if not is_final %}
+        {% if not is_final %}
 
-<label><b>Next Approver Email</b></label>
+        <label><b>Next Approver Email</b></label>
 
-<input type="email"
-       id="next_email"
-       name="next_email"
-       placeholder="Enter Next Approver Email">
+        <input type="email" id="next_email" name="next_email" placeholder="Enter Next Approver Email">
 
-<br><br>
+        <br><br>
 
-{% endif %}
+        {% endif %}
 
 
-<label><b>Remark</b></label>
+        <label><b>Remark</b></label>
 
-<textarea id="remark"
-          name="remark"
-          placeholder="Remark (mandatory if rejecting)"
-          rows="4"></textarea>
+        <textarea id="remark" name="remark" placeholder="Remark (mandatory if rejecting)" rows="4"></textarea>
 
 
-<div class="action-section">
+        <div class="action-section">
 
-<button type="submit"
-        name="action"
-        value="APPROVE"
-        class="approve-btn">
+          <button type="submit" name="action" value="APPROVE" class="approve-btn">
 
-{% if is_final %}
-Final Approve
-{% else %}
-Approve & Send
-{% endif %}
+            {% if is_final %}
+            Final Approve
+            {% else %}
+            Approve & Send
+            {% endif %}
 
-</button>
+          </button>
 
 
-<button type="submit"
-        name="action"
-        value="REJECT"
-        class="reject-btn"
-        onclick="return validateReject();">
+          <button type="submit" name="action" value="REJECT" class="reject-btn" onclick="return validateReject();">
 
-Reject
+            Reject
 
-</button>
+          </button>
 
-</div>
+        </div>
 
-</form>
+      </form>
 
-</div>
+    </div>
 
 
 
-<div class="footer">
+    <div class="footer">
 
-Security Records Digitization System  
-Pipeline Infrastructure Limited
+      Security Records Digitization System
+      Pipeline Infrastructure Limited
 
-</div>
+    </div>
 
 
-</div>
+  </div>
 
 
 
-<script>
+  <script>
 
-function validateReject(){
+    function validateReject() {
 
-const remark=document.getElementById("remark").value.trim();
+      const remark = document.getElementById("remark").value.trim();
 
-if(remark===""){
-alert("❌ Remark is mandatory when rejecting the request.");
-return false;
-}
+      if (remark === "") {
+        alert("❌ Remark is mandatory when rejecting the request.");
+        return false;
+      }
 
-return true;
+      return true;
 
-}
+    }
 
-</script>
+  </script>
 
 
 </body>
+
 </html>

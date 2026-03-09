@@ -768,6 +768,14 @@ def approval_action():
         next_email
     )
 
+    if action == "APPROVE" and queries.is_final_level(token_data['approval_level'] + 1):
+        print("FINAL APPROVAL DETECTED → sending summary")
+
+        try:
+            send_final_summary(token_data['request_id'], "APPROVED")
+        except Exception as e:
+            print("Final summary mail failed:", e)
+
     # ================= NEXT APPROVER =================
 
     if result == "MOVED":
@@ -818,18 +826,21 @@ def approval_action():
         except Exception as e:
             print("Reject mail failed:", e)
 
-    # ================= FINAL APPROVED =================
+    # ================= FINAL WORKFLOW COMPLETE =================
 
-    elif result == "APPROVED":
+    elif result in ["APPROVED", "FINAL_APPROVED", "DONE", "COMPLETED"]:
+
+        print("FINAL APPROVAL DETECTED → sending summary")
 
         try:
             send_final_summary(token_data['request_id'], "APPROVED")
         except Exception as e:
             print("Final summary mail failed:", e)
 
-    # ================= FINAL REJECT =================
 
-    elif result == "REJECTED_FINAL":
+    elif result in ["REJECTED_FINAL", "FINAL_REJECTED"]:
+
+        print("FINAL REJECTION DETECTED → sending summary")
 
         try:
             send_final_summary(token_data['request_id'], "REJECTED")

@@ -13,7 +13,8 @@ def send_final_summary(request_id, final_status):
         FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
         WHERE request_id = ?
     """, (request_id,))
-    initiator = cursor.fetchone().initiator_email
+    row = cursor.fetchone()
+    initiator = row.initiator_email if row else None
 
     # Form filler (User-1)
     cursor.execute("""
@@ -41,12 +42,13 @@ def send_final_summary(request_id, final_status):
 
     timeline_html = ""
     for l in logs:
+        action_time = l.action_time.strftime("%Y-%m-%d %I:%M:%S %p") if l.action_time else "-"
         timeline_html += f"""
         <tr>
             <td>{l.approver_email}</td>
             <td>{l.action_taken}</td>
             <td>{l.remark or '-'}</td>
-            <td>{l.action_time}</td>
+            <td>{action_time}</td>
         </tr>
         """
 
