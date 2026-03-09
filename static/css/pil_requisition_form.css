@@ -312,6 +312,32 @@ html, body {
   white-space: nowrap;
 }
 
+/* ================= TIMELINE MODAL ================= */
+
+.timeline-modal {
+  position: fixed;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(900px, 95%);
+  z-index: 2000;
+
+  max-height: 500px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* table wrapper for vertical scroll */
+#timelineTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
 /* ================= TIMELINE TABLE ================= */
 
 #timelineTable {
@@ -321,21 +347,73 @@ html, body {
   font-size: 14px;
 }
 
+/* scroll only body */
+#timelineTable tbody {
+  display: block;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+/* keep header alignment */
+#timelineTable thead,
+#timelineTable tbody tr {
+  display: table;
+  width: 100%;
+}
+
+/* cells */
 #timelineTable th,
 #timelineTable td {
   border: 1px solid #cfd6dd;
-  padding: 8px;
+  padding: 8px 10px;
   text-align: center;
+
+  white-space: normal;    
+  word-break: break-word; 
+}
+/* Email column - no wrap */
+#timelineTable td:nth-child(3),
+#timelineTable th:nth-child(3) {
+  width: 30%;
+  white-space: nowrap;
 }
 
+
+/* header style */
 #timelineTable th {
   background: #1f3a5f;
   color: #fff;
   font-weight: 600;
 }
 
-#timelineTable td {
-  white-space: nowrap;
+/* ================= MOBILE RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+
+  .timeline-modal {
+    width: 95%;
+    top: 10%;
+  }
+
+  #timelineTable {
+    font-size: 12px;
+  }
+
+}
+
+@media (max-width: 480px) {
+
+  .timeline-modal {
+    width: 98%;
+    padding: 15px;
+  }
+
+  #timelineTable th,
+  #timelineTable td {
+    padding: 6px;
+    font-size: 11px;
+  }
+
 }
 /* ================= DASHBOARD TABLE = TIMELINE STYLE ================= */
 
