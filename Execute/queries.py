@@ -2118,3 +2118,24 @@ def get_rejector(request_id):
 
     return rejected_level, approver_row.approver_email if approver_row else None
 
+
+def get_receiver_email(request_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT current_approver_email
+        FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
+        WHERE request_id = ?
+    """, (request_id,))
+
+    row = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if not row:
+        return None
+
+    return row[0]

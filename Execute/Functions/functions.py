@@ -527,22 +527,90 @@ def create_request():
         receiver_email,
         "Form Submission Request",
         f"""
-        <p><b>Sent by:</b> {sender_email}</p>
-        <p>Dear Sir/Madam,</p>
-        <p>Greetings.</p>
-        <p>You have received a request to fill out the required form for the security records process.</p>
-        <p>Kindly fill the form using the link provided below:</p>
-        <p>
-            <a href="{link}" style="color:#1a73e8;font-weight:bold;">
-                Click here to fill the form
-            </a>
-        </p>
-        <p>Please ensure that all required details are filled accurately and submit the form at the earliest.</p>
-        <p>If you face any issue while filling the form, please feel free to contact us.</p>
-        <br>
-        <p>Best regards,<br>
-        Security Department<br>
-        Pipeline Infrastructure Limited</p>
+        <div style="font-family:Arial, Helvetica, sans-serif; background:#f4f6f8; padding:30px;">
+
+        <div style="max-width:600px; margin:auto; background:white; border-radius:8px;
+                    overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+
+            <div style="background:#0d6efd; padding:18px; color:white;
+                        font-size:18px; font-weight:bold;">
+                Requisition Form Submission Request
+            </div>
+
+            <div style="padding:25px; color:#333; font-size:14px; line-height:1.6;">
+
+                <p>Dear Sir/Madam,</p>
+
+                <p>
+                You have received a request from the <b>Security Department</b> to submit
+                the required details for the security records process.
+                </p>
+
+                <p>
+                Kindly click the button below to open the requisition form and complete
+                the submission.
+                </p>
+
+                <div style="text-align:center; margin:25px 0;">
+                    <a href="{link}"
+                    style="
+                        background:#6a11cb;
+                        background:linear-gradient(135deg,#6a11cb,#2575fc);
+                        padding:12px 26px;
+                        color:white;
+                        text-decoration:none;
+                        border-radius:6px;
+                        font-weight:bold;
+                        display:inline-block;
+                    ">
+                    Fill Requisition Form
+                    </a>
+                </div>
+
+                <table style="width:100%; border-collapse:collapse; margin-top:15px;">
+                <tr>
+                    <td style="padding:6px; font-weight:bold;">Requested By</td>
+                    <td style="padding:6px;">{sender_email}</td>
+                </tr>
+                <tr style="background:#f7f7f7;">
+                    <td style="padding:6px; font-weight:bold;">Request ID</td>
+                    <td style="padding:6px;">{request_id}</td>
+                </tr>
+                </table>
+
+                <p style="margin-top:20px;">
+                Please ensure that all required information is filled accurately before submitting the form.
+                </p>
+
+                <p>
+                If you face any issues while filling the form, please contact the Security Department.
+                </p>
+
+                <p style="margin-top:25px;">
+                Regards,<br>
+                <b>Security Department</b><br>
+                Pipeline Infrastructure Limited
+                </p>
+
+            </div>
+
+            <div style="
+                background:#e9f2ff;
+                padding:14px;
+                text-align:center;
+                font-size:13px;
+                color:#1a3c8b;
+                border-top:2px solid #0d6efd;
+                font-weight:500;
+            ">
+                ⚠ This is an automated notification from the
+                <b>Security Records Digitization System</b>.
+                Please do not reply to this email.
+            </div>
+
+        </div>
+
+        </div>
         """,
         sender_email
     )
@@ -558,7 +626,7 @@ def submit_form():
     if not request_id:
         return {"error": "request_id missing"}, 400
 
-    created_by = data.get("s_created_by", "FORM_USER")
+    created_by = queries.get_receiver_email(request_id) or "unknown_user"
 
     # ---------- PHOTO (DB ONLY) ----------
     photo = files.get("s_photo")
@@ -607,6 +675,7 @@ def submit_form():
     form_sr_no = queries.insert_requisition_form(form_data, created_by)
 
     initiator_email = queries.get_initiator_email(request_id)
+    receiver_email = queries.get_receiver_email(request_id)
 
     queries.update_request_after_submit(
         request_id=request_id,
@@ -619,8 +688,8 @@ def submit_form():
     send_approval_mail_to_user0(
         request_id=request_id,
         token=token,
-        user0_email=initiator_email,
-        submitted_by=created_by,
+        user0_email=initiator_email, 
+        submitted_by=receiver_email,       
         sender_email=created_by
     )
 
@@ -709,7 +778,11 @@ def approval_action():
             next_email
         )
 
-        body = approval_email_template(next_token)
+        body = approval_email_template(
+            token=next_token,
+            request_id=token_data['request_id'],
+            last_approver=token_data['approver_email']
+        )
 
         try:
             send_mail_async(

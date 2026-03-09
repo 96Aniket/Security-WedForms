@@ -51,19 +51,86 @@ def send_final_summary(request_id, final_status):
         """
 
     body = f"""
-    <h3>Requisition Request Summary</h3>
-    <p><b>Request ID:</b> {request_id}</p>
-    <p><b>Final Status:</b> {final_status}</p>
+    <div style="font-family:Arial, Helvetica, sans-serif; background:#f4f6f8; padding:30px;">
 
-    <table border="1" cellpadding="6">
-        <tr>
-            <th>User</th>
-            <th>Action</th>
-            <th>Remark</th>
-            <th>Time</th>
-        </tr>
-        {timeline_html}
-    </table>
+    <div style="max-width:700px; margin:auto; background:white; border-radius:8px;
+                overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+
+        <div style="background:#0d6efd; padding:18px; color:white;
+                    font-size:18px; font-weight:bold;">
+            Requisition Request – Final Status
+        </div>
+
+        <div style="padding:25px; color:#333; font-size:14px; line-height:1.6;">
+
+            <p>Dear User,</p>
+
+            <p>
+            The requisition request has completed the approval workflow.
+            Please find the final decision and approval timeline below.
+            </p>
+
+            <table style="width:100%; border-collapse:collapse; margin-top:15px;">
+                <tr>
+                    <td style="padding:6px; font-weight:bold;">Request ID</td>
+                    <td style="padding:6px;">{request_id}</td>
+                </tr>
+                <tr style="background:#f7f7f7;">
+                    <td style="padding:6px; font-weight:bold;">Final Status</td>
+                    <td style="padding:6px;">
+                        <span style="padding:4px 10px;
+                                    border-radius:4px;
+                                    color:white;
+                                    background:{'#28a745' if final_status == 'APPROVED' else '#dc3545'};">
+                            {final_status}
+                        </span>
+                    </td>
+                </tr>
+            </table>
+
+            <h4 style="margin-top:25px;">Approval Timeline</h4>
+
+            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                <tr style="background:#f1f1f1;">
+                    <th style="padding:8px;border:1px solid #ddd;">User</th>
+                    <th style="padding:8px;border:1px solid #ddd;">Action</th>
+                    <th style="padding:8px;border:1px solid #ddd;">Remark</th>
+                    <th style="padding:8px;border:1px solid #ddd;">Time</th>
+                </tr>
+
+                {timeline_html}
+
+            </table>
+
+            <p style="margin-top:25px;">
+            This email is for your reference and records.
+            </p>
+
+            <p style="margin-top:20px;">
+            Regards,<br>
+            <b>Security Department</b><br>
+            Pipeline Infrastructure Limited
+            </p>
+
+        </div>
+
+        <div style="
+            background:#e9f2ff;
+            padding:14px;
+            text-align:center;
+            font-size:13px;
+            color:#1a3c8b;
+            border-top:2px solid #0d6efd;
+            font-weight:500;
+        ">
+            ⚠ This is an automated notification from the
+            <b>Security Records Digitization System</b>.
+            Please do not reply to this email.
+        </div>
+
+    </div>
+
+    </div>
     """
 
     send_mail_async(initiator, "Final Approval Status", body, SYSTEM_SMTP_EMAIL)

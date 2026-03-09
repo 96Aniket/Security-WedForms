@@ -5,278 +5,454 @@
   <meta charset="UTF-8">
   <title>Requisition Form</title>
 
-  <!-- SAME CSS -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/pil visitor slip.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 30px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: white;
+      padding: 20px;
+      border-radius: 8px 8px 0 0;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .card {
+      background: white;
+      padding: 25px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+
+    .row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #444;
+    }
+
+    input,
+    textarea,
+    select {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .doc-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .doc-label {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-save {
+      display: block;
+      width: 220px;
+      margin: auto;
+      margin-top: 25px;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .btn-save:hover {
+      opacity: 0.9;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #777;
+      margin-top: 20px;
+    }
+
+    .doc-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .doc-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: normal;
+      cursor: pointer;
+    }
+
+    .doc-label input {
+      width: 16px;
+      height: 16px;
+    }
+  </style>
 </head>
 
 <body>
-<!-- ================= CONTAINER ================= -->
-<div class="container">
 
-<div class="form-box" style="display:block">
+  <div class="container">
 
-<form id="requisitionForm">
+    <div class="header">
+      Requisition Form Submission
+    </div>
 
-<!-- hidden/system -->
-<input type="hidden" name="n_sr_no">
-<input type="hidden" name="s_created_by" value="{{ user_email }}">
-<input type="hidden" name="dt_created_at">
-<input type="hidden" name="request_id" value="{{ request_id }}">
+    <form id="requisitionForm">
+
+      <input type="hidden" name="n_sr_no">
+      <input type="hidden" name="s_created_by" value="{{ user_email }}">
+      <input type="hidden" name="dt_created_at">
+      <input type="hidden" name="request_id" value="{{ request_id }}">
+
+      <!-- BASIC DETAILS -->
+      <div class="card">
+        <h3>Basic Details</h3>
+
+        <div class="row">
+          <div class="field">
+            <label>Location</label>
+            <input name="s_location" required>
+          </div>
+
+          <div class="field">
+            <label>Request Date</label>
+            <input type="date" name="dt_request_date" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>First Name</label>
+            <input name="s_first_name" required>
+          </div>
+
+          <div class="field">
+            <label>Middle Name</label>
+            <input name="s_middle_name">
+          </div>
+
+          <div class="field">
+            <label>Last Name</label>
+            <input name="s_last_name" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Upload Passport Size Photo</label>
+            <input type="file" name="s_photo">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Date of Birth</label>
+            <input type="date" name="dt_date_of_birth" required>
+          </div>
+
+          <div class="field">
+            <label>Age</label>
+            <input type="number" name="n_age" required>
+          </div>
+
+          <div class="field">
+            <label>Gender</label>
+            <select name="s_gender" required>
+              <option value="">Select</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
 
 
-<!-- ================= BASIC DETAILS ================= -->
-<h3>Basic Details</h3>
+      <!-- WORK DETAILS -->
+      <div class="card">
+        <h3>Work Details</h3>
 
-<div class="row">
-  <div class="field">
-    <label>Location</label>
-    <input name="s_location" required>
-  </div>
-  <div class="field">
-    <label>Request Date</label>
-    <input type="date" name="dt_request_date" required>
-  </div>
-</div>
+        <div class="row">
+          <div class="field">
+            <label>Agency Name</label>
+            <input name="s_agency_name" required>
+          </div>
 
-<div class="row">
-  <div class="field">
-    <label>First Name</label>
-    <input name="s_first_name" required>
-  </div>
-  <div class="field">
-    <label>Middle Name</label>
-    <input name="s_middle_name">
-  </div>
-  <div class="field">
-    <label>Last Name</label>
-    <input name="s_last_name" required>
-  </div>
-</div>
+          <div class="field">
+            <label>SAP Vendor Code</label>
+            <input name="s_sap_vendor_code">
+          </div>
+        </div>
 
-<div class="row">
-  <div class="field">
-    <label>Upload Your Passport Size Photo</label>
-    <input type="file" name="s_photo">
-  </div>
-</div>
+        <div class="row">
+          <div class="field">
+            <label>Nature of Job</label>
+            <input name="s_nature_of_job" required>
+          </div>
 
-<div class="row">
-  <div class="field">
-    <label>Date of Birth</label>
-    <input type="date" name="dt_date_of_birth" required>
-  </div>
-  <div class="field">
-    <label>Age</label>
-    <input type="number" name="n_age" required>
-  </div>
-  <div class="field">
-    <label>Gender</label>
-    <select name="s_gender" required>
-      <option value="">Select</option>
-      <option>Male</option>
-      <option>Female</option>
-      <option>Other</option>
-    </select>
-  </div>
-</div>
+          <div class="field">
+            <label>Work Order No</label>
+            <input name="s_work_order_no" required>
+          </div>
+        </div>
 
-<!-- ================= WORK DETAILS ================= -->
-<h3>Work Details</h3>
+        <div class="row">
+          <div class="field">
+            <label>Work Order Validity</label>
+            <input type="date" name="dt_work_order_validity" required>
+          </div>
 
-<div class="row">
-  <div class="field">
-    <label>Agency Name</label>
-    <input name="s_agency_name" required>
-  </div>
-  <div class="field">
-    <label>SAP Vendor Code</label>
-    <input name="s_sap_vendor_code">
-  </div>
-</div>
+          <div class="field">
+            <label>Date of Joining</label>
+            <input type="date" name="dt_date_of_joining" required>
+          </div>
+        </div>
 
-<div class="row">
-  <div class="field">
-    <label>Nature of Job</label>
-    <input name="s_nature_of_job" required>
-  </div>
-  <div class="field">
-    <label>Work Order No</label>
-    <input name="s_work_order_no" required>
-  </div>
-</div>
+        <div class="row">
+          <div class="field">
+            <label>Exact Work Location</label>
+            <input name="s_exact_work_location" required>
+          </div>
+        </div>
 
-<div class="row">
-  <div class="field">
-    <label>Work Order Validity</label>
-    <input type="date" name="dt_work_order_validity" required>
-  </div>
-  <div class="field">
-    <label>Date of Joining</label>
-    <input type="date" name="dt_date_of_joining" required>
-  </div>
-</div>
+      </div>
 
-<div class="row">
-  <div class="field">
-    <label>Exact Work Location</label>
-    <input name="s_exact_work_location" required>
-  </div>
-</div>
 
-<!-- ================= IDENTIFICATION ================= -->
-<h3>Identification</h3>
+      <!-- IDENTIFICATION -->
+      <div class="card">
+        <h3>Identification</h3>
 
-<div class="row">
-  <div class="field">
-    <label>Height (cm)</label>
-    <input type="number" name="n_height_cm">
-  </div>
-  <div class="field">
-    <label>Blood Group</label>
-    <input name="s_blood_group">
-  </div>
-  <div class="field">
-    <label>Identification Mark</label>
-    <input name="s_identification_mark">
-  </div>
-</div>
+        <div class="row">
+          <div class="field">
+            <label>Height (cm)</label>
+            <input type="number" name="n_height_cm">
+          </div>
 
-<div class="row">
-  <div class="field">
-    <label>Aadhar Card No</label>
-    <input name="s_aadhar_card_no" required>
-  </div>
-  <div class="field">
-    <label>Contact No</label>
-    <input name="s_contact_no" required>
-  </div>
-</div>
+          <div class="field">
+            <label>Blood Group</label>
+            <input name="s_blood_group">
+          </div>
 
-<!-- ================= PRESENT ADDRESS ================= -->
-<h3>Present Address</h3>
+          <div class="field">
+            <label>Identification Mark</label>
+            <input name="s_identification_mark">
+          </div>
+        </div>
 
-<div class="row">
-  <div class="field">
-    <label>Address</label>
-    <textarea name="s_present_address" required></textarea>
-  </div>
-</div>
+        <div class="row">
+          <div class="field">
+            <label>Aadhar Card No</label>
+            <input name="s_aadhar_card_no" required>
+          </div>
 
-<div class="row">
-  <div class="field">
-    <label>City</label>
-    <input name="s_present_city" required>
-  </div>
-  <div class="field">
-    <label>State</label>
-    <input name="s_present_state" required>
-  </div>
-  <div class="field">
-    <label>Pincode</label>
-    <input name="s_present_pincode" required>
-  </div>
-</div>
+          <div class="field">
+            <label>Contact No</label>
+            <input name="s_contact_no" required>
+          </div>
+        </div>
 
-<!-- ================= EMERGENCY ================= -->
-<h3>Emergency Contact</h3>
+      </div>
 
-<div class="row">
-  <div class="field">
-    <label>Emergency Contact Details</label>
-    <textarea name="s_emergency_contact_details" required></textarea>
-  </div>
-</div>
 
-<div class="row">
-  <div class="field">
-    <label>City</label>
-    <input name="s_emergency_city" required>
-  </div>
-  <div class="field">
-    <label>State</label>
-    <input name="s_emergency_state" required>
-  </div>
-  <div class="field">
-    <label>Pincode</label>
-    <input name="s_emergency_pincode" required>
-  </div>
-</div>
+      <!-- ADDRESS -->
+      <div class="card">
+        <h3>Present Address</h3>
 
-<div class="row">
-  <div class="field">
-    <label>Emergency Contact No</label>
-    <input name="s_emergency_contact_no" required>
-  </div>
-</div>
+        <div class="row">
+          <div class="field">
+            <label>Address</label>
+            <textarea name="s_present_address" required></textarea>
+          </div>
+        </div>
 
-<!-- ================= DOCUMENTS ================= -->
-<h3>Documents</h3>
+        <div class="row">
+          <div class="field">
+            <label>City</label>
+            <input name="s_present_city" required>
+          </div>
 
-<div class="row doc-row">
-  <div class="field">
-    <label class="doc-label">
-      <input type="checkbox" name="s_police_verification_cert">
-      <span>Police Verification</span>
-    </label>
-  </div>
+          <div class="field">
+            <label>State</label>
+            <input name="s_present_state" required>
+          </div>
 
-  <div class="field">
-    <label class="doc-label">
-      <input type="checkbox" name="s_medical_certificate">
-      <span>Medical Certificate</span>
-    </label>
-  </div>
+          <div class="field">
+            <label>Pincode</label>
+            <input name="s_present_pincode" required>
+          </div>
+        </div>
 
-  <div class="field">
-    <label class="doc-label">
-      <input type="checkbox" name="s_govt_id_proof">
-      <span>Govt ID Proof</span>
-    </label>
+      </div>
+
+
+      <!-- EMERGENCY -->
+      <div class="card">
+        <h3>Emergency Contact</h3>
+
+        <div class="row">
+          <div class="field">
+            <label>Emergency Contact Details</label>
+            <textarea name="s_emergency_contact_details" required></textarea>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>City</label>
+            <input name="s_emergency_city" required>
+          </div>
+
+          <div class="field">
+            <label>State</label>
+            <input name="s_emergency_state" required>
+          </div>
+
+          <div class="field">
+            <label>Pincode</label>
+            <input name="s_emergency_pincode" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Emergency Contact No</label>
+            <input name="s_emergency_contact_no" required>
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- DOCUMENTS -->
+      <div class="card">
+        <h3>Documents</h3>
+
+        <div class="row doc-row">
+
+          <div class="field">
+            <label class="doc-label">
+              <input type="checkbox" name="s_police_verification_cert">
+              <span>Police Verification</span>
+            </label>
+          </div>
+
+          <div class="field">
+            <label class="doc-label">
+              <input type="checkbox" name="s_medical_certificate">
+              <span>Medical Certificate</span>
+            </label>
+          </div>
+
+          <div class="field">
+            <label class="doc-label">
+              <input type="checkbox" name="s_govt_id_proof">
+              <span>Govt ID Proof</span>
+            </label>
+          </div>
+
+          <div class="field">
+            <label class="doc-label">
+              <input type="checkbox" name="s_hsse_training">
+              <span>HSSE Training</span>
+            </label>
+          </div>
+
+        </div>
+      </div>
+
+
+      <button type="submit" class="btn-save">
+        Submit Requisition
+      </button>
+
+    </form>
+
+
+    <div class="footer">
+      Security Records Digitization System
+      Pipeline Infrastructure Limited
+    </div>
+
   </div>
 
-  <div class="field">
-    <label class="doc-label">
-      <input type="checkbox" name="s_hsse_training">
-      <span>HSSE Training</span>
-    </label>
-  </div>
-</div>
 
-<button type="submit" class="btn-save">Submit</button>
+  <script>
 
-</form>
-</div>
-</div>
+    document.getElementById("requisitionForm").addEventListener("submit", e => {
 
-<!-- ================= JS ================= -->
-<script>
-document.getElementById("requisitionForm").addEventListener("submit", e => {
-  e.preventDefault();
+      e.preventDefault();
 
-  const form = e.target;
-  const formData = new FormData(form);
+      const form = e.target;
+      const formData = new FormData(form);
 
-  ["s_police_verification_cert","s_medical_certificate","s_govt_id_proof","s_hsse_training"]
-    .forEach(k => {
-      if (!formData.has(k)) {
-        formData.append(k, 0);
-      } else {
-        formData.set(k, 1);
-      }
+      ["s_police_verification_cert", "s_medical_certificate", "s_govt_id_proof", "s_hsse_training"]
+        .forEach(k => {
+          if (!formData.has(k)) {
+            formData.append(k, 0);
+          } else {
+            formData.set(k, 1);
+          }
+        });
+
+      fetch("/api/submit-form", {
+        method: "POST",
+        body: formData
+      })
+        .then(r => r.json())
+        .then(() => {
+          alert("Requisition submitted successfully");
+          location.reload();
+        });
+
     });
 
-  fetch("/api/submit-form", {
-    method: "POST",
-    body: formData  
-  })
-  .then(r => r.json())
-  .then(() => {
-    alert("Requisition submitted successfully");
-    location.reload();
-  });
-});
-</script>
+  </script>
 
 </body>
+
 </html>
