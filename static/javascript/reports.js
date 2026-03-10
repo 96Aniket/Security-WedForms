@@ -56,19 +56,25 @@ function reportDownloadApp() {
     },
 
     error: function (xhr) {
-  if (xhr.response) {
-    const reader = new FileReader();
 
-    reader.onload = function () {
-      console.error("Server error:", reader.result);
-      alert(reader.result);
-    };
+    console.log("Status:", xhr.status);
+    console.log("Response:", xhr.responseText);
 
-    reader.readAsText(xhr.response);
-  } else {
-    alert("Download failed");
+    if (xhr.response) {
+
+      const reader = new FileReader();
+
+      reader.onload = function () {
+        console.error("Server error:", reader.result);
+        alert(reader.result);
+      };
+
+      reader.readAsText(xhr.response);
+
+    } else {
+      alert("Download failed");
+    }
   }
-}
 
 
   });

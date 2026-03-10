@@ -5,6 +5,8 @@ from Execute.Functions.functions import download_filtered_excel_logic , get_repo
 from utils.token import validate_token
 from Execute.executesql import get_connection
 from Execute import queries
+from flask import redirect
+
 
 
 routes_bp = Blueprint('routes_bp', __name__)
@@ -16,6 +18,49 @@ def get_user_context():
         "user_location": user.get('location', ''),
         "user_role": user.get('role', 'user')
     }
+
+@routes_bp.route('/login', methods=['GET','POST'])
+def login():
+
+    if request.method == 'POST':
+
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT s_email_id, n_role_id, s_location
+            FROM tbl_SECURITY_USER
+            WHERE s_email_id = ? AND s_password = ?
+        """,(email,password))
+
+        user = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if not user:
+            return render_template("login.html", error="Invalid User ID or Password")
+
+        role = "admin" if user[1] == 1 else "user"
+
+        session['user'] = {
+            "email": user[0],
+            "name": user[0].split('@')[0],
+            "location": user[2],
+            "role": role
+        }
+
+        return redirect("/")
+
+    return render_template("login.html")
+
+@routes_bp.route('/logout')
+def logout():
+    session.clear()
+    return redirect("/login")
 
 @routes_bp.route('/')
 def home():
@@ -80,36 +125,37 @@ def approval_reviews():
 def requisition_form():
     return render_template('requisition form.html')
 
-@routes_bp.route('/form-fill/<int:request_id>')
-def form_fill_page(request_id):
-    return render_template(
-        "form-fill.html",
-        request_id=request_id
-    )
-    
-@routes_bp.route('/form-edit')
-def form_edit_page():
-
+@routes_bp.route('/form-fill')
+def form_fill_page():
     token = request.args.get("token")
-
     if not token:
         return "Invalid link"
-
     token_data, error = validate_token(token)
-
     if error:
         return error
-
     request_id = token_data["request_id"]
-
-    form = queries.get_form_by_request_id(request_id)
-
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT overall_status
+        FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
+        WHERE request_id = ?
+    """, (request_id,))
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    if row and row[0] != "PENDING":
+        return """
+        <div style="font-family:Arial;text-align:center;margin-top:120px;">
+            <h2 style="color:#dc3545;">Form Already Submitted</h2>
+        </div>
+        """
     return render_template(
-        "form_edit.html",
+        "form-fill.html",
         request_id=request_id,
-        form=form,
         token=token
     )
+
 
 @routes_bp.route('/reports')
 def reports():
@@ -170,6 +216,23 @@ routes_bp.add_url_rule('/api/resend-approval',view_func=functions.resend_approva
 routes_bp.add_url_rule('/api/save-form',view_func=functions.save_form,methods=['POST'])
 routes_bp.add_url_rule('/api/resubmit-form',view_func=functions.resubmit_form,methods=['POST'])
 
+
+@routes_bp.route('/form-edit')
+def form_edit_page():
+    token = request.args.get("token")
+    if not token:
+        return "Invalid link"
+    token_data, error = validate_token(token)
+    if error:
+        return error
+    request_id = token_data["request_id"]
+    form = queries.get_form_by_request_id(request_id)
+    return render_template(
+        "form_edit.html",
+        request_id=request_id,
+        form=form,
+        token=token
+    )
 
 @routes_bp.route('/approval')
 def approval_page():

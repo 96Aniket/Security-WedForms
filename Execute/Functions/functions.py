@@ -521,7 +521,8 @@ def create_request():
 
     request_id = queries.create_request(sender_email, receiver_email)
 
-    link = f"{BASE_URL}/form-fill/{request_id}"
+    token = generate_token(request_id, 0, receiver_email)
+    link = f"{BASE_URL}/form-fill?token={token}"
 
     send_mail_async(
         receiver_email,
@@ -622,9 +623,21 @@ def submit_form():
     data = request.form
     files = request.files
 
+    used_token = request.form.get("token")
+    token_data, error = validate_token(used_token)
+    if error:
+        return error
+
     request_id = data.get("request_id")
     if not request_id:
         return {"error": "request_id missing"}, 400
+    
+    # --------- CHECK FORM ALREADY SUBMITTED ---------
+    status = queries.get_request_status(request_id)
+
+    if status and status != "PENDING":
+        return {"error": "Form already submitted"}, 400
+    # -----------------------------------------------
 
     created_by = queries.get_receiver_email(request_id) or "unknown_user"
 
@@ -692,7 +705,7 @@ def submit_form():
         submitted_by=receiver_email,       
         sender_email=created_by
     )
-
+    mark_token_used(used_token)
     return jsonify({"status": "submitted successfully"})
 
 

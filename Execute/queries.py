@@ -2186,3 +2186,23 @@ def get_receiver_email(request_id):
         return None
 
     return row[0]
+
+
+def get_request_status(request_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT overall_status
+        FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
+        WHERE request_id = ?
+    """, (request_id,))
+
+    row = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return row[0] if row else None
+

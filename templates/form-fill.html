@@ -146,7 +146,9 @@
       <input type="hidden" name="n_sr_no">
       <input type="hidden" name="s_created_by" value="{{ user_email }}">
       <input type="hidden" name="dt_created_at">
+
       <input type="hidden" name="request_id" value="{{ request_id }}">
+      <input type="hidden" name="token" value="{{ token }}">
 
       <!-- BASIC DETAILS -->
       <div class="card">
@@ -422,14 +424,10 @@
 
 
   <script>
-
     document.getElementById("requisitionForm").addEventListener("submit", e => {
-
       e.preventDefault();
-
       const form = e.target;
       const formData = new FormData(form);
-
       ["s_police_verification_cert", "s_medical_certificate", "s_govt_id_proof", "s_hsse_training"]
         .forEach(k => {
           if (!formData.has(k)) {
@@ -438,19 +436,21 @@
             formData.set(k, 1);
           }
         });
-
       fetch("/api/submit-form", {
         method: "POST",
         body: formData
       })
         .then(r => r.json())
-        .then(() => {
-          alert("Requisition submitted successfully");
-          location.reload();
-        });
-
+        .then(res => {
+          if (res.status) {
+            alert("Requisition submitted successfully");
+            document.querySelector(".btn-save").disabled = true;
+            setTimeout(() => {
+              window.close();
+            }, 500);
+          }
+        })
     });
-
   </script>
 
 </body>
