@@ -12,7 +12,37 @@ from config import BASE_URL
 from utils.email_templates import approval_email_template
 from utils.async_mail import send_mail_async
 from utils.final_summary import send_final_summary
+from flask import redirect
 
+
+# =====================================================
+# LOGIN
+# =====================================================
+
+def login_user():
+
+    if request.method == "POST":
+
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        user = queries.authenticate_user(email, password)
+
+        if not user:
+            return render_template("login.html", error="Invalid User ID or Password")
+
+        role = "admin" if user[1] == 1 else "user"
+
+        session["user"] = {
+            "email": user[0],
+            "name": user[0].split("@")[0],
+            "location": user[2],
+            "role": role
+        }
+
+        return redirect("/")
+
+    return render_template("login.html")
 
 # =====================================================
 # COMMON RESPONSE HELPERS
@@ -1052,7 +1082,14 @@ def get_timeline_fn(request_id):
 
 
 def dashboard_requests_fn():
-    return jsonify(queries.get_dashboard_requests())
+
+    user = session.get("user", {})
+    user_email = user.get("email")
+    role = user.get("role")
+
+    data = queries.get_dashboard_requests(user_email, role)
+
+    return jsonify(data)
 
 
 def update_form():

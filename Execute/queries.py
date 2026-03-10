@@ -4,6 +4,31 @@ import pandas as pd
 import pyodbc
 
 # =====================================================
+# USER LOGIN
+# =====================================================
+
+def authenticate_user(email, password):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT s_email_id, n_role_id, s_location
+            FROM tbl_SECURITY_USER
+            WHERE s_email_id = ? AND s_password = ?
+        """, (email, password))
+
+        user = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        return user
+
+    except Exception as e:
+        return None
+
+# =====================================================
 #------------start Patrolling Observation Register-----
 # =====================================================
 
@@ -1955,18 +1980,28 @@ def get_request_timeline(request_id):
     return rows
 
 
-def get_dashboard_requests():
+def get_dashboard_requests(user_email, role):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT request_id, overall_status, current_level,
-               current_approver_email, last_action_time, sla_breached
-        FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
-        ORDER BY request_id DESC
-    """)
+    if role == "admin":
+        cursor.execute("""
+            SELECT request_id, overall_status, current_level,
+                   current_approver_email, last_action_time, sla_breached
+            FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
+            ORDER BY request_id DESC
+        """)
+    else:
+        cursor.execute("""
+            SELECT request_id, overall_status, current_level,
+                   current_approver_email, last_action_time, sla_breached
+            FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
+            WHERE initiator_email = ?
+            ORDER BY request_id DESC
+        """, (user_email,))
 
     rows = cursor.fetchall()
+
     cursor.close()
     conn.close()
 

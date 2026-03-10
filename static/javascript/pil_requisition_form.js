@@ -31,7 +31,7 @@ function requisitionDashboardApp() {
       console.error("Invalid dashboard data");
       return;
     }
-    const html = data.map(r => {
+    const html = data.map((r, index) => {
       let status = r.overall_status || "PENDING";
 
     if (r.current_level === 3 && r.overall_status === "PENDING") {
@@ -57,6 +57,7 @@ function requisitionDashboardApp() {
 
       return `
         <tr>
+          <td>${index + 1}</td>
           <td>${r.request_id}</td>
           <td class="${statusClass}">${status}</td>
           <td>${r.current_approver_email || "-"}</td>

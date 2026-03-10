@@ -19,43 +19,13 @@ def get_user_context():
         "user_role": user.get('role', 'user')
     }
 
+# =====================================================
+# AUTH ROUTES
+# =====================================================
+
 @routes_bp.route('/login', methods=['GET','POST'])
 def login():
-
-    if request.method == 'POST':
-
-        email = request.form.get("email")
-        password = request.form.get("password")
-
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        cursor.execute("""
-            SELECT s_email_id, n_role_id, s_location
-            FROM tbl_SECURITY_USER
-            WHERE s_email_id = ? AND s_password = ?
-        """,(email,password))
-
-        user = cursor.fetchone()
-
-        cursor.close()
-        conn.close()
-
-        if not user:
-            return render_template("login.html", error="Invalid User ID or Password")
-
-        role = "admin" if user[1] == 1 else "user"
-
-        session['user'] = {
-            "email": user[0],
-            "name": user[0].split('@')[0],
-            "location": user[2],
-            "role": role
-        }
-
-        return redirect("/")
-
-    return render_template("login.html")
+    return functions.login_user()
 
 @routes_bp.route('/logout')
 def logout():
@@ -112,10 +82,6 @@ def pil_visitor():
         **get_user_context()
     )
 
-
-@routes_bp.route('/form-fill')
-def form_fill():
-    return render_template('form-fill.html')
 
 @routes_bp.route('/approval_review')
 def approval_reviews():
