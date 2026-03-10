@@ -329,7 +329,7 @@
           <td>{{ t.approver_email }}</td>
           <td><b>{{ t.action_taken }}</b></td>
           <td>{{ t.remark or '-' }}</td>
-          <td>{{ t.action_time }}</td>
+          <td>{{ t.action_time.strftime("%Y-%m-%d %I:%M:%S %p") }}</td>
         </tr>
 
         {% endfor %}

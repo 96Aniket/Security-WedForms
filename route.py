@@ -86,13 +86,29 @@ def form_fill_page(request_id):
         "form-fill.html",
         request_id=request_id
     )
-@routes_bp.route('/form-edit/<int:request_id>')
-def form_edit_page(request_id):
+    
+@routes_bp.route('/form-edit')
+def form_edit_page():
+
+    token = request.args.get("token")
+
+    if not token:
+        return "Invalid link"
+
+    token_data, error = validate_token(token)
+
+    if error:
+        return error
+
+    request_id = token_data["request_id"]
+
     form = queries.get_form_by_request_id(request_id)
+
     return render_template(
         "form_edit.html",
         request_id=request_id,
-        form=form
+        form=form,
+        token=token
     )
 
 @routes_bp.route('/reports')

@@ -639,22 +639,22 @@ def submit_form():
         "s_location": data.get("s_location"),
         "dt_request_date": data.get("dt_request_date"),
         "s_first_name": data.get("s_first_name"),
-        "s_middle_name": data.get("s_middle_name"),   # ✅ ADDED
+        "s_middle_name": data.get("s_middle_name"),   
         "s_last_name": data.get("s_last_name"),
-        "s_photo": photo_bytes,                        # ✅ IMAGE BYTES
+        "s_photo": photo_bytes,                    
         "dt_date_of_birth": data.get("dt_date_of_birth"),
         "n_age": data.get("n_age"),
         "s_agency_name": data.get("s_agency_name"),
-        "s_sap_vendor_code": data.get("s_sap_vendor_code"),  # ✅ ADDED
+        "s_sap_vendor_code": data.get("s_sap_vendor_code"), 
         "s_nature_of_job": data.get("s_nature_of_job"),
         "s_work_order_no": data.get("s_work_order_no"),
         "dt_work_order_validity": data.get("dt_work_order_validity"),
         "dt_date_of_joining": data.get("dt_date_of_joining"),
         "s_exact_work_location": data.get("s_exact_work_location"),
-        "n_height_cm": data.get("n_height_cm"),        # ✅ ADDED
+        "n_height_cm": data.get("n_height_cm"),       
         "s_gender": data.get("s_gender"),
-        "s_blood_group": data.get("s_blood_group"),    # ✅ ADDED
-        "s_identification_mark": data.get("s_identification_mark"),  # ✅ ADDED
+        "s_blood_group": data.get("s_blood_group"),   
+        "s_identification_mark": data.get("s_identification_mark"),
         "s_aadhar_card_no": data.get("s_aadhar_card_no"),
         "s_present_address": data.get("s_present_address"),
         "s_present_city": data.get("s_present_city"),
@@ -666,10 +666,10 @@ def submit_form():
         "s_emergency_state": data.get("s_emergency_state"),
         "s_emergency_pincode": data.get("s_emergency_pincode"),
         "s_emergency_contact_no": data.get("s_emergency_contact_no"),
-        "s_police_verification_cert": chk("s_police_verification_cert"),  # ✅ ADDED
-        "s_medical_certificate": chk("s_medical_certificate"),            # ✅ ADDED
-        "s_govt_id_proof": chk("s_govt_id_proof"),                          # ✅ ADDED
-        "s_hsse_training": chk("s_hsse_training"),                          # ✅ ADDED
+        "s_police_verification_cert": chk("s_police_verification_cert"),  
+        "s_medical_certificate": chk("s_medical_certificate"),          
+        "s_govt_id_proof": chk("s_govt_id_proof"),                        
+        "s_hsse_training": chk("s_hsse_training"),                
     }
 
     form_sr_no = queries.insert_requisition_form(form_data, created_by)
@@ -808,18 +808,100 @@ def approval_action():
 
         prev_email = queries.get_current_approver(token_data['request_id'])
 
-        edit_link = f"{BASE_URL}/form-edit/{token_data['request_id']}"
+        edit_token = generate_token(
+            token_data['request_id'],
+            token_data['approval_level'],
+            prev_email
+        )
+
+        edit_link = f"{BASE_URL}/form-edit?token={edit_token}"
 
         try:
             send_mail_async(
                 prev_email,
                 "Requisition Rejected – Please Review",
                 f"""
-                <h3>Requisition Rejected</h3>
-                <p><b>Request ID:</b> {token_data['request_id']}</p>
-                <p><b>Rejected By:</b> {token_data['approver_email']}</p>
-                <p><b>Remark:</b> {remark}</p>
-                <a href="{edit_link}">Review & Modify Form</a>
+                <div style="font-family:Arial, Helvetica, sans-serif; background:#f4f6f8; padding:30px;">
+
+                <div style="max-width:650px; margin:auto; background:white; border-radius:8px;
+                            overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+
+                    <div style="background:#dc3545; padding:18px; color:white;
+                                font-size:18px; font-weight:bold;">
+                        Requisition Rejected – Please Review
+                    </div>
+
+                    <div style="padding:25px; color:#333; font-size:14px; line-height:1.6;">
+
+                        <p>Dear User,</p>
+
+                        <p>
+                        The requisition request has been reviewed and <b>rejected</b>.
+                        Please check the details below and update the form accordingly.
+                        </p>
+
+                        <table style="width:100%; border-collapse:collapse; margin-top:15px;">
+                            <tr>
+                                <td style="padding:6px; font-weight:bold;">Request ID</td>
+                                <td style="padding:6px;">{token_data['request_id']}</td>
+                            </tr>
+
+                            <tr style="background:#f7f7f7;">
+                                <td style="padding:6px; font-weight:bold;">Rejected By</td>
+                                <td style="padding:6px;">{token_data['approver_email']}</td>
+                            </tr>
+
+                            <tr>
+                                <td style="padding:6px; font-weight:bold;">Remark</td>
+                                <td style="padding:6px; color:#dc3545;"><b>{remark}</b></td>
+                            </tr>
+                        </table>
+
+                        <div style="text-align:center; margin:25px 0;">
+                            <a href="{edit_link}"
+                            style="
+                                background:#6a11cb;
+                                background:linear-gradient(135deg,#6a11cb,#2575fc);
+                                padding:12px 26px;
+                                color:white;
+                                text-decoration:none;
+                                border-radius:6px;
+                                font-weight:bold;
+                                display:inline-block;
+                            ">
+                            Review & Modify Form
+                            </a>
+                        </div>
+
+                        <p>
+                        Please review the rejection remark, update the form if required,
+                        and resubmit it for approval.
+                        </p>
+
+                        <p style="margin-top:25px;">
+                        Regards,<br>
+                        <b>Security Department</b><br>
+                        Pipeline Infrastructure Limited
+                        </p>
+
+                    </div>
+
+                    <div style="
+                        background:#e9f2ff;
+                        padding:14px;
+                        text-align:center;
+                        font-size:13px;
+                        color:#1a3c8b;
+                        border-top:2px solid #0d6efd;
+                        font-weight:500;
+                    ">
+                        ⚠ This is an automated notification from the
+                        <b>Security Records Digitization System</b>.
+                    </div>
+
+                </div>
+
+                </div>
                 """,
                 sender_email=token_data['approver_email']
             )
@@ -993,6 +1075,9 @@ def resubmit_form():
     data = request.form
     request_id = data['request_id']
 
+    used_token = request.form.get("token")
+    mark_token_used(used_token)
+
     queries.update_requisition_form(data)
 
     conn = get_connection()
@@ -1047,11 +1132,82 @@ def resubmit_form():
     send_mail_async(
         to_email=rejector_email,
         subject="Requisition Resubmitted - Review Again",
-        body=f"""
-        <p>The requisition form has been corrected and resubmitted.</p>
-        <a href="{BASE_URL}/approval?token={token}">
-            Review Again
-        </a>
+        body = f"""
+        <div style="font-family:Arial, Helvetica, sans-serif; background:#f4f6f8; padding:30px;">
+
+        <div style="max-width:650px; margin:auto; background:white; border-radius:8px;
+                    overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+
+            <div style="background:#0d6efd; padding:18px; color:white;
+                        font-size:18px; font-weight:bold;">
+                Requisition Resubmitted – Review Required
+            </div>
+
+            <div style="padding:25px; color:#333; font-size:14px; line-height:1.6;">
+
+                <p>Dear Approver,</p>
+
+                <p>
+                The requisition form has been <b>corrected and resubmitted</b> by the requester
+                after addressing the rejection remarks.
+                </p>
+
+                <table style="width:100%; border-collapse:collapse; margin-top:15px;">
+                    <tr>
+                        <td style="padding:6px; font-weight:bold;">Request ID</td>
+                        <td style="padding:6px;">{request_id}</td>
+                    </tr>
+
+                    <tr style="background:#f7f7f7;">
+                        <td style="padding:6px; font-weight:bold;">Resubmitted By</td>
+                        <td style="padding:6px;">{session['user']['email']}</td>
+                    </tr>
+                </table>
+
+                <div style="text-align:center; margin:25px 0;">
+                    <a href="{BASE_URL}/approval?token={token}"
+                    style="
+                        background:#6a11cb;
+                        background:linear-gradient(135deg,#6a11cb,#2575fc);
+                        padding:12px 26px;
+                        color:white;
+                        text-decoration:none;
+                        border-radius:6px;
+                        font-weight:bold;
+                        display:inline-block;
+                    ">
+                    Review Again
+                    </a>
+                </div>
+
+                <p>
+                Please review the updated form and proceed with the approval process.
+                </p>
+
+                <p style="margin-top:25px;">
+                Regards,<br>
+                <b>Security Department</b><br>
+                Pipeline Infrastructure Limited
+                </p>
+
+            </div>
+
+            <div style="
+                background:#e9f2ff;
+                padding:14px;
+                text-align:center;
+                font-size:13px;
+                color:#1a3c8b;
+                border-top:2px solid #0d6efd;
+                font-weight:500;
+            ">
+                ⚠ This is an automated notification from the
+                <b>Security Records Digitization System</b>.
+            </div>
+
+        </div>
+
+        </div>
         """,
         sender_email=session['user']['email']
     )

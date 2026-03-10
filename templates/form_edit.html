@@ -3,24 +3,384 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Update Requisition Form</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .field {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #444;
+        }
+
+        input,
+        textarea,
+        select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .doc-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .doc-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-save {
+            display: block;
+            width: 220px;
+            margin: auto;
+            margin-top: 25px;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 
 <body>
-    <h3>Correct Requisition Form</h3>
 
-    <form method="POST" action="/api/resubmit-form">
-    <input type="hidden" name="request_id" value="{{ request_id }}">
+    <div class="container">
 
-    <label>Job</label>
-    <input name="s_nature_of_job" value="{{ form.s_nature_of_job }}">
+        <div class="header">
+            Update Requisition Form
+        </div>
 
-    <label>Location</label>
-    <input name="s_location" value="{{ form.s_location }}">
+        <form id="requisitionForm" enctype="multipart/form-data">
 
-    <button type="submit">Save & Resubmit</button>
-    </form>
+            <input type="hidden" name="request_id" value="{{ request_id }}">
+            <input type="hidden" name="token" value="{{ token }}">
+
+            <!-- BASIC DETAILS -->
+            <div class="card">
+                <h3>Basic Details</h3>
+
+                <div class="row">
+                    <div class="field">
+                        <label>Location</label>
+                        <input name="s_location" value="{{ form.s_location }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Request Date</label>
+                        <input type="date" name="dt_request_date" value="{{ form.dt_request_date }}" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <label>First Name</label>
+                        <input name="s_first_name" value="{{ form.s_first_name }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Middle Name</label>
+                        <input name="s_middle_name" value="{{ form.s_middle_name }}">
+                    </div>
+
+                    <div class="field">
+                        <label>Last Name</label>
+                        <input name="s_last_name" value="{{ form.s_last_name }}" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <label>Upload Passport Size Photo</label>
+                        <input type="file" name="s_photo">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <label>Date of Birth</label>
+                        <input type="date" name="dt_date_of_birth" value="{{ form.dt_date_of_birth }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Age</label>
+                        <input type="number" name="n_age" value="{{ form.n_age }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Gender</label>
+                        <select name="s_gender" required>
+
+                            <option value="">Select</option>
+
+                            <option value="Male" {% if form.s_gender=='Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if form.s_gender=='Female' %}selected{% endif %}>Female</option>
+                            <option value="Other" {% if form.s_gender=='Other' %}selected{% endif %}>Other</option>
+
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- WORK DETAILS -->
+            <div class="card">
+                <h3>Work Details</h3>
+
+                <div class="row">
+                    <div class="field">
+                        <label>Agency Name</label>
+                        <input name="s_agency_name" value="{{ form.s_agency_name }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label>SAP Vendor Code</label>
+                        <input name="s_sap_vendor_code" value="{{ form.s_sap_vendor_code }}">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <label>Nature of Job</label>
+                        <input name="s_nature_of_job" value="{{ form.s_nature_of_job }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Work Order No</label>
+                        <input name="s_work_order_no" value="{{ form.s_work_order_no }}" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <label>Work Order Validity</label>
+                        <input type="date" name="dt_work_order_validity" value="{{ form.dt_work_order_validity }}"
+                            required>
+                    </div>
+
+                    <div class="field">
+                        <label>Date of Joining</label>
+                        <input type="date" name="dt_date_of_joining" value="{{ form.dt_date_of_joining }}" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <label>Exact Work Location</label>
+                        <input name="s_exact_work_location" value="{{ form.s_exact_work_location }}" required>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- IDENTIFICATION -->
+            <div class="card">
+                <h3>Identification</h3>
+
+                <div class="row">
+
+                    <div class="field">
+                        <label>Height (cm)</label>
+                        <input type="number" name="n_height_cm" value="{{ form.n_height_cm }}">
+                    </div>
+
+                    <div class="field">
+                        <label>Blood Group</label>
+                        <input name="s_blood_group" value="{{ form.s_blood_group }}">
+                    </div>
+
+                    <div class="field">
+                        <label>Identification Mark</label>
+                        <input name="s_identification_mark" value="{{ form.s_identification_mark }}">
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="field">
+                        <label>Aadhar Card No</label>
+                        <input name="s_aadhar_card_no" value="{{ form.s_aadhar_card_no }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Contact No</label>
+                        <input name="s_contact_no" value="{{ form.s_contact_no }}" required>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- DOCUMENTS -->
+            <div class="card">
+                <h3>Documents</h3>
+
+                <div class="doc-row">
+
+                    <label class="doc-label">
+                        <input type="checkbox" name="s_police_verification_cert" {% if form.s_police_verification_cert
+                            %}checked{% endif %}>
+                        Police Verification
+                    </label>
+
+                    <label class="doc-label">
+                        <input type="checkbox" name="s_medical_certificate" {% if form.s_medical_certificate %}checked{%
+                            endif %}>
+                        Medical Certificate
+                    </label>
+
+                    <label class="doc-label">
+                        <input type="checkbox" name="s_govt_id_proof" {% if form.s_govt_id_proof %}checked{% endif %}>
+                        Govt ID Proof
+                    </label>
+
+                    <label class="doc-label">
+                        <input type="checkbox" name="s_hsse_training" {% if form.s_hsse_training %}checked{% endif %}>
+                        HSSE Training
+                    </label>
+
+                </div>
+
+            </div>
+
+            <button type="submit" class="btn-save">
+                Save & Resubmit
+            </button>
+
+        </form>
+
+        <div class="footer">
+            Security Records Digitization System
+            Pipeline Infrastructure Limited
+        </div>
+
+    </div>
+
+
+    <script>
+        document.getElementById("requisitionForm").addEventListener("submit", function (e) {
+
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const submitBtn = document.querySelector(".btn-save");
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Submitting...";
+
+            const checkboxFields = [
+                "s_police_verification_cert",
+                "s_medical_certificate",
+                "s_govt_id_proof",
+                "s_hsse_training"
+            ];
+
+            checkboxFields.forEach(function (k) {
+
+                if (!formData.has(k)) {
+                    formData.append(k, 0);
+                } else {
+                    formData.set(k, 1);
+                }
+
+            });
+
+            fetch("/api/resubmit-form", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(res => {
+                    if (res.status === "resubmitted") {
+                        alert("Form updated and resubmitted successfully");
+                        window.close();
+                    } else {
+                        alert(res.error || "Something went wrong");
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Save & Resubmit";
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Server error");
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Save & Resubmit";
+                });
+        });
+
+    </script>
+
 </body>
 
 </html>

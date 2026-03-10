@@ -2027,23 +2027,70 @@ def reject_email_template(request_id, remark):
 
 
 def update_requisition_form(data):
+
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
         UPDATE tbl_SECURITY_REQUISITION_FORM_MASTER
         SET
-            s_nature_of_job = ?,
-            s_location      = ?
+            s_location=?,
+            dt_request_date=?,
+            s_first_name=?,
+            s_middle_name=?,
+            s_last_name=?,
+            dt_date_of_birth=?,
+            n_age=?,
+            s_gender=?,
+            s_agency_name=?,
+            s_sap_vendor_code=?,
+            s_nature_of_job=?,
+            s_work_order_no=?,
+            dt_work_order_validity=?,
+            dt_date_of_joining=?,
+            s_exact_work_location=?,
+            n_height_cm=?,
+            s_blood_group=?,
+            s_identification_mark=?,
+            s_aadhar_card_no=?,
+            s_contact_no=?,
+            s_police_verification_cert=?,
+            s_medical_certificate=?,
+            s_govt_id_proof=?,
+            s_hsse_training=?
         WHERE n_sr_no = (
             SELECT form_sr_no
             FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
             WHERE request_id = ?
         )
     """, (
-        data.get('s_nature_of_job'),
-        data.get('s_location'),
-        data.get('request_id')
+
+        data.get("s_location"),
+        data.get("dt_request_date"),
+        data.get("s_first_name"),
+        data.get("s_middle_name"),
+        data.get("s_last_name"),
+        data.get("dt_date_of_birth"),
+        data.get("n_age"),
+        data.get("s_gender"),
+        data.get("s_agency_name"),
+        data.get("s_sap_vendor_code"),
+        data.get("s_nature_of_job"),
+        data.get("s_work_order_no"),
+        data.get("dt_work_order_validity"),
+        data.get("dt_date_of_joining"),
+        data.get("s_exact_work_location"),
+        data.get("n_height_cm"),
+        data.get("s_blood_group"),
+        data.get("s_identification_mark"),
+        data.get("s_aadhar_card_no"),
+        data.get("s_contact_no"),
+        data.get("s_police_verification_cert"),
+        data.get("s_medical_certificate"),
+        data.get("s_govt_id_proof"),
+        data.get("s_hsse_training"),
+        data.get("request_id")
+
     ))
 
     conn.commit()
@@ -2085,38 +2132,38 @@ def get_current_approver(request_id):
     return row.current_approver_email if row else None
 
 
-def get_rejector(request_id):
-    conn = get_connection()
-    cursor = conn.cursor()
+# def get_rejector(request_id):
+#     conn = get_connection()
+#     cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT rejected_from_level
-        FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
-        WHERE request_id = ?
-    """, (request_id,))
+#     cursor.execute("""
+#         SELECT rejected_from_level
+#         FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
+#         WHERE request_id = ?
+#     """, (request_id,))
 
-    row = cursor.fetchone()
+#     row = cursor.fetchone()
 
-    if not row or row.rejected_from_level is None:
-        cursor.close()
-        conn.close()
-        return None, None
+#     if not row or row.rejected_from_level is None:
+#         cursor.close()
+#         conn.close()
+#         return None, None
 
-    rejected_level = row.rejected_from_level
+#     rejected_level = row.rejected_from_level
 
-    cursor.execute("""
-        SELECT approver_email
-        FROM tbl_SECURITY_APPROVAL_ACTION_LOGS
-        WHERE request_id = ?
-          AND approval_level = ?
-          AND action_taken = 'REJECT'
-    """, (request_id, rejected_level))
+#     cursor.execute("""
+#         SELECT approver_email
+#         FROM tbl_SECURITY_APPROVAL_ACTION_LOGS
+#         WHERE request_id = ?
+#           AND approval_level = ?
+#           AND action_taken = 'REJECT'
+#     """, (request_id, rejected_level))
 
-    approver_row = cursor.fetchone()
-    cursor.close()
-    conn.close()
+#     approver_row = cursor.fetchone()
+#     cursor.close()
+#     conn.close()
 
-    return rejected_level, approver_row.approver_email if approver_row else None
+#     return rejected_level, approver_row.approver_email if approver_row else None
 
 
 def get_receiver_email(request_id):
