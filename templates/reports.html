@@ -20,12 +20,30 @@
 
     <h2>Reports</h2>
 
-    <div id="profileAvatar">
-      <div id="profileInitials">
-        {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+    <div style="position:relative;">
+
+      <div id="profileAvatar"
+        style="display:flex;align-items:center;cursor:pointer;background:#fff;padding:6px 10px;border-radius:50px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+
+        <div style="background:#007bff;color:#fff;width:32px;height:32px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1rem;">
+          {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+        </div>
+
+        <span style="margin-left:8px;font-weight:bold;color:#333;font-size:.9rem;">
+          {{ (session.get('user') or {}).get('name','Guest User') }}
+        </span>
       </div>
-      <span style="margin-left:8px;font-weight:bold;color:black;">
-        {{ (session.get('user') or {}).get('name','Guest User') }}</span>
+
+      <div id="profileMenu" style="display:none;position:absolute;right:0;top:45px;background:#fff;border-radius:8px;
+    box-shadow:0 8px 16px rgba(0,0,0,0.15);min-width:120px;overflow:hidden;">
+
+        <a href="/logout" style="display:block;padding:10px 14px;text-decoration:none;color:#333;">
+          Logout
+        </a>
+
+      </div>
+
     </div>
   </header>
   <div class="reports-container">
@@ -40,14 +58,13 @@
         </select>
       </div>
 
-
       <!-- LOCATION DROPDOWN (ADMIN ONLY) -->
-<div class="filter-item" id="locationFilter" style="display:none;">
-  <label>Location</label>
-  <select id="locationSelect">
-    <option value="">Select Location</option>
-  </select>
-</div>
+      <div class="filter-item" id="locationFilter" style="display:none;">
+        <label>Location</label>
+        <select id="locationSelect">
+          <option value="">Select Location</option>
+        </select>
+      </div>
 
       <!-- START DATE -->
       <div class="filter-item">
@@ -73,7 +90,7 @@
   <script>const USER_LOCATION = "{{ session['user']['location'] }}";
     const USER_ROLE = "{{ session['user']['role'] }}";
   </script>
-  
+
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="{{ url_for('static', filename='javascript/reports.js') }}"></script>
 </body>

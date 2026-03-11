@@ -11,225 +11,243 @@
 
 <body>
 
-<header class="header-dashboard">
-  <div class="hamburger-dashboard">
-    ☰
-    <a href="{{ url_for('routes_bp.home') }}">
-      <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
-    </a>
-  </div>
-
-  <h2>Visitor Declaration Slip</h2>
-
-  <div id="profileAvatar">
-    <div id="profileInitials">
-      {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+  <header class="header-dashboard">
+    <div class="hamburger-dashboard">
+      ☰
+      <a href="{{ url_for('routes_bp.home') }}">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
+      </a>
     </div>
-    <span style="margin-left:8px;font-weight:bold;color:black;">
-      {{ (session.get('user') or {}).get('name','Guest User') }}
-    </span>
-  </div>
-</header>
 
-<div class="container">
+    <h2>Visitor Declaration Slip</h2>
 
-<!-- PAGINATION -->
-<div class="toolbar" id="paginationBar">
-  <div class="pagination">
-    <button id="prevBtn" onclick="prevPage()">◀ Back</button>
-    <span id="pageInfo"></span>
-    <button id="nextBtn" onclick="nextPage()">Next ▶</button>
-  </div>
-</div>
+    <div style="position:relative;">
 
-<!-- ================= LIST VIEW ================= -->
-<div id="listView">
+      <div id="profileAvatar"
+        style="display:flex;align-items:center;cursor:pointer;background:#fff;padding:6px 10px;border-radius:50px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
 
-<table id="masterTable">
-<thead>
-<tr>
-  <th>Sr No</th>
-  <th>Location</th>
-  <th>Visitor Name</th>
-  <th>Host Name</th>
-  <th>Pass No</th>
-  <th>Date / Time</th>
+        <div style="background:#007bff;color:#fff;width:32px;height:32px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1rem;">
+          {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+        </div>
 
-  {% if user_role != 'admin' %}
-  <th>Action</th>
-  {% endif %}
+        <span style="margin-left:8px;font-weight:bold;color:#333;font-size:.9rem;">
+          {{ (session.get('user') or {}).get('name','Guest User') }}
+        </span>
+      </div>
 
-</tr>
-</thead>
-<tbody></tbody>
+      <div id="profileMenu" style="display:none;position:absolute;right:0;top:45px;background:#fff;border-radius:8px;
+    box-shadow:0 8px 16px rgba(0,0,0,0.15);min-width:120px;overflow:hidden;">
 
-<!-- MASTER ROW TEMPLATE -->
-<template id="visitorRowTemplate">
-<tr>
-  <td class="sr-no"></td>
-  <td class="location"></td>
-  <td class="visitor-name"></td>
-  <td class="host-name"></td>
-  <td class="pass-no"></td>
-  <td class="visit-datetime"></td>
+        <a href="/logout" style="display:block;padding:10px 14px;text-decoration:none;color:#333;">
+          Logout
+        </a>
 
-  {% if user_role != 'admin' %}
-  <td class="action-col">
-    <button class="icon-btn edit">
-      <i class="fa fa-pen"></i>
-    </button>
-    <button class="icon-btn delete">
-      <i class="fa fa-trash"></i>
-    </button>
-    <button class="icon-btn download">
-      <i class="fa-solid fa-download"></i>
-    </button>
-  </td>
-  {% endif %}
+      </div>
 
-</tr>
-</template>
+    </div>
+  </header>
 
-</table>
+  <div class="container">
 
-<div class="table-footer">
+    <!-- PAGINATION -->
+    <div class="toolbar" id="paginationBar">
+      <div class="pagination">
+        <button id="prevBtn" onclick="prevPage()">◀ Back</button>
+        <span id="pageInfo"></span>
+        <button id="nextBtn" onclick="nextPage()">Next ▶</button>
+      </div>
+    </div>
 
-{% if user_role != 'admin' %}
-<button class="btn-add" onclick="openAddForm()">Add Data</button>
-{% endif %}
+    <!-- ================= LIST VIEW ================= -->
+    <div id="listView">
 
-<button class="btn-download" onclick="downloadTable()">
-  <i class="fa-solid fa-download"></i> Download
-</button>
+      <table id="masterTable">
+        <thead>
+          <tr>
+            <th>Sr No</th>
+            <th>Location</th>
+            <th>Visitor Name</th>
+            <th>Host Name</th>
+            <th>Pass No</th>
+            <th>Date / Time</th>
 
-</div>
+            {% if user_role != 'admin' %}
+            <th>Action</th>
+            {% endif %}
 
-</div>
+          </tr>
+        </thead>
+        <tbody></tbody>
 
-<!-- ================= STEP 1 ================= -->
-<div id="step1" class="form-box">
-<h3>Visitor Details</h3>
+        <!-- MASTER ROW TEMPLATE -->
+        <template id="visitorRowTemplate">
+          <tr>
+            <td class="sr-no"></td>
+            <td class="location"></td>
+            <td class="visitor-name"></td>
+            <td class="host-name"></td>
+            <td class="pass-no"></td>
+            <td class="visit-datetime"></td>
 
-<div class="row">
-  <div class="field">
-    <label for="s_location">Location</label>
-    <input id="s_location">
-  </div>
+            {% if user_role != 'admin' %}
+            <td class="action-col">
+              <button class="icon-btn edit">
+                <i class="fa fa-pen"></i>
+              </button>
+              <button class="icon-btn delete">
+                <i class="fa fa-trash"></i>
+              </button>
+              <button class="icon-btn download">
+                <i class="fa-solid fa-download"></i>
+              </button>
+            </td>
+            {% endif %}
 
-  <div class="field">
-    <label for="s_visitor_name">Visitor Name</label>
-    <input id="s_visitor_name">
-  </div>
+          </tr>
+        </template>
 
-  <div class="field">
-    <label for="s_host_name">Host Name</label>
-    <input id="s_host_name">
-  </div>
-</div>
+      </table>
 
-<div class="row">
-  <div class="field">
-    <label for="s_visitor_pass_no">Visitor Pass No</label>
-    <input id="s_visitor_pass_no">
-  </div>
+      <div class="table-footer">
 
-  <div class="field">
-    <label for="s_whom_to_meet">Whom To Meet</label>
-    <input id="s_whom_to_meet">
-  </div>
-</div>
+        {% if user_role != 'admin' %}
+        <button class="btn-add" onclick="openAddForm()">Add Data</button>
+        {% endif %}
 
-<div class="row">
-  <div class="field">
-    <label for="dt_visit_datetime">Visit Date & Time</label>
-    <input type="datetime-local" id="dt_visit_datetime">
-  </div>
+        <button class="btn-download" onclick="downloadTable()">
+          <i class="fa-solid fa-download"></i> Download
+        </button>
 
-  <div class="field"></div> 
-</div>
+      </div>
+
+    </div>
+
+    <!-- ================= STEP 1 ================= -->
+    <div id="step1" class="form-box">
+      <h3>Visitor Details</h3>
+
+      <div class="row">
+        <div class="field">
+          <label for="s_location">Location</label>
+          <input id="s_location">
+        </div>
+
+        <div class="field">
+          <label for="s_visitor_name">Visitor Name</label>
+          <input id="s_visitor_name">
+        </div>
+
+        <div class="field">
+          <label for="s_host_name">Host Name</label>
+          <input id="s_host_name">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="s_visitor_pass_no">Visitor Pass No</label>
+          <input id="s_visitor_pass_no">
+        </div>
+
+        <div class="field">
+          <label for="s_whom_to_meet">Whom To Meet</label>
+          <input id="s_whom_to_meet">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="dt_visit_datetime">Visit Date & Time</label>
+          <input type="datetime-local" id="dt_visit_datetime">
+        </div>
+
+        <div class="field"></div>
+      </div>
 
 
-<!-- ================= STEP 2 ================= -->
-<div id="step2" class="form-box">
-<h3>Item Details</h3>
+      <!-- ================= STEP 2 ================= -->
+      <div id="step2" class="form-box">
+        <h3>Item Details</h3>
 
-<div class="row">
-  <div class="field field-small">
-    <label for="item_desc">Item Code / Description</label>
-    <input id="item_desc">
-  </div>
+        <div class="row">
+          <div class="field field-small">
+            <label for="item_desc">Item Code / Description</label>
+            <input id="item_desc">
+          </div>
 
-  <div class="field field-xsmall">
-    <label for="item_uom">UOM</label>
-    <input id="item_uom">
-  </div>
+          <div class="field field-xsmall">
+            <label for="item_uom">UOM</label>
+            <input id="item_uom">
+          </div>
 
-  <div class="field field-xsmall">
-    <label for="item_qty">Quantity</label>
-    <input id="item_qty" type="number">
-  </div>
-</div>
+          <div class="field field-xsmall">
+            <label for="item_qty">Quantity</label>
+            <input id="item_qty" type="number">
+          </div>
+        </div>
 
-{% if user_role != 'admin' %}
-<button onclick="addItem()">Add Item</button>
-{% endif %}
+        {% if user_role != 'admin' %}
+        <button onclick="addItem()">Add Item</button>
+        {% endif %}
 
-<table id="itemTable">
-<thead>
-<tr>
-  <th>Description</th>
-  <th>UOM</th>
-  <th>Qty</th>
+        <table id="itemTable">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>UOM</th>
+              <th>Qty</th>
 
-  {% if user_role != 'admin' %}
-  <th>Action</th>
-  {% endif %}
+              {% if user_role != 'admin' %}
+              <th>Action</th>
+              {% endif %}
 
-</tr>
-</thead>
-<tbody></tbody>
+            </tr>
+          </thead>
+          <tbody></tbody>
 
-<!-- ITEM ROW TEMPLATE -->
-<template id="itemRowTemplate">
-<tr>
-  <td class="desc"></td>
-  <td class="uom"></td>
-  <td class="qty"></td>
+          <!-- ITEM ROW TEMPLATE -->
+          <template id="itemRowTemplate">
+            <tr>
+              <td class="desc"></td>
+              <td class="uom"></td>
+              <td class="qty"></td>
 
-  {% if user_role != 'admin' %}
-  <td>
-    <button class="icon-btn edit">
-      <i class="fa fa-pen"></i>
-    </button>
-    <button class="icon-btn delete">
-      <i class="fa fa-trash"></i>
-    </button>
-  </td>
-  {% endif %}
+              {% if user_role != 'admin' %}
+              <td>
+                <button class="icon-btn edit">
+                  <i class="fa fa-pen"></i>
+                </button>
+                <button class="icon-btn delete">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </td>
+              {% endif %}
 
-</tr>
-</template>
+            </tr>
+          </template>
 
-</table>
+        </table>
 
-<br>
+        <br>
 
-{% if user_role != 'admin' %}
-<button class="btn-save" onclick="saveData()">Save</button>
-{% endif %}
+        {% if user_role != 'admin' %}
+        <button class="btn-save" onclick="saveData()">Save</button>
+        {% endif %}
 
-</div>
+      </div>
 
-</div>
+    </div>
 
-<script>
-  const USER_LOCATION = "{{ user_location }}";
-  const USER_ROLE = "{{ user_role }}";
-</script>
+    <script>
+      const USER_LOCATION = "{{ user_location }}";
+      const USER_ROLE = "{{ user_role }}";
+    </script>
 
-<script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="{{ url_for('static', filename='javascript/visitor_declaration.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ url_for('static', filename='javascript/visitor_declaration.js') }}"></script>
 
 </body>
+
 </html>

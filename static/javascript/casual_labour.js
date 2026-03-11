@@ -15,67 +15,63 @@ function casualLabourApp() {
   const nextBtn = document.getElementById("nextBtn");
 
   function formatLocation(loc) {
-  if (!loc) return "";
-  if (/^[A-Z]{2}-\d{2}$/.test(loc)) {
+    if (!loc) return "";
+    if (/^[A-Z]{2}-\d{2}$/.test(loc)) {
+      return loc;
+    }
+    const match = loc.match(/^([A-Z]{2})(\d{2})$/);
+    if (match) {
+      return `${match[1]}-${match[2]}`;
+    }
     return loc;
   }
-  const match = loc.match(/^([A-Z]{2})(\d{2})$/);
-  if (match) {
-    return `${match[1]}-${match[2]}`;
+
+  function markMandatory(input) {
+    if (!input) return;
+
+    input.classList.add("mandatory-error");
+
+    const field = input.closest(".field");
+    if (!field) return;
+
+    const label = field.querySelector("label");
+    if (!label) return;
+
+    // prevent duplicate stars
+    if (!label.querySelector(".mandatory-star")) {
+      const star = document.createElement("span");
+      star.className = "mandatory-star";
+      star.textContent = "*";
+      label.appendChild(star);
+    }
   }
-  return loc;
-}
 
- function markMandatory(input) {
-  if (!input) return;
-
-  input.classList.add("mandatory-error");
-
-  const field = input.closest(".field");
-  if (!field) return;
-
-  const label = field.querySelector("label");
-  if (!label) return;
-
-  // prevent duplicate stars
-  if (!label.querySelector(".mandatory-star")) {
-    const star = document.createElement("span");
-    star.className = "mandatory-star";
-    star.textContent = "*";
-    label.appendChild(star);
+  function markUnsaved() {
+    hasUnsavedChanges = true;
+    $(".btn-save").addClass("unsaved").text("Save (Required)");
   }
-}
 
-function markUnsaved() {
-  hasUnsavedChanges = true;
-  $(".btn-save").addClass("unsaved").text("Save (Required)");
-}
-
-function clearUnsaved() {
-  hasUnsavedChanges = false;
-  $(".btn-save").removeClass("unsaved").text("Save");
-}
-
-
-
-function clearMandatory(input) {
-  input.classList.remove("mandatory-error");
-
-  const field = input.closest(".field");
-  if (!field) return;
-
-  const label = field.querySelector("label");
-  const star = label?.querySelector(".mandatory-star");
-  if (star) star.remove();
-}
-
-
-document.addEventListener("input", e => {
-  if (e.target.classList.contains("mandatory-error")) {
-    clearMandatory(e.target);
+  function clearUnsaved() {
+    hasUnsavedChanges = false;
+    $(".btn-save").removeClass("unsaved").text("Save");
   }
-});
 
+  function clearMandatory(input) {
+    input.classList.remove("mandatory-error");
+
+    const field = input.closest(".field");
+    if (!field) return;
+
+    const label = field.querySelector("label");
+    const star = label?.querySelector(".mandatory-star");
+    if (star) star.remove();
+  }
+
+  document.addEventListener("input", (e) => {
+    if (e.target.classList.contains("mandatory-error")) {
+      clearMandatory(e.target);
+    }
+  });
 
   function isValidMobile(mobile) {
     return /^[0-9]{10}$/.test(mobile);
@@ -145,7 +141,7 @@ document.addEventListener("input", e => {
 
   function renderTable() {
     if (USER_ROLE !== "admin") {
-  }
+    }
 
     const tbody = $("#masterTable tbody");
     tbody.empty();
@@ -180,22 +176,21 @@ document.addEventListener("input", e => {
     });
   }
 
-function renderPage() {
-  const tbody = $("#masterTable tbody");
-  tbody.empty();
+  function renderPage() {
+    const tbody = $("#masterTable tbody");
+    tbody.empty();
 
-  const totalRecords = allData.length;
-  const start = (currentPage - 1) * rowsPerPage;
-  const end = start + rowsPerPage;
-  const pageData = allData.slice(start, end);
+    const totalRecords = allData.length;
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    const pageData = allData.slice(start, end);
 
-  pageData.forEach((r, index) => {
+    pageData.forEach((r, index) => {
+      let actionColumn = "";
 
-    let actionColumn = "";
-
-    // Show action column only if NOT admin
-    if (USER_ROLE !== "admin") {
-      actionColumn = `
+      // Show action column only if NOT admin
+      if (USER_ROLE !== "admin") {
+        actionColumn = `
         <td class="action-col">
           <button class="icon-btn edit">
             <i class="fa-solid fa-pen"></i>
@@ -208,10 +203,10 @@ function renderPage() {
           </button>
         </td>
       `;
-    }
-    const srNo = start + index + 1;
+      }
+      const srNo = start + index + 1;
 
-    const tr = $(`
+      const tr = $(`
       <tr>
         <td class="sr-no">${srNo}</td>
         <td>${formatLocation(r.s_location)}</td>
@@ -224,14 +219,12 @@ function renderPage() {
       </tr>
     `);
 
-    tr.data("record", r);
-    tbody.append(tr);
-  });
+      tr.data("record", r);
+      tbody.append(tr);
+    });
 
-  updatePaginationButtons();
-}
-
-
+    updatePaginationButtons();
+  }
 
   /* pagination control functions */
   function updatePaginationButtons() {
@@ -315,48 +308,43 @@ function renderPage() {
     const mobile = $("#labour_mobile").val().trim();
     const idType = $("#labour_id_type").val();
     const rawIdNo = $("#labour_id_no").val().trim();
-    $("#addLabourBtn")
-  .text("Add Labour")
-  .removeClass("update-mode");
-
+    $("#addLabourBtn").text("Add Labour").removeClass("update-mode");
 
     /* ===== REQUIRED FIELDS ===== */
     let labourValid = true;
 
-if (!name) {
-  markMandatory(document.getElementById("labour_name"));
-  labourValid = false;
-}
+    if (!name) {
+      markMandatory(document.getElementById("labour_name"));
+      labourValid = false;
+    }
 
-if (!mobile) {
-  markMandatory(document.getElementById("labour_mobile"));
-  labourValid = false;
-}
+    if (!mobile) {
+      markMandatory(document.getElementById("labour_mobile"));
+      labourValid = false;
+    }
 
-if (!idType) {
-  markMandatory(document.getElementById("labour_id_type"));
-  labourValid = false;
-}
+    if (!idType) {
+      markMandatory(document.getElementById("labour_id_type"));
+      labourValid = false;
+    }
 
-if (!rawIdNo) {
-  markMandatory(document.getElementById("labour_id_no"));
-  labourValid = false;
-}
+    if (!rawIdNo) {
+      markMandatory(document.getElementById("labour_id_no"));
+      labourValid = false;
+    }
 
-if (!labourValid) {
-  alert("Please fill mandatory Labour details.");
-  return;
-}
+    if (!labourValid) {
+      alert("Please fill mandatory Labour details.");
+      return;
+    }
 
-const ageNum = Number(age);
+    const ageNum = Number(age);
 
-if (!Number.isInteger(ageNum) || ageNum < 1) {
-  markMandatory(document.getElementById("labour_age"));
-  alert("Age must be a valid number greater than 0.");
-  return;
-}
-
-
+    if (!Number.isInteger(ageNum) || ageNum < 1) {
+      markMandatory(document.getElementById("labour_age"));
+      alert("Age must be a valid number greater than 0.");
+      return;
+    }
 
     /* ===== MOBILE ===== */
     if (!isValidMobile(mobile)) {
@@ -416,20 +404,17 @@ if (!Number.isInteger(ageNum) || ageNum < 1) {
     clearLabour();
     markUnsaved();
     $("#addLabourBtn").text("Add Labour");
-
-
   };
 
-function renderLabours() {
-  const tbody = $("#labourTable tbody");
-  tbody.empty();
+  function renderLabours() {
+    const tbody = $("#labourTable tbody");
+    tbody.empty();
 
-  labours.forEach((l, i) => {
+    labours.forEach((l, i) => {
+      let actionColumn = "";
 
-    let actionColumn = "";
-
-    if (USER_ROLE !== "admin") {
-      actionColumn = `
+      if (USER_ROLE !== "admin") {
+        actionColumn = `
         <td>
           <button class="icon-btn edit" onclick="editLabour(${i})">
             <i class="fa-solid fa-pen"></i>
@@ -439,9 +424,9 @@ function renderLabours() {
           </button>
         </td>
       `;
-    }
+      }
 
-    tbody.append(`
+      tbody.append(`
       <tr>
         <td>${l.s_labour_name || ""}</td>
         <td>${l.n_age || ""}</td>
@@ -452,9 +437,8 @@ function renderLabours() {
         ${actionColumn}
       </tr>
     `);
-  });
-}
-
+    });
+  }
 
   window.removeLabour = (i) => {
     labours.splice(i, 1);
@@ -465,9 +449,7 @@ function renderLabours() {
     const l = labours[index];
 
     editingLabourIndex = index;
-    $("#addLabourBtn")
-  .text("Update Labour")
-  .addClass("update-mode");
+    $("#addLabourBtn").text("Update Labour").addClass("update-mode");
 
     $("#addLabourBtn").text("Update Labour");
 
@@ -493,23 +475,19 @@ function renderLabours() {
     $("#labour_sex,#labour_address,#labour_card,#labour_id_type").val("");
     editingLabourIndex = null;
     $("#addLabourBtn").text("Add Labour");
-    $("#addLabourBtn")
-  .text("Add Labour")
-  .removeClass("update-mode");
-
-
+    $("#addLabourBtn").text("Add Labour").removeClass("update-mode");
   }
 
   /* ================= SAVE ================= */
 
   window.saveData = () => {
     // ===== BLOCK SAVE IF LABOUR EDIT IS PENDING =====
-if (editingLabourIndex !== null) {
-  alert(
-    "You are editing a labour entry.\n\nPlease click 'Update Labour' before saving."
-  );
-  return;
-}
+    if (editingLabourIndex !== null) {
+      alert(
+        "You are editing a labour entry.\n\nPlease click 'Update Labour' before saving.",
+      );
+      return;
+    }
 
     /* ========= MASTER VALIDATION ========= */
     const contractor = $("#s_contractor_name").val().trim();
@@ -526,26 +504,25 @@ if (editingLabourIndex !== null) {
 
     let workValid = true;
 
-const contractorInput = document.getElementById("s_contractor_name");
-const datetimeInput   = document.getElementById("dt_work_datetime");
+    const contractorInput = document.getElementById("s_contractor_name");
+    const datetimeInput = document.getElementById("dt_work_datetime");
 
-// contractor mandatory
-if (!contractor) {
-  markMandatory(contractorInput);
-  workValid = false;
-}
+    // contractor mandatory
+    if (!contractor) {
+      markMandatory(contractorInput);
+      workValid = false;
+    }
 
-// date & time mandatory
-if (!datetime) {
-  markMandatory(datetimeInput);
-  workValid = false;
-}
+    // date & time mandatory
+    if (!datetime) {
+      markMandatory(datetimeInput);
+      workValid = false;
+    }
 
-if (!workValid) {
-  alert("Please fill mandatory Work Details.");
-  return;
-}
-
+    if (!workValid) {
+      alert("Please fill mandatory Work Details.");
+      return;
+    }
 
     /* ========= LABOUR VALIDATION ========= */
     if (!labours || labours.length === 0) {
@@ -557,15 +534,14 @@ if (!workValid) {
       const l = labours[i];
 
       if (
-  !l.s_labour_name ||
-  !l.s_mobile_no ||
-  !l.s_id_type ||
-  !l.s_govt_id_no
-) {
-  alert(`Please complete mandatory details for Labour #${i + 1}.`);
-  return;
-}
-
+        !l.s_labour_name ||
+        !l.s_mobile_no ||
+        !l.s_id_type ||
+        !l.s_govt_id_no
+      ) {
+        alert(`Please complete mandatory details for Labour #${i + 1}.`);
+        return;
+      }
     }
 
     /* ========= ORIGINAL PAYLOAD (UNCHANGED) ========= */
@@ -594,11 +570,10 @@ if (!workValid) {
       contentType: "application/json",
       data: JSON.stringify(payload),
       success: (res) => {
-  clearUnsaved();
-  alert(res.message || "Saved successfully");
-  window.location.reload();
-}
-,
+        clearUnsaved();
+        alert(res.message || "Saved successfully");
+        window.location.reload();
+      },
       error: (err) => {
         console.error(err);
         alert("Save failed");
@@ -689,7 +664,7 @@ if (!workValid) {
         l.n_age ?? "",
         l.s_sex ?? "",
         l.s_address ?? "",
-        l.s_temp_access_card_no ??"",
+        l.s_temp_access_card_no ?? "",
         l.s_mobile_no ?? "",
         l.s_id_type ?? "",
         l.s_govt_id_no ?? "",
@@ -792,6 +767,22 @@ if (!workValid) {
     link.download = "Temporary Entry Permit.xlsx";
     link.click();
   }
+  const avatar = document.getElementById("profileAvatar");
+  const menu = document.getElementById("profileMenu");
+
+  avatar.addEventListener("click", () => {
+    if (menu.style.display === "block") {
+      menu.style.display = "none";
+    } else {
+      menu.style.display = "block";
+    }
+  });
+
+  document.addEventListener("click", function (e) {
+    if (!avatar.contains(e.target)) {
+      menu.style.display = "none";
+    }
+  });
 
   /* ================= INIT ================= */
   window.nextPage = nextPage;
@@ -799,12 +790,11 @@ if (!workValid) {
   window.downloadTable = downloadTable;
 
   window.addEventListener("beforeunload", function (e) {
-  if (hasUnsavedChanges) {
-    e.preventDefault();
-    e.returnValue = "";
-  }
-});
-
+    if (hasUnsavedChanges) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  });
 
   loadData();
 }

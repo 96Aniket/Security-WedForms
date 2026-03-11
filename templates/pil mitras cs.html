@@ -21,13 +21,30 @@
 
     <h2>Pipeline Mitra Register</h2>
 
-    <div id="profileAvatar">
-      <div id="profileInitials">
-        {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+    <div style="position:relative;">
+
+      <div id="profileAvatar"
+        style="display:flex;align-items:center;cursor:pointer;background:#fff;padding:6px 10px;border-radius:50px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+
+        <div style="background:#007bff;color:#fff;width:32px;height:32px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1rem;">
+          {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+        </div>
+
+        <span style="margin-left:8px;font-weight:bold;color:#333;font-size:.9rem;">
+          {{ (session.get('user') or {}).get('name','Guest User') }}
+        </span>
       </div>
-      <span id="username">
-        {{ (session.get('user') or {}).get('name','Guest User') }}
-      </span>
+
+      <div id="profileMenu" style="display:none;position:absolute;right:0;top:45px;background:#fff;border-radius:8px;
+    box-shadow:0 8px 16px rgba(0,0,0,0.15);min-width:120px;overflow:hidden;">
+
+        <a href="/logout" style="display:block;padding:10px 14px;text-decoration:none;color:#333;">
+          Logout
+        </a>
+
+      </div>
+
     </div>
   </header>
 
@@ -66,15 +83,15 @@
   <div class="table-footer">
 
     {% if user_role != 'admin' %}
-      <button class="btn-add" onclick="addRow()">Add Row</button>
-      <button class="btn-save" id="saveBtn" onclick="saveTable()" style="display:none;">
-  Save
-</button>
+    <button class="btn-add" onclick="addRow()">Add Row</button>
+    <button class="btn-save" id="saveBtn" onclick="saveTable()" style="display:none;">
+      Save
+    </button>
 
     {% endif %}
 
     <button class="btn-download" onclick="downloadTable()">
-        <i class="fa-solid fa-download"></i> Download
+      <i class="fa-solid fa-download"></i> Download
     </button>
 
   </div>
@@ -92,11 +109,8 @@
       <td><input type="text"></td>
       <td><input type="text"></td>
       <td>
-  <input type="text"
-         maxlength="10"
-         oninput="this.value = this.value.replace(/[^0-9]/g,'')"
-         >
-</td>
+        <input type="text" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g,'')">
+      </td>
 
       <td><input type="text"></td>
 
@@ -142,8 +156,8 @@
   </template>
 
   <script>
-      const USER_LOCATION = "{{ user_location }}";
-      const USER_ROLE = "{{ user_role }}";
+    const USER_LOCATION = "{{ user_location }}";
+    const USER_ROLE = "{{ user_role }}";
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
@@ -151,4 +165,5 @@
   <script src="{{ url_for('static', filename='javascript/pil_mitras_cs.js') }}"></script>
 
 </body>
+
 </html>

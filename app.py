@@ -19,10 +19,9 @@ def create_app():
     @app.before_request
     def check_login():
 
-        if request.endpoint in ["routes_bp.login", "static"]:
-            return
+        allowed_routes = ["routes_bp.login", "static"]
 
-        if request.path.startswith("/api"):
+        if request.endpoint in allowed_routes:
             return
 
         if "user" not in session:
@@ -38,3 +37,4 @@ def create_app():
 if __name__ == "__main__":
     app = create_app()
     app.run(host="0.0.0.0", port=5001, debug=True)
+    

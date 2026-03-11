@@ -24,13 +24,30 @@
 
     <h2>Vehicle Checklist</h2>
 
-    <div id="profileAvatar">
-      <div id="profileInitials">
-        {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+    <div style="position:relative;">
+
+      <div id="profileAvatar"
+        style="display:flex;align-items:center;cursor:pointer;background:#fff;padding:6px 10px;border-radius:50px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+
+        <div style="background:#007bff;color:#fff;width:32px;height:32px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1rem;">
+          {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+        </div>
+
+        <span style="margin-left:8px;font-weight:bold;color:#333;font-size:.9rem;">
+          {{ (session.get('user') or {}).get('name','Guest User') }}
+        </span>
       </div>
-      <span>
-        {{ (session.get('user') or {}).get('name','Guest User') }}
-      </span>
+
+      <div id="profileMenu" style="display:none;position:absolute;right:0;top:45px;background:#fff;border-radius:8px;
+    box-shadow:0 8px 16px rgba(0,0,0,0.15);min-width:120px;overflow:hidden;">
+
+        <a href="/logout" style="display:block;padding:10px 14px;text-decoration:none;color:#333;">
+          Logout
+        </a>
+
+      </div>
+
     </div>
   </header>
 
@@ -197,9 +214,9 @@
         </tbody>
       </table>
       <div class="btn-row">
-        
+
         <button class="btn-save" onclick="saveData()">Save</button>
-        
+
       </div>
 
     </div>

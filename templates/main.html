@@ -22,28 +22,39 @@
             style="display:flex;align-items:center;gap:10px;cursor:pointer;">
             ☰
             <a href="{{ url_for('routes_bp.home') }}">
-  <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
-</a>
+                <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-dashboard">
+            </a>
 
         </div>
 
-        <div id="profileAvatar"
-            style="display:flex;align-items:center;cursor:pointer;background:#fff;padding:6px 10px;border-radius:50px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+        <div style="position:relative;">
 
-            <div id="profileInitials"
-                style="background:#007bff;color:#fff;width:32px;height:32px;border-radius:50%;
-                display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1rem;">
-                {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+            <div id="profileAvatar"
+                style="display:flex;align-items:center;cursor:pointer;background:#fff;padding:6px 10px;border-radius:50px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+
+                <div style="background:#007bff;color:#fff;width:32px;height:32px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1rem;">
+                    {{ (session.get('user') or {}).get('name','GU')[:2].upper() }}
+                </div>
+
+                <span style="margin-left:8px;font-weight:bold;color:#333;font-size:.9rem;">
+                    {{ (session.get('user') or {}).get('name','Guest User') }}
+                </span>
             </div>
 
-            <span id="username" style="margin-left:8px;font-weight:bold;color:#333;font-size:.9rem;">
-                {{ (session.get('user') or {}).get('name','Guest User') }}
-            </span>
+            <div id="profileMenu" style="display:none;position:absolute;right:0;top:45px;background:#fff;border-radius:8px;
+    box-shadow:0 8px 16px rgba(0,0,0,0.15);min-width:120px;overflow:hidden;">
+
+                <a href="/logout" style="display:block;padding:10px 14px;text-decoration:none;color:#333;">
+                    Logout
+                </a>
+
+            </div>
+
         </div>
 
         <!-- Hamburger Menu -->
-        <div id="hamburgerMenu"
-            style="display:none;position:absolute;left:10px;top:60px;background:#fff;
+        <div id="hamburgerMenu" style="display:none;position:absolute;left:10px;top:60px;background:#fff;
             border-radius:8px;box-shadow:0 8px 16px rgba(0,0,0,0.1);
             overflow:hidden;min-width:220px;">
             <a href="{{ url_for('routes_bp.home') }}"
@@ -110,4 +121,29 @@
     </div>
 
 </body>
+<script>
+
+    const avatar = document.getElementById("profileAvatar");
+    const menu = document.getElementById("profileMenu");
+
+    avatar.addEventListener("click", () => {
+
+        if (menu.style.display === "block") {
+            menu.style.display = "none";
+        } else {
+            menu.style.display = "block";
+        }
+
+    });
+
+    document.addEventListener("click", function (e) {
+
+        if (!avatar.contains(e.target)) {
+            menu.style.display = "none";
+        }
+
+    });
+
+</script>
+
 </html>

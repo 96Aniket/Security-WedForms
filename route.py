@@ -34,6 +34,10 @@ def logout():
 
 @routes_bp.route('/')
 def home():
+
+    if "user" not in session:
+        return redirect("/login")
+
     return render_template('main.html')
 
 @routes_bp.route('/pil-patrolling')
