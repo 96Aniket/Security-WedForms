@@ -9,7 +9,7 @@ def escalate_sla_breach():
         SELECT r.request_id,
                r.current_approver_email,
                s.escalation_email
-        FROM Atbl_SECURITY_APPROVAL_REQUEST_MASTER r
+        FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER r
         JOIN tbl_SECURITY_APPROVAL_SLA_CONFIG s
           ON r.current_level = s.approval_level
         WHERE r.overall_status = 'PENDING'

@@ -1133,24 +1133,39 @@ def resubmit_form():
     conn = get_connection()
     cursor = conn.cursor()
 
+    # ------------------ GET LAST REJECTOR ------------------
     cursor.execute("""
-        SELECT TOP 1 approver_email, approval_level
-        FROM tbl_SECURITY_APPROVAL_ACTION_LOGS
-        WHERE request_id = ?
-          AND action_taken = 'REJECT'
-        ORDER BY action_time DESC
+    SELECT TOP 1 approver_email, approval_level
+    FROM tbl_SECURITY_APPROVAL_ACTION_LOGS
+    WHERE request_id = ?
+    AND action_taken = 'REJECT'
+    ORDER BY action_time DESC
     """, (request_id,))
 
     row = cursor.fetchone()
 
-    if not row:
+    if row is None:
         cursor.close()
         conn.close()
-        return {"error": "No reject record found"}, 400
+        return {"error": "Resubmit allowed only after rejection"}, 400
 
-    rejector_email = row[0]
-    reject_level = row[1]
+    rejector_email = row.approver_email
+    reject_level = row.approval_level
 
+    # ------------------ GET LAST APPROVER BEFORE REJECT ------------------
+    cursor.execute("""
+    SELECT TOP 1 approver_email
+    FROM tbl_SECURITY_APPROVAL_ACTION_LOGS
+    WHERE request_id = ?
+    AND action_taken = 'APPROVE'
+    AND approval_level < ?
+    ORDER BY action_time DESC
+    """, (request_id, reject_level))
+
+    row_user = cursor.fetchone()
+    resubmitted_by = row_user.approver_email if row_user else "Unknown User"
+
+    # ------------------ INSERT RESUBMIT LOG ------------------
     cursor.execute("""
         INSERT INTO tbl_SECURITY_APPROVAL_ACTION_LOGS
         (request_id, approval_level, approver_email, action_taken, remark)
@@ -1158,11 +1173,12 @@ def resubmit_form():
     """, (
         request_id,
         reject_level,
-        session.get("user", {}).get("email", "system"),
+        resubmitted_by,
         'RESUBMITTED',
         'Form corrected and resubmitted'
     ))
 
+    # ------------------ UPDATE REQUEST MASTER ------------------
     cursor.execute("""
         UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER
         SET
@@ -1179,62 +1195,54 @@ def resubmit_form():
 
     token = generate_token(request_id, reject_level, rejector_email)
 
+    # ------------------ SEND MAIL ------------------
     send_mail_async(
         to_email=rejector_email,
         subject="Requisition Resubmitted - Review Again",
-        body = f"""
-        <div style="font-family:Arial, Helvetica, sans-serif; background:#f4f6f8; padding:30px;">
+        body=f"""
+        <div style="font-family:Arial;background:#f4f6f8;padding:30px">
 
-        <div style="max-width:650px; margin:auto; background:white; border-radius:8px;
-                    overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+        <div style="max-width:650px;margin:auto;background:white;border-radius:8px;
+                    box-shadow:0 2px 6px rgba(0,0,0,0.1)">
 
-            <div style="background:#0d6efd; padding:18px; color:white;
-                        font-size:18px; font-weight:bold;">
+            <div style="background:#0d6efd;padding:18px;color:white;
+                        font-size:18px;font-weight:bold">
                 Requisition Resubmitted – Review Required
             </div>
 
-            <div style="padding:25px; color:#333; font-size:14px; line-height:1.6;">
+            <div style="padding:25px;font-size:14px;color:#333">
 
                 <p>Dear Approver,</p>
 
                 <p>
-                The requisition form has been <b>corrected and resubmitted</b> by the requester
+                The requisition form has been <b>corrected and resubmitted</b>
                 after addressing the rejection remarks.
                 </p>
 
-                <table style="width:100%; border-collapse:collapse; margin-top:15px;">
+                <table style="width:100%;border-collapse:collapse;margin-top:15px">
                     <tr>
-                        <td style="padding:6px; font-weight:bold;">Request ID</td>
-                        <td style="padding:6px;">{request_id}</td>
+                        <td style="padding:6px;font-weight:bold">Request ID</td>
+                        <td style="padding:6px">{request_id}</td>
                     </tr>
 
-                    <tr style="background:#f7f7f7;">
-                        <td style="padding:6px; font-weight:bold;">Resubmitted By</td>
-                        <td style="padding:6px;">{session['user']['email']}</td>
+                    <tr style="background:#f7f7f7">
+                        <td style="padding:6px;font-weight:bold">Resubmitted By</td>
+                        <td style="padding:6px">{resubmitted_by}</td>
                     </tr>
                 </table>
 
-                <div style="text-align:center; margin:25px 0;">
+                <div style="text-align:center;margin:25px 0">
                     <a href="{BASE_URL}/approval?token={token}"
-                    style="
-                        background:#6a11cb;
-                        background:linear-gradient(135deg,#6a11cb,#2575fc);
-                        padding:12px 26px;
-                        color:white;
-                        text-decoration:none;
-                        border-radius:6px;
-                        font-weight:bold;
-                        display:inline-block;
-                    ">
-                    Review Again
+                       style="background:linear-gradient(135deg,#6a11cb,#2575fc);
+                              padding:12px 26px;color:white;text-decoration:none;
+                              border-radius:6px;font-weight:bold">
+                       Review Again
                     </a>
                 </div>
 
-                <p>
-                Please review the updated form and proceed with the approval process.
-                </p>
+                <p>Please review the updated form and continue the approval process.</p>
 
-                <p style="margin-top:25px;">
+                <p style="margin-top:25px">
                 Regards,<br>
                 <b>Security Department</b><br>
                 Pipeline Infrastructure Limited
@@ -1242,24 +1250,16 @@ def resubmit_form():
 
             </div>
 
-            <div style="
-                background:#e9f2ff;
-                padding:14px;
-                text-align:center;
-                font-size:13px;
-                color:#1a3c8b;
-                border-top:2px solid #0d6efd;
-                font-weight:500;
-            ">
+            <div style="background:#e9f2ff;padding:14px;text-align:center;
+                        font-size:13px;color:#1a3c8b;border-top:2px solid #0d6efd">
                 ⚠ This is an automated notification from the
                 <b>Security Records Digitization System</b>.
             </div>
 
         </div>
-
         </div>
         """,
-        sender_email=session['user']['email']
+        sender_email=resubmitted_by
     )
 
     return {"status": "resubmitted"}
