@@ -13,6 +13,8 @@ from utils.email_templates import approval_email_template
 from utils.async_mail import send_mail_async
 from utils.final_summary import send_final_summary
 from flask import redirect
+import random
+import string
 
 
 # =====================================================
@@ -31,7 +33,12 @@ def login_user():
         if not user:
             return render_template("login.html", error="Invalid User ID or Password")
 
-        role = "admin" if user[1] == 1 else "user"
+        if user[1] == 1:
+            role = "admin"
+        elif user[1] == 3:
+            role = "agency"
+        else:
+            role = "user"
 
         session["user"] = {
             "email": user[0],
@@ -39,6 +46,11 @@ def login_user():
             "location": user[2],
             "role": role
         }
+
+        token = session.pop("form_token", None)
+
+        if token:
+            return redirect(f"/form-fill?token={token}")
 
         return redirect("/")
 
@@ -548,11 +560,13 @@ def create_request():
 
     if not receiver_email:
         return {"error": "Receiver email required"}, 400
+    
+    password = queries.create_agency_user(receiver_email)
 
     request_id = queries.create_request(sender_email, receiver_email)
 
     token = generate_token(request_id, 0, receiver_email)
-    link = f"{BASE_URL}/form-fill?token={token}"
+    link = f"{BASE_URL}/login?token={token}"
 
     send_mail_async(
         receiver_email,
@@ -575,6 +589,12 @@ def create_request():
                 <p>
                 You have received a request from the <b>Security Department</b> to submit
                 the required details for the security records process.
+                </p>
+                <p><b>Login Credentials</b></p>
+
+                <p>
+                User ID : {receiver_email}<br>
+                Password : {password}
                 </p>
 
                 <p>
@@ -634,7 +654,7 @@ def create_request():
                 border-top:2px solid #0d6efd;
                 font-weight:500;
             ">
-                ⚠ This is an automated notification from the
+                 This is an automated notification from the
                 <b>Security Records Digitization System</b>.
                 Please do not reply to this email.
             </div>
@@ -719,6 +739,8 @@ def submit_form():
 
     initiator_email = queries.get_initiator_email(request_id)
     receiver_email = queries.get_receiver_email(request_id)
+
+    queries.insert_submit_log(request_id, receiver_email)
 
     queries.update_request_after_submit(
         request_id=request_id,
@@ -938,7 +960,7 @@ def approval_action():
                         border-top:2px solid #0d6efd;
                         font-weight:500;
                     ">
-                        ⚠ This is an automated notification from the
+                         This is an automated notification from the
                         <b>Security Records Digitization System</b>.
                     </div>
 
@@ -1252,7 +1274,7 @@ def resubmit_form():
 
             <div style="background:#e9f2ff;padding:14px;text-align:center;
                         font-size:13px;color:#1a3c8b;border-top:2px solid #0d6efd">
-                ⚠ This is an automated notification from the
+                 This is an automated notification from the
                 <b>Security Records Digitization System</b>.
             </div>
 
@@ -1263,4 +1285,12 @@ def resubmit_form():
     )
 
     return {"status": "resubmitted"}
+
+# =====================================================
+# password creater
+# =====================================================
+
+def generate_password(length=6):
+    chars = string.ascii_letters + string.digits
+    return ''.join(random.choice(chars) for _ in range(length))
 

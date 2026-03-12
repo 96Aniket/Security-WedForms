@@ -125,7 +125,7 @@ def send_final_summary(request_id, final_status):
             border-top:2px solid #0d6efd;
             font-weight:500;
         ">
-            ⚠ This is an automated notification from the
+             This is an automated notification from the
             <b>Security Records Digitization System</b>.
             Please do not reply to this email.
         </div>

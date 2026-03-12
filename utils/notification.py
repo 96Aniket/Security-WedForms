@@ -80,7 +80,7 @@ def send_approval_mail_to_user0(
                 border-top:2px solid #0d6efd;
                 font-weight:500;
             ">
-                ⚠ This is an automated notification from the
+                 This is an automated notification from the
                 <b>Security Records Digitization System</b>.
                 Please do not reply to this email.
             </div>

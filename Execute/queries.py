@@ -2223,6 +2223,22 @@ def get_receiver_email(request_id):
     return row[0]
 
 
+def insert_submit_log(request_id, email):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO tbl_SECURITY_APPROVAL_ACTION_LOGS
+        (request_id, approval_level, approver_email, action_taken, remark)
+        VALUES (?,0,?,'SUBMITTED','Form submitted')
+    """,(request_id,email))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
 def get_request_status(request_id):
 
     conn = get_connection()
@@ -2241,3 +2257,44 @@ def get_request_status(request_id):
 
     return row[0] if row else None
 
+# =====================================================
+# password creater
+# =====================================================
+
+def create_agency_user(email):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT s_password
+        FROM tbl_SECURITY_USER
+        WHERE s_email_id = ?
+    """,(email,))
+
+    row = cursor.fetchone()
+
+    # ---------- USER ALREADY EXISTS ----------
+    if row:
+        password = row.s_password
+
+    # ---------- NEW USER ----------
+    else:
+
+        import random, string
+        chars = string.ascii_letters + string.digits
+        password = ''.join(random.choice(chars) for _ in range(6))
+
+        cursor.execute("""
+            INSERT INTO tbl_SECURITY_USER
+            (s_email_id, n_role_id, s_password)
+            VALUES (?,3,?)
+        """,(email,password))
+
+        conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return password
+    

@@ -25,6 +25,12 @@ def get_user_context():
 
 @routes_bp.route('/login', methods=['GET','POST'])
 def login():
+
+    token = request.args.get("token")
+
+    if request.method == "GET" and token:
+        session["form_token"] = token
+
     return functions.login_user()
 
 @routes_bp.route('/logout')
@@ -36,6 +42,9 @@ def logout():
 def home():
 
     if "user" not in session:
+        return redirect("/login")
+
+    if session["user"]["role"] == "agency":
         return redirect("/login")
 
     return render_template('main.html')
@@ -97,6 +106,12 @@ def requisition_form():
 
 @routes_bp.route('/form-fill')
 def form_fill_page():
+
+    if "user" not in session:
+        return redirect("/login")
+
+    if session["user"]["role"] == "agency":
+        pass
     token = request.args.get("token")
     if not token:
         return "Invalid link"
