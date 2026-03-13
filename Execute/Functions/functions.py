@@ -56,9 +56,11 @@ def login_user():
 
     return render_template("login.html")
 
+
 # =====================================================
 # COMMON RESPONSE HELPERS
 # =====================================================
+
 def success_response(message="", data=None, status=200):
     res = {"success": True, "message": message}
     if data is not None:
@@ -73,6 +75,7 @@ def error_response(message="Something went wrong", status=400):
 # =====================================================
 # PATROLLING OBSERVATION REGISTER
 # =====================================================
+
 def save_patrolling_data_fn():
     try:
         data = request.get_json()
@@ -188,9 +191,11 @@ def delete_bba_test_data():
     except Exception as e:
         return error_response(str(e), 500)
 
+
 # =====================================================
 # PIPELINE MITRA REGISTER
 # =====================================================
+
 def save_pipeline_mitra_data_fn():
     try:
         data = request.get_json(force=True)
@@ -245,8 +250,6 @@ def delete_pipeline_mitra_data():
 
     except Exception as e:
         return error_response(str(e), 500)
-
-
 
 
 # =====================================================
@@ -373,6 +376,7 @@ def delete_visitor_declaration_data_fn():
     except Exception as e:
         return error_response(str(e), 500)
 
+
 # =====================================================
 # CASUAL LABOUR REGISTER
 # =====================================================
@@ -436,7 +440,6 @@ def delete_casual_labour_data_fn():
 # =====================================================
 # REPORT MASTER TABLE CONFIG
 # =====================================================
-
 
 def download_filtered_excel_logic(table, start, end, location):
     try:
@@ -543,6 +546,7 @@ def get_locations_fn():
 
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
+
 
 # =====================================================
 # Requisition Form
@@ -1285,6 +1289,7 @@ def resubmit_form():
     )
 
     return {"status": "resubmitted"}
+
 
 # =====================================================
 # password creater

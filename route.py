@@ -231,3 +231,4 @@ def get_timeline(request_id):
 @routes_bp.route('/api/dashboard-requests')
 def dashboard_requests():
     return functions.dashboard_requests_fn()
+

@@ -272,6 +272,7 @@ def delete_patrolling_data(data, username):
     except Exception as e:
         return False, str(e)
 
+
 # =====================================================
 # ------------ START BBA Test Record Register ---------
 # =====================================================
@@ -331,6 +332,7 @@ def save_bba_test_data(data, username="system"):
 
     except Exception as e:
         return False, str(e)
+
 
 def insert_bba_test_record(cursor, data, n_sr_no, username):
     sql = """
@@ -505,6 +507,7 @@ def delete_bba_test_data(data, username):
     except Exception as e:
         return False, str(e)
     
+
 # =====================================================
 # ------------ START PIPELINE MITRA REGISTER ----------
 # =====================================================
@@ -673,7 +676,6 @@ def update_pipeline_mitra_data(data, username="system"):
     except Exception as e:
         return False, str(e)
 
-
 # ------------ DELETE -----------------
 def delete_pipeline_mitra_data(data):
     try:
@@ -746,6 +748,7 @@ def delete_pipeline_mitra_data(data):
 
     # except Exception as e:
     #     return False, str(e)
+
 
 # =====================================================
 # VEHICLE CHECKLIST
@@ -1041,6 +1044,7 @@ def delete_vehicle_checklist_data(data, username="system"):
     except Exception as e:
         conn.rollback()
         return False, str(e)
+
 
 # =====================================================
 #------------- visitor start --------------
@@ -1586,7 +1590,6 @@ def delete_casual_labour_data(data, username="system"):
 # REPORT MASTER TABLE CONFIG
 # =====================================================
 
-
 REPORT_COLUMNS = {
     "tbl_SECURITY_Patrolling_Observation_Register": [
         ("s_location_code", "Location Code"),
@@ -1725,7 +1728,6 @@ def get_all_locations():
 
     return [r[0] for r in rows]
 
-
 def fetch_data_with_date(table, start_date, end_date, location):
     conn = get_connection()
 
@@ -1788,6 +1790,7 @@ def get_report_master_tables():
         {"value": t["table"], "label": t["label"]}
         for t in REPORT_TABLES
     ]
+
 
 # =====================================================
 # Requisition – Request Master
@@ -2256,6 +2259,7 @@ def get_request_status(request_id):
     conn.close()
 
     return row[0] if row else None
+
 
 # =====================================================
 # password creater
