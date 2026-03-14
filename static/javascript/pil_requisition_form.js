@@ -1,5 +1,4 @@
 function requisitionDashboardApp() {
-
   /* ================= STATE ================= */
   let savedFormSrNo = null;
 
@@ -9,7 +8,7 @@ function requisitionDashboardApp() {
     const safeDate = dtStr.replace(" ", "T");
     const dt = new Date(safeDate);
     if (isNaN(dt.getTime())) return "-";
-    return `${dt.toISOString().slice(0,10)} ${dt.toTimeString().slice(0,8)}`;
+    return `${dt.toISOString().slice(0, 10)} ${dt.toTimeString().slice(0, 8)}`;
   }
 
   /* ================= LOAD REQUESTS ================= */
@@ -21,7 +20,7 @@ function requisitionDashboardApp() {
       success: renderRequests,
       error: () => {
         console.error("Failed to load requests");
-      }
+      },
     });
   }
 
@@ -31,31 +30,32 @@ function requisitionDashboardApp() {
       console.error("Invalid dashboard data");
       return;
     }
-    const html = data.map((r, index) => {
-      let status = r.overall_status || "PENDING";
+    const html = data
+      .map((r, index) => {
+        let status = r.overall_status || "PENDING";
 
-    if (r.current_level === 3 && r.overall_status === "PENDING") {
-      status = "APPROVED";
-    }
-      const statusClass =
-        status === "APPROVED"
-          ? "status-approved"
-          : status === "REJECTED"
-          ? "status-rejected"
-          : "status-pending";
+        if (r.current_level === 3 && r.overall_status === "PENDING") {
+          status = "APPROVED";
+        }
+        const statusClass =
+          status === "APPROVED"
+            ? "status-approved"
+            : status === "REJECTED"
+              ? "status-rejected"
+              : "status-pending";
 
-      const resendButton =
-        status === "PENDING" && r.current_level !== -1
-          ? `
+        const resendButton =
+          status === "PENDING" && r.current_level !== -1
+            ? `
           <button class="action-btn btn-resend"
             onclick="resendApproval(${r.request_id},
               ${r.current_level},
               '${r.current_approver_email || ""}')">
             Resend
           </button>`
-          : "";
+            : "";
 
-      return `
+        return `
         <tr>
           <td>${index + 1}</td>
           <td>${r.request_id}</td>
@@ -71,8 +71,8 @@ function requisitionDashboardApp() {
           </td>
         </tr>
       `;
-
-    }).join("");
+      })
+      .join("");
 
     $("#requestTable").html(html);
   }
@@ -84,16 +84,20 @@ function requisitionDashboardApp() {
       url: `/api/timeline/${id}`,
       method: "GET",
       dataType: "json",
-      success: data => {
-
+      success: (data) => {
         if (!Array.isArray(data)) return;
-        const html = data.map(t => {
-          const safeDate = t.time ? t.time.replace(" ", "T") : null;
-          const dt = new Date(safeDate);
-          const date = isNaN(dt.getTime()) ? "-" : dt.toISOString().slice(0,10);
-          const time = isNaN(dt.getTime()) ? "-" : dt.toTimeString().slice(0,8);
+        const html = data
+          .map((t) => {
+            const safeDate = t.time ? t.time.replace(" ", "T") : null;
+            const dt = new Date(safeDate);
+            const date = isNaN(dt.getTime())
+              ? "-"
+              : dt.toISOString().slice(0, 10);
+            const time = isNaN(dt.getTime())
+              ? "-"
+              : dt.toTimeString().slice(0, 8);
 
-          return `
+            return `
             <tr>
               <td>${date}</td>
               <td>${time}</td>
@@ -102,15 +106,14 @@ function requisitionDashboardApp() {
               <td>${t.remark || "-"}</td>
             </tr>
           `;
-
-        }).join("");
+          })
+          .join("");
         $("#timelineBody").html(html);
         $("#timelineBox").show();
-
       },
       error: () => {
         alert("Failed to load timeline");
-      }
+      },
     });
   }
 
@@ -120,7 +123,6 @@ function requisitionDashboardApp() {
 
   /* ================= RESEND ================= */
   function resendApproval(id, level, email) {
-
     if (!email) {
       alert("No current approver found");
       return;
@@ -130,13 +132,12 @@ function requisitionDashboardApp() {
       method: "POST",
       contentType: "application/json",
       data: JSON.stringify({
-        request_id: id
+        request_id: id,
       }),
 
       success: () => alert("Approval mail resent"),
-      error: () => alert("Failed to resend approval")
+      error: () => alert("Failed to resend approval"),
     });
-
   }
 
   /* ================= SAVE FORM ================= */
@@ -167,7 +168,7 @@ function requisitionDashboardApp() {
       s_emergency_city: $("#s_emergency_city").val(),
       s_emergency_state: $("#s_emergency_state").val(),
       s_emergency_pincode: $("#s_emergency_pincode").val(),
-      s_emergency_contact_no: $("#s_emergency_contact_no").val()
+      s_emergency_contact_no: $("#s_emergency_contact_no").val(),
     };
 
     $.ajax({
@@ -176,7 +177,7 @@ function requisitionDashboardApp() {
       contentType: "application/json",
       dataType: "json",
       data: JSON.stringify(payload),
-      success: res => {
+      success: (res) => {
         savedFormSrNo = res.form_sr_no;
         $("#srValue").text(savedFormSrNo);
         $("#srDisplay").show();
@@ -184,7 +185,7 @@ function requisitionDashboardApp() {
       },
       error: () => {
         alert("Form save failed");
-      }
+      },
     });
   }
 
@@ -202,38 +203,33 @@ function requisitionDashboardApp() {
       method: "POST",
       contentType: "application/json",
       data: JSON.stringify({
-        first_user_email: email
+        first_user_email: email,
       }),
       success: () => {
         alert("Mail sent successfully");
         loadRequests();
-
       },
       error: () => {
         alert("Request creation failed");
-      }
+      },
     });
   }
-const avatar = document.getElementById("profileAvatar");
-const menu = document.getElementById("profileMenu");
+  const avatar = document.getElementById("profileAvatar");
+  const menu = document.getElementById("profileMenu");
 
-avatar.addEventListener("click", () => {
-
-    if(menu.style.display === "block"){
-        menu.style.display = "none";
+  avatar.addEventListener("click", () => {
+    if (menu.style.display === "block") {
+      menu.style.display = "none";
     } else {
-        menu.style.display = "block";
+      menu.style.display = "block";
     }
+  });
 
-});
-
-document.addEventListener("click", function(e){
-
-    if(!avatar.contains(e.target)){
-        menu.style.display = "none";
+  document.addEventListener("click", function (e) {
+    if (!avatar.contains(e.target)) {
+      menu.style.display = "none";
     }
-
-});
+  });
 
   /* ================= EXPOSE ================= */
   window.viewTimeline = viewTimeline;
