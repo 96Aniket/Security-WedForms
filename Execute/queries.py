@@ -2301,4 +2301,23 @@ def create_agency_user(email):
     conn.close()
 
     return password
-    
+   
+
+def get_user_password(email):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT s_password
+        FROM tbl_SECURITY_USER
+        WHERE s_email_id = ?
+    """,(email,))
+
+    row = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return row.s_password if row else None
+

@@ -130,9 +130,7 @@ function requisitionDashboardApp() {
       method: "POST",
       contentType: "application/json",
       data: JSON.stringify({
-        request_id: id,
-        current_level: level,
-        approver_email: email
+        request_id: id
       }),
 
       success: () => alert("Approval mail resent"),

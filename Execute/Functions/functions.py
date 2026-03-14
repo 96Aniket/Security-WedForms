@@ -553,23 +553,39 @@ def get_locations_fn():
 # =====================================================
 
 def create_request():
+
     data = request.get_json()
     if not data:
         return error_response("Invalid request body")
 
     receiver_email = data.get("first_user_email")
     sender_email = session.get("user", {}).get("email")
+
     if not sender_email:
         return error_response("User session expired", 401)
 
     if not receiver_email:
         return {"error": "Receiver email required"}, 400
-    
+
     password = queries.create_agency_user(receiver_email)
 
     request_id = queries.create_request(sender_email, receiver_email)
 
     token = generate_token(request_id, 0, receiver_email)
+
+    send_form_fill_mail(
+        receiver_email,
+        sender_email,
+        request_id,
+        password,
+        token
+    )
+
+    return {"success": True, "request_id": request_id}
+
+
+def send_form_fill_mail(receiver_email, sender_email, request_id, password, token):
+
     link = f"{BASE_URL}/login?token={token}"
 
     send_mail_async(
@@ -594,6 +610,7 @@ def create_request():
                 You have received a request from the <b>Security Department</b> to submit
                 the required details for the security records process.
                 </p>
+
                 <p><b>Login Credentials</b></p>
 
                 <p>
@@ -669,8 +686,6 @@ def create_request():
         """,
         sender_email
     )
-
-    return {"success": True, "request_id": request_id}
 
 
 def submit_form():
@@ -1002,27 +1017,54 @@ def approval_action():
 
 
 def resend_approval():
+
     data = request.get_json()
     if not data:
         return error_response("Invalid request body")
 
-    level = queries.get_current_level(data['request_id'])
-    approver = queries.get_current_approver(data['request_id'])
+    request_id = data['request_id']
 
-    token = generate_token(
-        data['request_id'],
-        level,
-        approver
-    )
+    level = queries.get_current_level(request_id)
+    approver = queries.get_current_approver(request_id)
 
-    link = f"{BASE_URL}/approval?token={token}&action=APPROVE"
+    if not approver:
+        return {"error": "No approver found"}, 400
 
-    send_mail_async(
-        to_email=data['approver_email'],
-        subject="Reminder: Approval Required",
-        body=f"<a href='{link}'>Approve / Reject</a>",
-        sender_email=session['user']['email']
-    )
+    token = generate_token(request_id, level, approver)
+
+    # ====================================
+    # AGENCY FORM FILL STAGE
+    # ====================================
+    if level == 0:
+
+        sender_email = queries.get_initiator_email(request_id)
+        password = queries.get_user_password(approver)
+
+        send_form_fill_mail(
+            approver,
+            sender_email,
+            request_id,
+            password,
+            token
+        )
+
+    # ====================================
+    # APPROVAL STAGE
+    # ====================================
+    else:
+
+        body = approval_email_template(
+            token=token,
+            request_id=request_id,
+            last_approver="Reminder"
+        )
+
+        send_mail_async(
+            approver,
+            "Approval Required",
+            body,
+            session['user']['email']
+        )
 
     return {"status": "resent successfully"}
 
