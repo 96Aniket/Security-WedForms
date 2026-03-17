@@ -194,6 +194,8 @@ routes_bp.add_url_rule("/get_locations",view_func=functions.get_locations_fn,met
 # ------------ REQUISITION FORM -----------------
 routes_bp.add_url_rule('/api/create-request',view_func=functions.create_request,methods=['POST'])
 routes_bp.add_url_rule('/api/submit-form',view_func=functions.submit_form,methods=['POST'])
+routes_bp.add_url_rule('/document/<doc_type>/<int:request_id>',view_func=functions.view_document_fn,methods=['GET'])
+routes_bp.add_url_rule('/download-document/<doc_type>/<int:request_id>',view_func=functions.download_document_fn,methods=['GET'])
 routes_bp.add_url_rule('/api/approve',view_func=functions.approve,methods=['POST'])
 routes_bp.add_url_rule('/api/reject',view_func=functions.reject,methods=['POST'])
 routes_bp.add_url_rule('/approval-action',view_func=functions.approval_action,methods=['POST'])

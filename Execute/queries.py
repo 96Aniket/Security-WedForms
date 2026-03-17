@@ -2136,6 +2136,44 @@ def update_requisition_form(data):
     conn.close()
 
 
+def get_document_file(doc_type, request_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    column_map = {
+        "police": "s_police_verification_cert_img",
+        "medical": "s_medical_certificate_img",
+        "govt": "s_govt_id_proof_img",
+        "hsse": "s_hsse_training_img"
+    }
+
+    if doc_type not in column_map:
+        cursor.close()
+        conn.close()
+        return None
+
+    column = column_map[doc_type]
+
+    query = f"""
+    SELECT {column}
+    FROM tbl_SECURITY_REQUISITION_FORM_MASTER
+    WHERE n_sr_no = (
+        SELECT form_sr_no
+        FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
+        WHERE request_id = ?
+    )
+    """
+
+    cursor.execute(query, request_id)
+    row = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return row[0] if row else None
+
+
 def get_current_level(request_id):
     conn = get_connection()
     cursor = conn.cursor()
@@ -2320,4 +2358,30 @@ def get_user_password(email):
     conn.close()
 
     return row.s_password if row else None
+
+
+def update_security_documents(request_id, police, medical, govt, hsse, email):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    UPDATE tbl_SECURITY_REQUISITION_FORM_MASTER
+    SET
+        s_police_verification_cert_img = ?,
+        s_medical_certificate_img = ?,
+        s_govt_id_proof_img = ?,
+        s_hsse_training_img = ?,
+        dt_updated_at = GETDATE(),
+        s_updated_by = ?
+    WHERE n_sr_no = (
+        SELECT form_sr_no
+        FROM tbl_SECURITY_APPROVAL_REQUEST_MASTER
+        WHERE request_id = ?
+    )
+    """, (police, medical, govt, hsse, email, request_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
 

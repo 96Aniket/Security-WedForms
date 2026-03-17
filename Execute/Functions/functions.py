@@ -15,7 +15,9 @@ from utils.final_summary import send_final_summary
 from flask import redirect
 import random
 import string
-
+import pyodbc
+import mimetypes
+import io
 
 # =====================================================
 # LOGIN
@@ -821,24 +823,46 @@ def approval_action():
     if not used_token:
         return error_response("Token missing")
 
+    token_data, error = validate_token(used_token)
+    if error:
+        return error
+
     action = request.form['action']
     if action not in ["APPROVE", "REJECT"]:
         return error_response("Invalid action")
 
     remark = request.form.get('remark', '').strip()
 
-    token_data, error = validate_token(used_token)
-    if error:
-        return error
-
     if action == "REJECT" and not remark:
         return error_response("Remark is mandatory for rejection")
+
+    files = request.files
+
+    # ================= DOCUMENT UPLOAD =================
+
+    if action == "APPROVE" and token_data["approval_level"] == 0:
+
+        police_img = files.get("s_police_verification_cert_img")
+        medical_img = files.get("s_medical_certificate_img")
+        govt_img = files.get("s_govt_id_proof_img")
+        hsse_img = files.get("s_hsse_training_img")
+
+        if police_img or medical_img or govt_img or hsse_img:
+
+            queries.update_security_documents(
+                token_data['request_id'],
+                pyodbc.Binary(police_img.read()) if police_img and police_img.filename else None,
+                pyodbc.Binary(medical_img.read()) if medical_img and medical_img.filename else None,
+                pyodbc.Binary(govt_img.read()) if govt_img and govt_img.filename else None,
+                pyodbc.Binary(hsse_img.read()) if hsse_img and hsse_img.filename else None,
+                token_data['approver_email']
+            )
 
     next_email = request.form.get('next_email', '').strip()
 
     is_final = queries.is_final_level(token_data['approval_level'] + 1)
 
-    if action == "APPROVE" and not next_email and not is_final:
+    if action == "APPROVE" and not is_final and not next_email:
         return error_response("Next approver email required")
 
     mark_token_used(used_token)
@@ -1016,6 +1040,49 @@ def approval_action():
     return jsonify({"status": result})
 
 
+def view_document_fn(doc_type, request_id):
+
+    file_data = queries.get_document_file(doc_type, request_id)
+
+    if not file_data:
+        return "Document not found", 404
+
+    mime_type = "application/octet-stream"
+
+    if file_data[:4] == b'%PDF':
+        mime_type = "application/pdf"
+
+    elif file_data[:2] == b'PK':  
+        mime_type = "application/vnd.openxmlformats-officedocument"
+
+    elif file_data[:4] in (b'\xff\xd8\xff\xe0', b'\xff\xd8\xff\xe1'):
+        mime_type = "image/jpeg"
+
+    elif file_data[:8] == b'\x89PNG\r\n\x1a\n':
+        mime_type = "image/png"
+
+    return send_file(
+        io.BytesIO(file_data),
+        mimetype=mime_type,
+        as_attachment=False
+    )
+
+
+def download_document_fn(doc_type, request_id):
+
+    file_data = queries.get_document_file(doc_type, request_id)
+
+    if not file_data:
+        return "Document not found", 404
+
+    return send_file(
+        io.BytesIO(file_data),
+        mimetype="application/octet-stream",
+        as_attachment=True,
+        download_name="document.pdf"
+    )
+
+
 def resend_approval():
 
     data = request.get_json()
@@ -1117,6 +1184,7 @@ def save_form():
 
 
 def approval_page_fn(request):
+
     token = request.args.get("token")
 
     data, error = validate_token(token)
@@ -1128,13 +1196,16 @@ def approval_page_fn(request):
 
     is_final = queries.is_final_level(data["approval_level"] + 1)
 
+    can_upload = data["approval_level"] == 0
+
     return render_template(
         "approval_review.html",
         token=token,
         request_id=data["request_id"],
         form=form,
         timeline=timeline,
-        is_final=is_final
+        is_final=is_final,
+        can_upload=can_upload
     )
 
 

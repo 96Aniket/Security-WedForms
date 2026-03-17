@@ -34,7 +34,7 @@ function requisitionDashboardApp() {
       .map((r, index) => {
         let status = r.overall_status || "PENDING";
 
-        if (r.current_level === 3 && r.overall_status === "PENDING") {
+        if (r.current_level === -1) {
           status = "APPROVED";
         }
         const statusClass =

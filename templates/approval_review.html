@@ -284,119 +284,112 @@
 
 
 
-    <div class="card">
+    <form method="POST" action="/approval-action" enctype="multipart/form-data">
 
-      <h3>Documents</h3>
+      <input type="hidden" name="token" value="{{ token }}">
 
-      <div class="info-grid">
+      <div class="card">
 
-        <div class="info-label">Police Verification</div>
-        <div>{{ "Yes" if form.s_police_verification_cert else "No" }}</div>
+        <h3>Verification Documents</h3>
 
-        <div class="info-label">Medical Certificate</div>
-        <div>{{ "Yes" if form.s_medical_certificate else "No" }}</div>
+        <!-- ================= POLICE ================= -->
 
-        <div class="info-label">Government ID Proof</div>
-        <div>{{ "Yes" if form.s_govt_id_proof else "No" }}</div>
+        <label>Police Verification Certificate</label>
 
-        <div class="info-label">HSSE Training</div>
-        <div>{{ "Yes" if form.s_hsse_training else "No" }}</div>
+        {% if can_upload %}
+        <input type="file" name="s_police_verification_cert_img" onchange="previewFile(this,'police_preview')">
+        {% endif %}
 
-      </div>
+        {% if form.s_police_verification_cert_img %}
+        <a href="/document/police/{{ request_id }}" target="_blank">View</a>
+        {% endif %}
 
-    </div>
+        <br>
 
-
-
-    <!-- ================= APPROVAL HISTORY ================= -->
-
-    <div class="card">
-
-      <h3>Approval Timeline</h3>
-
-      <table>
-
-        <tr>
-          <th>User</th>
-          <th>Action</th>
-          <th>Remark</th>
-          <th>Time</th>
-        </tr>
-
-        {% for t in timeline %}
-
-        <tr>
-          <td>{{ t.approver_email }}</td>
-          <td><b>{{ t.action_taken }}</b></td>
-          <td>{{ t.remark or '-' }}</td>
-          <td>{{ t.action_time.strftime("%Y-%m-%d %I:%M:%S %p") }}</td>
-        </tr>
-
-        {% endfor %}
-
-      </table>
-
-    </div>
+        <img id="police_preview" style="max-height:120px;border:1px solid #ccc;border-radius:5px;display:none;">
 
 
+        <!-- ================= MEDICAL ================= -->
 
-    <!-- ================= ACTION FORM ================= -->
+        <label>Medical Certificate</label>
 
-    <div class="card">
+        {% if can_upload %}
+        <input type="file" name="s_medical_certificate_img" onchange="previewFile(this,'medical_preview')">
+        {% endif %}
 
-      <form method="POST" action="/approval-action">
+        {% if form.s_medical_certificate_img %}
+        <a href="/document/medical/{{ request_id }}" target="_blank">View</a>
+        {% endif %}
 
-        <input type="hidden" name="token" value="{{ token }}">
+        <br>
+
+        <img id="medical_preview" style="max-height:120px;border:1px solid #ccc;border-radius:5px;display:none;">
+
+
+        <!-- ================= GOVT ================= -->
+
+        <label>Government ID Proof</label>
+
+        {% if can_upload %}
+        <input type="file" name="s_govt_id_proof_img" onchange="previewFile(this,'govt_preview')">
+        {% endif %}
+
+        {% if form.s_govt_id_proof_img %}
+        <a href="/document/govt/{{ request_id }}" target="_blank">View</a>
+        {% endif %}
+
+        <br>
+
+        <img id="govt_preview" style="max-height:120px;border:1px solid #ccc;border-radius:5px;display:none;">
+
+
+        <!-- ================= HSSE ================= -->
+
+        <label>HSSE Training Certificate</label>
+
+        {% if can_upload %}
+        <input type="file" name="s_hsse_training_img" onchange="previewFile(this,'hsse_preview')">
+        {% endif %}
+
+        {% if form.s_hsse_training_img %}
+        <a href="/document/hsse/{{ request_id }}" target="_blank">View</a>
+        {% endif %}
+
+        <br>
+
+        <img id="hsse_preview" style="max-height:120px;border:1px solid #ccc;border-radius:5px;display:none;">
+
 
         {% if not is_final %}
 
         <label><b>Next Approver Email</b></label>
-
-        <input type="email" id="next_email" name="next_email" placeholder="Enter Next Approver Email">
-
-        <br><br>
+        <input type="email" name="next_email">
 
         {% endif %}
 
-
-        <label><b>Remark</b></label>
-
-        <textarea id="remark" name="remark" placeholder="Remark (mandatory if rejecting)" rows="4"></textarea>
+        <label>Remark</label>
+        <textarea name="remark" id="remark"></textarea>
 
 
-        <div class="action-section">
+        <button type="submit" name="action" value="APPROVE" class="approve-btn">
+          Approve
+        </button>
 
-          <button type="submit" name="action" value="APPROVE" class="approve-btn">
+        <button type="submit" name="action" value="REJECT" class="reject-btn" onclick="return validateReject();">
+          Reject
+        </button>
 
-            {% if is_final %}
-            Final Approve
-            {% else %}
-            Approve & Send
-            {% endif %}
-
-          </button>
-
-
-          <button type="submit" name="action" value="REJECT" class="reject-btn" onclick="return validateReject();">
-
-            Reject
-
-          </button>
-
-        </div>
-
-      </form>
-
-    </div>
+    </form>
+  </div>
 
 
 
-    <div class="footer">
+  <div class="footer">
 
-      Security Records Digitization System
-      Pipeline Infrastructure Limited
+    Security Records Digitization System
+    Pipeline Infrastructure Limited
 
-    </div>
+  </div>
 
 
   </div>
@@ -404,6 +397,25 @@
 
 
   <script>
+    function previewFile(input, previewId) {
+
+      const file = input.files[0];
+      const preview = document.getElementById(previewId);
+
+      if (!file) {
+        preview.style.display = "none";
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        preview.src = e.target.result;
+        preview.style.display = "block";
+      }
+
+      reader.readAsDataURL(file);
+    }
 
     function validateReject() {
 
@@ -415,8 +427,8 @@
       }
 
       return true;
-
     }
+
 
   </script>
 
