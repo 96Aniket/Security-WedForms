@@ -4,7 +4,6 @@ from Execute.queries import fetch_data_with_date, get_report_master_tables
 from excel_bp import write_excel
 from services.approval_service import execute_sp
 from utils.token import generate_token, mark_token_used, validate_token
-from utils.mailer import SYSTEM_SMTP_EMAIL
 from Execute.executesql import get_connection
 from utils.approval_engine import process_approval
 from utils.notification import send_approval_mail_to_user0
@@ -1186,6 +1185,21 @@ def save_form():
         "status": "success",
         "form_sr_no": result[0]
     }
+
+
+def get_admin_emails(conn):
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT s_email_id
+        FROM tbl_SECURITY_USER
+        WHERE n_role_id = 1
+        AND s_email_id IS NOT NULL
+    """)
+
+    rows = cursor.fetchall()
+
+    return [row[0] for row in rows if row[0]]
 
 
 def approval_page_fn(request):
