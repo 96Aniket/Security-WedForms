@@ -2208,6 +2208,26 @@ def get_current_approver(request_id):
     return row.current_approver_email if row else None
 
 
+def update_request_status(request_id, status):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE tbl_SECURITY_APPROVAL_REQUEST_MASTER
+        SET
+            overall_status = ?,
+            current_level = -1,
+            current_approver_email = NULL,
+            last_action_time = GETDATE()
+        WHERE request_id = ?
+    """, (status, request_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
 # def get_rejector(request_id):
 #     conn = get_connection()
 #     cursor = conn.cursor()
