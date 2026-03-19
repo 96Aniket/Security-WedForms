@@ -7,130 +7,6 @@
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <style>
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f4f6f8;
-      margin: 0;
-      padding: 30px;
-    }
-
-    .container {
-      max-width: 1000px;
-      margin: auto;
-    }
-
-    .header {
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
-      color: white;
-      padding: 20px;
-      border-radius: 8px 8px 0 0;
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-    .card {
-      background: white;
-      padding: 25px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
-
-    .card h3 {
-      margin-top: 0;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 10px;
-    }
-
-    .row {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 15px;
-    }
-
-    .field {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    label {
-      font-weight: bold;
-      margin-bottom: 4px;
-      color: #444;
-    }
-
-    input,
-    textarea,
-    select {
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-
-    textarea {
-      resize: vertical;
-    }
-
-    .doc-row {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-
-    .doc-label {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .btn-save {
-      display: block;
-      width: 220px;
-      margin: auto;
-      margin-top: 25px;
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 15px;
-    }
-
-    .btn-save:hover {
-      opacity: 0.9;
-    }
-
-    .footer {
-      text-align: center;
-      font-size: 12px;
-      color: #777;
-      margin-top: 20px;
-    }
-
-    .doc-row {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-
-    .doc-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: normal;
-      cursor: pointer;
-    }
-
-    .doc-label input {
-      width: 16px;
-      height: 16px;
-    }
-  </style>
 </head>
 
 <body>
@@ -414,44 +290,14 @@
 
     </form>
 
-
     <div class="footer">
       Security Records Digitization System
       Pipeline Infrastructure Limited
     </div>
 
   </div>
-
-
-  <script>
-    document.getElementById("requisitionForm").addEventListener("submit", e => {
-      e.preventDefault();
-      const form = e.target;
-      const formData = new FormData(form);
-      ["s_police_verification_cert", "s_medical_certificate", "s_govt_id_proof", "s_hsse_training"]
-        .forEach(k => {
-          if (!formData.has(k)) {
-            formData.append(k, 0);
-          } else {
-            formData.set(k, 1);
-          }
-        });
-      fetch("/api/submit-form", {
-        method: "POST",
-        body: formData
-      })
-        .then(r => r.json())
-        .then(res => {
-          if (res.status) {
-            alert("Requisition submitted successfully");
-            document.querySelector(".btn-save").disabled = true;
-            setTimeout(() => {
-              window.close();
-            }, 500);
-          }
-        })
-    });
-  </script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="{{ url_for('static', filename='js/form_fill.js') }}"></script>
 
 </body>
 

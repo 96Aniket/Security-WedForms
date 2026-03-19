@@ -27,7 +27,6 @@ def send_mail(to_email, subject, body, sender_email=None):
             print("ADMIN FETCH FAILED:", db_error)
             admin_emails = []
 
-        # remove duplicate if admin == receiver
         admin_emails = [e for e in admin_emails if e != to_email]
 
         from_email = SYSTEM_SMTP_EMAIL
