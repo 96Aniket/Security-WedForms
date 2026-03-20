@@ -112,8 +112,10 @@
       </div>
     </div>
 
-    <form method="POST" action="/approval-action" enctype="multipart/form-data">
+    <form id="approvalForm" enctype="multipart/form-data">
+
       <input type="hidden" name="token" value="{{ token }}">
+
       <div class="card">
         <h3>Verification Documents</h3>
 
@@ -160,22 +162,32 @@
         {% endif %}
         <br>
         <img id="hsse_preview" style="max-height:120px;border:1px solid #ccc;border-radius:5px;display:none;">
+
+        <!-- ================= NEXT APPROVER ================= -->
         {% if not is_final %}
         <label><b>Next Approver Email</b></label>
-        <input type="email" name="next_email">
+        <input type="email" name="next_email" placeholder="Enter next approver email">
         {% endif %}
 
+        <!-- ================= REMARK ================= -->
         <label>Remark</label>
-        <textarea name="remark" id="remark"></textarea>
+        <textarea name="remark" id="remark" placeholder="Enter remark (mandatory if rejecting)"></textarea>
 
-        <button type="submit" name="action" value="APPROVE" class="approve-btn">
-          Approve
-        </button>
+        <!-- ================= BUTTONS ================= -->
+        <div style="margin-top:20px; text-align:center;">
 
-        <button type="submit" name="action" value="REJECT" class="reject-btn" onclick="return validateReject();">
-          Reject
-        </button>
+          <button type="button" class="approve-btn" onclick="submitApproval('APPROVE')">
+            Approve
+          </button>
+
+          <button type="button" class="reject-btn" onclick="submitApproval('REJECT')">
+            Reject
+          </button>
+
+        </div>
+
       </div>
+
     </form>
   </div>
 
@@ -183,7 +195,8 @@
     Security Records Digitization System
     Pipeline Infrastructure Limited
   </div>
-
+  
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="{{ url_for('static', filename='javascript/approval_review.js') }}"></script>
 
 </body>

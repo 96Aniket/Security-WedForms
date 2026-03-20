@@ -40,16 +40,7 @@ $(document).ready(function () {
         if (res.status) {
 
           alert("Requisition submitted successfully ");
-
-          setTimeout(function () {
-
-            if (window.opener) {
-              window.close();   
-            } else {
-              alert("Please close this tab manually");
-            }
-
-          }, 500);
+          window.close();
 
         } else {
           alert(res.error || "Something went wrong");
