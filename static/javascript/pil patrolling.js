@@ -1,6 +1,8 @@
 function patrollingApp() {
   let allData = [];
   let currentPage = 1;
+  let futureDateError = false;
+  let timeError = false;
   const rowsPerPage = 10;
 
   const pageInfo = document.getElementById("pageInfo");
@@ -56,8 +58,12 @@ function patrollingApp() {
 
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
 
-    const [dd, mm, yyyy] = dateStr.split("-");
-    return `${yyyy}-${mm}-${dd}`;
+    if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
+      const [dd, mm, yyyy] = dateStr.split("-");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    return "";
   }
 
   /* ================= LOAD ================= */
@@ -148,6 +154,13 @@ function patrollingApp() {
     }
   }
 
+  function getTodayDate() {
+    const today = new Date();
+    const offset = today.getTimezoneOffset();
+    const localDate = new Date(today.getTime() - offset * 60 * 1000);
+    return localDate.toISOString().split("T")[0];
+  }
+
   /* ================= ADD ================= */
 
   function addRow() {
@@ -157,6 +170,11 @@ function patrollingApp() {
 
     row.dataset.new = "true";
     row.dataset.edited = "true";
+
+    const today = getTodayDate();
+    row.children[2].innerHTML = `
+      <input type="date" max="${today}" value="${today}">
+    `;
 
     // LOCATION FORMAT
     row.querySelector(".location").innerText = formatLocation(USER_LOCATION);
@@ -195,7 +213,12 @@ function patrollingApp() {
       const val = row.querySelector("." + cls).innerText;
 
       if (cls === "date") {
-        td.innerHTML = `<input type="date" value="${formatDateForInput(val)}">`;
+        const today = getTodayDate();
+        td.innerHTML = `
+          <input type="date" 
+            max="${today}" 
+            value="${formatDateForInput(val)}">
+        `;
       } else {
         td.innerHTML = `<input type="time" value="${val}">`;
       }
@@ -245,12 +268,12 @@ function patrollingApp() {
       const toInput = row.children[4]?.querySelector("input");
       const guardInput = row.children[15]?.querySelector("input");
 
+      // ✅ Mandatory check
       [dateInput, fromInput, toInput, guardInput].forEach((input) => {
         if (input && !input.value) {
           isValid = false;
           input.classList.add("mandatory-error");
 
-          // add red star
           const cell = input.closest("td");
           cell.classList.add("mandatory-cell");
 
@@ -262,10 +285,38 @@ function patrollingApp() {
           }
         }
       });
+
+      // ✅ FUTURE DATE CHECK
+      if (dateInput && dateInput.value) {
+        const selectedDate = dateInput.value;   // YYYY-MM-DD
+        const today = getTodayDate();           // already correct
+
+        if (selectedDate > today) {
+          isValid = false;
+          futureDateError = true;
+        }
+      }
+
+      if (fromInput && toInput && fromInput.value && toInput.value) {
+        if (fromInput.value >= toInput.value) {
+          isValid = false;
+          timeError = true;
+
+          fromInput.classList.add("mandatory-error");
+          toInput.classList.add("mandatory-error");
+        }
+      }
     });
 
-    if (!isValid) {
+    if (!isValid && !futureDateError && !timeError) {
       alert("Please fill mandatory fields");
+    }
+    if (futureDateError) {
+      alert("Future date is not allowed");
+    }
+
+    if (timeError) {
+      alert('"From Time" must be less than "To Time"');
     }
 
     return isValid;
@@ -535,6 +586,38 @@ function patrollingApp() {
       menu.style.display = "none";
     }
   });
+
+  document.addEventListener("change", function (e) {
+  const row = e.target.closest("tr");
+  if (!row) return;
+
+  const dateInput = row.children[2]?.querySelector("input");
+  const fromInput = row.children[3]?.querySelector("input");
+  const toInput = row.children[4]?.querySelector("input");
+
+  const today = getTodayDate();
+
+  const now = new Date();
+  const currentTime =
+    now.getHours().toString().padStart(2, "0") +
+    ":" +
+    now.getMinutes().toString().padStart(2, "0");
+ 
+  if (dateInput && dateInput.value === today) {
+    if (fromInput) fromInput.min = currentTime;
+    if (toInput) toInput.min = currentTime;
+  } else {
+    if (fromInput) fromInput.removeAttribute("min");
+    if (toInput) toInput.removeAttribute("min");
+  }
+ 
+  if (fromInput && toInput && fromInput.value && toInput.value) {
+    if (fromInput.value >= toInput.value) {
+      alert('"To Time" must be greater than "From Time"');
+      toInput.value = "";
+    }
+  }
+});
 
   /* ================= EXPOSE ================= */
 
