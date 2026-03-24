@@ -88,7 +88,7 @@
   <div class="table-footer">
 
     {% if user_role != 'admin' %}
-    <button class="btn-add" onclick="addRow()">Add Row</button>
+    <button class="btn-add" id="addRowBtn" onclick="addRow()">Add Row</button>
     <button class="btn-save" id="saveBtn" onclick="saveTable()" style="display:none;">
       Save
     </button>
@@ -125,7 +125,7 @@
         </select>
       </td>
 
-      <td><input type="number"></td>
+      <td><input type="number" min="0"></td>
       <td>
         <input type="file" accept="image/*" onchange="previewFile(this)">
         <div class="img-preview"></div>

@@ -317,3 +317,20 @@ html, body {
     max-width: 150px;
   }
 }
+.mandatory-error {
+  border: 2px solid red !important;
+  background-color: #ffe6e6;
+}
+
+.mandatory-cell {
+  position: relative;
+}
+
+.mandatory-star {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  color: red;
+  font-weight: bold;
+  font-size: 14px;
+}
