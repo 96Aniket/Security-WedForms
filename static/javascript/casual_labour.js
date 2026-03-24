@@ -151,7 +151,7 @@ function casualLabourApp() {
         <tr>
           <td>${formatLocation(r.s_location)}</td>
           <td>${r.s_contractor_name || ""}</td>
-          <td>${r.s_host_name || ""}</td>
+          
           <td>${r.s_nature_of_work || ""}</td>
           <td>${r.dt_work_datetime || ""}</td>
           <td class="action-col">
@@ -211,7 +211,7 @@ function casualLabourApp() {
         <td class="sr-no">${srNo}</td>
         <td>${formatLocation(r.s_location)}</td>
         <td>${r.s_contractor_name || ""}</td>
-        <td>${r.s_host_name || ""}</td>
+        
         <td>${r.s_nature_of_work || ""}</td>
         <td>${r.s_place_of_work || ""}</td>
         <td>${r.dt_work_datetime || ""}</td>
@@ -286,7 +286,7 @@ function casualLabourApp() {
     $("#s_location").val(USER_LOCATION).prop("readonly", true);
 
     $("#s_contractor_name").val(record.s_contractor_name || "");
-    $("#s_host_name").val(record.s_host_name || "");
+    // $("#s_host_name").val(record.s_host_name || "");
     $("#s_nature_of_work").val(record.s_nature_of_work || "");
     $("#s_place_of_work").val(record.s_place_of_work || "");
     $("#dt_work_datetime").val(
@@ -494,13 +494,13 @@ function casualLabourApp() {
     const nature = $("#s_nature_of_work").val().trim();
     const place = $("#s_place_of_work").val().trim();
     const datetime = $("#dt_work_datetime").val();
-    const hostName = $("#s_host_name").val().trim();
+    // const hostName = $("#s_host_name").val().trim();
 
-    if (!hostName) {
-      markMandatory(document.getElementById("s_host_name"));
-      alert("Please enter Host Name.");
-      return;
-    }
+    // if (!hostName) {
+    //   markMandatory(document.getElementById("s_host_name"));
+    //   alert("Please enter Host Name.");
+    //   return;
+    // }
 
     let workValid = true;
 
@@ -553,7 +553,7 @@ function casualLabourApp() {
         s_nature_of_work: nature,
         s_place_of_work: place,
         dt_work_datetime: datetime,
-        s_host_name: $("#s_host_name").val().trim(),
+        s_host_name: "",
       },
       labours,
     };
@@ -623,7 +623,7 @@ function casualLabourApp() {
     const masterFields = [
       ["Location", record.s_location ?? ""],
       ["Contractor Name", record.s_contractor_name ?? ""],
-      ["Host Name", record.s_host_name ?? ""],
+      // ["Host Name", record.s_host_name ?? ""],
       ["Nature of Work", record.s_nature_of_work ?? ""],
       ["Place of Work", record.s_place_of_work ?? ""],
       ["Work Date / Time", record.dt_work_datetime ?? ""],

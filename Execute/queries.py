@@ -1339,7 +1339,7 @@ def save_casual_labour_data(data, username="system"):
             master["s_nature_of_work"],
             master["s_place_of_work"],
             work_dt,
-            master["s_host_name"],
+            master.get("s_host_name", ""),
             username
         ))
 
@@ -1503,7 +1503,7 @@ def update_casual_labour_data(data, username="system"):
             master["s_nature_of_work"],
             master["s_place_of_work"],
             work_dt,
-            master["s_host_name"],
+            master.get("s_host_name", ""),
             username,
             master["n_sl_no"]
         ))
