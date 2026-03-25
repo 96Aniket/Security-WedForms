@@ -248,7 +248,6 @@ function visitorDeclarationApp() {
     $("#item_uom").val(i.s_uom);
     $("#item_qty").val(i.n_quantity);
 
-    // Optional UX improvement
     $("html, body").animate(
       {
         scrollTop: $("#item_desc").offset().top - 100,
@@ -292,7 +291,6 @@ function visitorDeclarationApp() {
       return;
     }
 
-    /* ========= ITEMS CHECK ========= */
     if (!items || items.length === 0) {
       alert("Please add at least one Item before saving.");
       return;
@@ -542,7 +540,6 @@ function visitorDeclarationApp() {
 
     /* ===== FORM STYLE HEADER ===== */
 
-    // Visitor Name + Pass No
     doc.text("I", 10, y);
     doc.text(record.s_visitor_name || "", 15, y);
     doc.line(15, y + 1, 110, y + 1);
@@ -553,21 +550,18 @@ function visitorDeclarationApp() {
 
     y += 6;
 
-    // Whom to meet
     doc.text("want to meet Mr. / Mrs.", 10, y);
     doc.text(record.s_whom_to_meet || "", 70, y);
     doc.line(65, y + 1, 200, y + 1);
 
     y += 6;
 
-    // Material line
     doc.text(
       "and carrying following sample / material inside the PIL premises up to",
       10,
       y,
     );
 
-    // empty line (optional future use)
     doc.line(10, y + 2, 200, y + 2);
 
     y += 6;
@@ -580,7 +574,6 @@ function visitorDeclarationApp() {
 
     y += 8;
 
-    // Date (right aligned like form)
     doc.text("Date:", 150, y);
     doc.text(record.dt_visit_datetime || "", 170, y);
     doc.line(165, y + 1, 200, y + 1);
@@ -593,7 +586,6 @@ function visitorDeclarationApp() {
     const tableWidth = 160;
     const startX = (pageWidth - tableWidth) / 2;
 
-    // header
     doc.rect(startX, y, 15, 8);
     doc.rect(startX + 15, y, 95, 8);
     doc.rect(startX + 110, y, 25, 8);
@@ -608,7 +600,6 @@ function visitorDeclarationApp() {
     y += 8;
     doc.setFont("helvetica", "normal");
 
-    // data
     let sr = 1;
 
     (record.items || []).forEach((item) => {
@@ -645,13 +636,11 @@ function visitorDeclarationApp() {
 
     const centerX = pageWidth / 2;
 
-    // LEFT SIDE
     doc.text("Time:", startX, y);
     doc.text("Date:", startX, y + 6);
 
     doc.text("Visitor Signature:", startX, y + 14);
 
-    // RIGHT SIDE
     doc.text("Checked By:", startX + 120, y);
     doc.text("Name & Sign of Security", startX + 105, y + 14);
 

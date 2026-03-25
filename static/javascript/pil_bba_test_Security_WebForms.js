@@ -262,7 +262,7 @@ function bbaTestApp() {
 
     ["date", "time"].forEach((cls, i) => {
       const td = row.children[2 + i];
-      const val = row.querySelector("." + cls).innerText;
+      const val = row.querySelector("." + cls).innerText.trim();
 
       td.innerHTML = "";
 
@@ -271,27 +271,17 @@ function bbaTestApp() {
       if (cls === "date") {
         input.type = "date";
         input.max = new Date().toISOString().split("T")[0];
-        input.value = formatDateForInput(val);
+
+        input.value = val ? formatDateForInput(val) : "";
       } else {
         input.type = "time";
-        input.value = val;
+
+        input.value = val ? val.slice(0, 5) : "";
       }
 
       td.appendChild(input);
     });
 
-    // Date & Time
-    ["date", "time"].forEach((cls, i) => {
-      const td = row.children[2 + i];
-      const val = row.querySelector("." + cls).innerText;
-      td.innerHTML = "";
-      const input = document.createElement("input");
-      input.type = cls === "date" ? "date" : "time";
-      input.value = cls === "date" ? formatDateForInput(val) : val;
-      td.appendChild(input);
-    });
-
-    // Text inputs
     [4, 5, 6, 11].forEach((idx) => {
       const td = row.children[idx];
       const val = td.innerText;
@@ -301,7 +291,6 @@ function bbaTestApp() {
       td.appendChild(input);
     });
 
-    // Selects
     [
       { idx: 7, options: ["Employee", "Contractor", "Others"] },
       { idx: 8, options: ["Negative", "Positive"] },
@@ -320,7 +309,6 @@ function bbaTestApp() {
       td.appendChild(select);
     });
 
-    // ✅ BAC FIX (CRITICAL)
     const bacTd = row.children[9];
     const bacVal = bacTd.innerText;
     bacTd.innerHTML = "";
@@ -331,7 +319,6 @@ function bbaTestApp() {
     bacInput.style.width = "100%";
     bacTd.appendChild(bacInput);
 
-    // Attachment
     const existingBase64 = row.dataset.attachment || null;
     const existingType = row.dataset.fileType || "application/pdf";
     const existingName = row.dataset.fileName || "Attachment";
@@ -358,7 +345,6 @@ function bbaTestApp() {
     row.children[10].appendChild(fileInput);
     row.children[10].appendChild(previewDiv);
 
-    // Remarks
     const remarksTd = row.children[12];
     const remarksVal = remarksTd.innerText;
     remarksTd.innerHTML = "";
@@ -387,10 +373,10 @@ function bbaTestApp() {
     const rows = document.querySelectorAll("#bbaTable tbody tr");
 
     rows.forEach((row) => {
-      const dateInput = row.children[2]?.querySelector("input"); // date
-      const timeInput = row.children[3]?.querySelector("input"); // time
-      const nameInput = row.children[5]?.querySelector("input"); // Name
-      const securityInput = row.children[11]?.querySelector("input"); // Security
+      const dateInput = row.children[2]?.querySelector("input"); 
+      const timeInput = row.children[3]?.querySelector("input"); 
+      const nameInput = row.children[5]?.querySelector("input"); 
+      const securityInput = row.children[11]?.querySelector("input");
 
       [dateInput, timeInput, nameInput, securityInput].forEach((input) => {
         if (input && !input.value) {
@@ -486,7 +472,6 @@ function bbaTestApp() {
         s_remarks: td[12].querySelector("textarea")?.value,
       };
 
-      // INSERT
       if (row.dataset.new === "true") {
         $.ajax({
           url: "/save_bba_test_data",
@@ -496,7 +481,6 @@ function bbaTestApp() {
         });
       }
 
-      // UPDATE
       if (row.dataset.edited === "true" && !row.dataset.new) {
         payload.n_sr_no = row.dataset.id;
         $.ajax({

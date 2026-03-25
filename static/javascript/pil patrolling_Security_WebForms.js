@@ -25,7 +25,7 @@ function patrollingApp() {
     rows.forEach((row, index) => {
       const cell = row.querySelector(".sr-no");
       if (cell) {
-        cell.innerText = index + 1; // TOP → BOTTOM
+        cell.innerText = index + 1;
       }
     });
   }
@@ -35,7 +35,6 @@ function patrollingApp() {
 
     if (/^[A-Z]{2}-\d{2}$/.test(code)) return code;
 
-    // CS01 → CS-01
     const match = code.match(/^([A-Z]+)(\d+)$/);
     if (!match) return code;
 
@@ -176,7 +175,6 @@ function patrollingApp() {
       <input type="date" max="${today}" value="${today}">
     `;
 
-    // LOCATION FORMAT
     row.querySelector(".location").innerText = formatLocation(USER_LOCATION);
 
     const okCells = row.querySelectorAll(".ok");
@@ -191,10 +189,8 @@ function patrollingApp() {
       }
     });
 
-    // Add row at top
     tbody.prepend(row);
 
-    // ✅ FIX SR NO FOR ALL ROWS
     recalculateSrNo();
 
     document.getElementById("saveBtn").style.display = "inline-block";
@@ -253,7 +249,6 @@ function patrollingApp() {
   function validateMandatoryFields() {
     let isValid = true;
 
-    // remove old errors
     document.querySelectorAll(".mandatory-error").forEach((el) => {
       el.classList.remove("mandatory-error");
     });
@@ -268,7 +263,6 @@ function patrollingApp() {
       const toInput = row.children[4]?.querySelector("input");
       const guardInput = row.children[15]?.querySelector("input");
 
-      // ✅ Mandatory check
       [dateInput, fromInput, toInput, guardInput].forEach((input) => {
         if (input && !input.value) {
           isValid = false;
@@ -286,10 +280,9 @@ function patrollingApp() {
         }
       });
 
-      // ✅ FUTURE DATE CHECK
       if (dateInput && dateInput.value) {
-        const selectedDate = dateInput.value;   // YYYY-MM-DD
-        const today = getTodayDate();           // already correct
+        const selectedDate = dateInput.value;
+        const today = getTodayDate();
 
         if (selectedDate > today) {
           isValid = false;
@@ -343,7 +336,6 @@ function patrollingApp() {
       return;
     }
 
-    // SAME confirm logic as pipeline mitra
     let confirmMsg = "Do you want to save changes?";
     if (hasNew && !hasEdit) confirmMsg = "Do you want to add this record?";
     if (!hasNew && hasEdit) confirmMsg = "Do you want to update this record?";
@@ -376,7 +368,6 @@ function patrollingApp() {
         s_patrolling_guard_name: td[15].querySelector("input")?.value,
       };
 
-      // INSERT
       if (row.dataset.new) {
         requests.push(
           $.ajax({
@@ -388,7 +379,6 @@ function patrollingApp() {
         );
       }
 
-      // UPDATE
       if (row.dataset.edited && !row.dataset.new) {
         payload.n_sr_no = row.dataset.id;
         requests.push(
@@ -425,7 +415,6 @@ function patrollingApp() {
       if (!confirm("Are you sure you want to delete this row?")) return;
       row.remove();
 
-      // ✅ UPDATE SR NO IMMEDIATELY
       recalculateSrNo();
       return;
     }
@@ -466,8 +455,8 @@ function patrollingApp() {
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Patrolling Observation");
-    // ===== TITLE AT TOP =====
-    worksheet.mergeCells(1, 1, 1, 16); // 16 columns
+
+    worksheet.mergeCells(1, 1, 1, 16); 
     worksheet.getCell("A1").value = "Patrolling Observation Register";
     worksheet.getCell("A1").font = { bold: true, size: 16 };
     worksheet.getCell("A1").alignment = {
@@ -476,10 +465,8 @@ function patrollingApp() {
     };
     worksheet.getRow(1).height = 30;
 
-    // =====  BLANK ROWS =====
     worksheet.addRow([]);
 
-    // ===== HEADERS =====
     const headers = [
       "Sr No",
       "Location",
@@ -502,7 +489,6 @@ function patrollingApp() {
     const headerRowIndex = worksheet.lastRow.number + 1;
     worksheet.addRow(headers);
 
-    // ===== DATA =====
     let srNo = 1;
     allData.forEach((r) => {
       worksheet.addRow([
@@ -525,7 +511,6 @@ function patrollingApp() {
       ]);
     });
 
-    // ===== STYLE HEADER ROW =====
     worksheet.getRow(headerRowIndex).eachCell((cell) => {
       cell.font = { bold: true };
       cell.alignment = {
@@ -536,19 +521,16 @@ function patrollingApp() {
     });
     worksheet.getRow(headerRowIndex).height = 40;
 
-    // Optional: better header height
     worksheet.getRow(1).height = 40;
 
-    // ===== STYLE SR NO COLUMN =====
     worksheet.getColumn(1).eachCell((cell, rowNumber) => {
       if (rowNumber !== 1) {
         cell.font = { bold: true };
       }
     });
 
-    // ===== AUTO COLUMN WIDTH =====
     worksheet.columns.forEach((column) => {
-      let maxLength = 12; // minimum readable width
+      let maxLength = 12;
 
       column.eachCell({ includeEmpty: true }, (cell) => {
         const len = cell.value ? cell.value.toString().length : 0;

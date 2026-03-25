@@ -281,7 +281,6 @@ function vehicleChecklistApp() {
       `);
     });
 
-    // Prefill for EDIT
     existing.forEach((c) => {
       const tr = $(`#checkTable tr[data-code='${c.s_check_code}']`);
       tr.find(`input[value='${c.s_status}']`).prop("checked", true);
@@ -326,7 +325,7 @@ function vehicleChecklistApp() {
 
   /* ============ SAVE / UPDATE ============ */
   window.saveData = () => {
-    /* ========= STEP 1: MANDATORY FIELD VALIDATION (UI + LOGIC) ========= */
+
     let valid = true;
 
     const vehicleNoInput = document.getElementById("s_vehicle_no");
@@ -385,26 +384,22 @@ function vehicleChecklistApp() {
       return;
     }
 
-    /* ========= STEP 2: CONTACT NUMBER VALIDATION ========= */
     if (contactInput.value.length !== 10) {
       alert("Contact number must be exactly 10 digits");
       contactInput.focus();
       return;
     }
 
-    /* ========= STEP 3: CHECKLIST VISIBILITY ========= */
     if ($("#step2").is(":hidden") || $("#checkTable tbody tr").length === 0) {
       alert("Please complete checklist before saving.");
       return;
     }
 
-    /* ========= STEP 4: EDIT SAFETY ========= */
     if (isEdit && !editId) {
       alert("Edit ID missing. Please reload.");
       return;
     }
 
-    /* ========= STEP 5: CHECKLIST VALIDATION ========= */
     const rows = $("#checkTable tbody tr");
     const checklist = [];
     let checklistValid = true;
@@ -441,7 +436,6 @@ function vehicleChecklistApp() {
       return;
     }
 
-    /* ========= STEP 6: PAYLOAD ========= */
     const payload = {
       master: {
         n_vc_id: editId,
@@ -469,7 +463,6 @@ function vehicleChecklistApp() {
     )
       return;
 
-    /* ========= STEP 7: SAVE ========= */
     $.ajax({
       url,
       method: "POST",
@@ -710,12 +703,10 @@ function vehicleChecklistApp() {
       }
     });
 
-    // ===== FOOTER =====
     y += 10;
     y += 8;
     doc.text("SECURITY NAME & SIGN", 140, y);
 
-    // ===== SAVE =====
     doc.save(`Vehicle_${record.s_vehicle_no}.pdf`);
   }
 
@@ -730,7 +721,6 @@ function vehicleChecklistApp() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Vehicle Entry Register");
 
-    /* ===== TITLE ===== */
     worksheet.mergeCells("A1:H1");
     worksheet.getCell("A1").value = "Vehicle Entry Register";
     worksheet.getCell("A1").font = { bold: true, size: 14 };
@@ -739,10 +729,8 @@ function vehicleChecklistApp() {
       vertical: "middle",
     };
 
-    /* ===== ONE BLANK ROW ===== */
     worksheet.addRow([]);
 
-    /* ===== HEADERS ===== */
     const headers = [
       "Sr No",
       "Location",

@@ -84,7 +84,6 @@ function pipelineMitraApp() {
 
     row.dataset.id = r.n_sr_no;
 
-    // ✅ REVERSE + CONTINUOUS SR NO
     const srNo = totalRecords - (start + index);
     row.querySelector(".sr-no").innerText = srNo;
 
@@ -256,7 +255,7 @@ function saveTable() {
     if (!/^\d{10}$/.test(mobile)) {
       alert("Mobile number must be exactly 10 digits");
       mobileInput.focus();
-      return; // 🔥 EXIT saveTable fully
+      return;
     }
   }
 
@@ -272,7 +271,6 @@ function saveTable() {
 
   if (!confirm(confirmMsg)) return;
 
-  // ✅ INSERT / UPDATE
   rows.forEach(row => {
     if (!row.dataset.new && !row.dataset.edited) return;
 
@@ -289,7 +287,6 @@ function saveTable() {
       s_remarks: td[8].querySelector("input")?.value
     };
 
-    // INSERT
     if (row.dataset.new) {
       $.ajax({
         url: "/save_pipeline_mitra_data",
@@ -299,7 +296,6 @@ function saveTable() {
       });
     }
 
-    // UPDATE
     if (row.dataset.edited && !row.dataset.new) {
       payload.n_sr_no = row.dataset.id;
       $.ajax({
@@ -329,14 +325,12 @@ function saveTable() {
  function deleteRow(btn) {
   const row = btn.closest("tr");
 
-  // New row → frontend only
   if (row.dataset.new) {
     if (!confirm("Are you sure you want to delete this row?")) return;
     row.remove();
     return;
   }
 
-  // Existing row → DB delete
   if (!confirm("Are you sure you want to delete this record?")) return;
 
   $.ajax({
@@ -372,7 +366,6 @@ async function downloadTable() {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Pipeline Mitra Register");
 
-  /* ===== TITLE ===== */
   worksheet.mergeCells(1, 1, 1, 8);
   worksheet.getCell("A1").value = "Pipeline Mitra Register";
   worksheet.getCell("A1").font = { bold: true, size: 16 };
@@ -382,10 +375,8 @@ async function downloadTable() {
   };
   worksheet.getRow(1).height = 30;
 
-  /* ===== 1 BLANK ROW ===== */
   worksheet.addRow([]);
 
-  /* ===== HEADERS ===== */
   const headers = [
   "Sr No",
   "Location",
@@ -411,7 +402,6 @@ async function downloadTable() {
   });
   worksheet.getRow(headerRowIndex).height = 35;
 
-  /* ===== DATA ===== */
   let srNo = 1;
   allData.forEach(r => {
     worksheet.addRow([
@@ -427,7 +417,6 @@ async function downloadTable() {
     ]);
   });
 
-  /* ===== COLUMN WIDTH ===== */
   worksheet.columns.forEach(column => {
     let maxLength = 12;
     column.eachCell({ includeEmpty: true }, cell => {
@@ -437,7 +426,6 @@ async function downloadTable() {
     column.width = Math.min(maxLength + 2, 20);
   });
 
-  /* ===== DOWNLOAD ===== */
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"

@@ -37,7 +37,6 @@ function casualLabourApp() {
     const label = field.querySelector("label");
     if (!label) return;
 
-    // prevent duplicate stars
     if (!label.querySelector(".mandatory-star")) {
       const star = document.createElement("span");
       star.className = "mandatory-star";
@@ -116,7 +115,7 @@ function casualLabourApp() {
     if (type === "Aadhar") {
       this.value = this.value.replace(/\D/g, "").slice(0, 12);
     } else if (type === "PAN") {
-      // alphanumeric only, max 10, auto uppercase
+
       this.value = this.value
         .replace(/[^a-zA-Z0-9]/g, "")
         .slice(0, 10)
@@ -188,7 +187,6 @@ function casualLabourApp() {
     pageData.forEach((r, index) => {
       let actionColumn = "";
 
-      // Show action column only if NOT admin
       if (USER_ROLE !== "admin") {
         actionColumn = `
         <td class="action-col">
@@ -226,7 +224,6 @@ function casualLabourApp() {
     updatePaginationButtons();
   }
 
-  /* pagination control functions */
   function updatePaginationButtons() {
     const totalPages = Math.ceil(allData.length / rowsPerPage) || 1;
     pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
@@ -392,11 +389,9 @@ function casualLabourApp() {
     };
 
     if (editingLabourIndex !== null) {
-      // UPDATE EXISTING
       labours[editingLabourIndex] = labourObj;
       editingLabourIndex = null;
     } else {
-      // ADD NEW
       labours.push(labourObj);
     }
 
@@ -507,13 +502,11 @@ function casualLabourApp() {
     const contractorInput = document.getElementById("s_contractor_name");
     const datetimeInput = document.getElementById("dt_work_datetime");
 
-    // contractor mandatory
     if (!contractor) {
       markMandatory(contractorInput);
       workValid = false;
     }
 
-    // date & time mandatory
     if (!datetime) {
       markMandatory(datetimeInput);
       workValid = false;
@@ -635,13 +628,11 @@ function casualLabourApp() {
     doc.text(`Date & Time: ${record.dt_work_datetime || ""}`, 10, y);
     y += 10;
 
-    // ===== TABLE HEADER =====
     // ===== TABLE START =====
-    const startX = 20; // center alignment
+    const startX = 20;
     const tableWidth = 170;
-    const colWidths = [70, 20, 20, 60]; // Name, Age, Sex, Mobile
+    const colWidths = [70, 20, 20, 60];
 
-    // HEADER
     doc.setFont("helvetica", "bold");
 
     let x = startX;
@@ -654,7 +645,6 @@ function casualLabourApp() {
 
     y += 8;
 
-    // DATA
     doc.setFont("helvetica", "normal");
 
     (record.labours || []).forEach((l, index) => {
@@ -675,7 +665,6 @@ function casualLabourApp() {
 
       y += 8;
 
-      // page break
       if (y > 260) {
         doc.addPage();
         y = 20;
