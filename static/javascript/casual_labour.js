@@ -103,7 +103,7 @@ function casualLabourApp() {
       return;
     }
 
-    downloadLabourDetailsExcel(record);
+    showDownloadOptions(record);
   });
 
   $("#labour_mobile").on("input", function () {
@@ -602,84 +602,157 @@ function casualLabourApp() {
   });
 
   /* ================= DOWNLOAD LABOUR DETAILS (SINGLE RECORD) ================= */
-  async function downloadLabourDetailsExcel(record) {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Labour Details");
-    /* ===== TITLE ===== */
-    worksheet.mergeCells("A1:G1");
-    worksheet.getCell("A1").value = "Temporary Entry Permit";
-    worksheet.getCell("A1").font = { bold: true, size: 14 };
-    worksheet.getCell("A1").alignment = {
-      horizontal: "center",
-      vertical: "middle",
-    };
+  async function downloadCasualPDF(record) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("p", "mm", "a4");
 
-    /* ===== ONE BLANK ROW ===== */
-    worksheet.addRow([]);
+    let y = 10;
 
-    let row = 3;
+    // ===== TITLE =====
+    doc.setFontSize(14);
+    doc.text("PIL", 95, y);
+    y += 6;
 
-    // ===== MASTER DETAILS (ONCE) =====
-    const masterFields = [
-      ["Location", record.s_location ?? ""],
-      ["Contractor Name", record.s_contractor_name ?? ""],
-      // ["Host Name", record.s_host_name ?? ""],
-      ["Nature of Work", record.s_nature_of_work ?? ""],
-      ["Place of Work", record.s_place_of_work ?? ""],
-      ["Work Date / Time", record.dt_work_datetime ?? ""],
-    ];
+    doc.setFontSize(12);
+    doc.text("Temporary Entry Permit", 70, y);
+    y += 10;
 
-    masterFields.forEach(([label, value]) => {
-      worksheet.getCell(`A${row}`).value = label;
-      worksheet.getCell(`A${row}`).font = { bold: true };
-      worksheet.getCell(`B${row}`).value = value;
-      row++;
+    // ===== DETAILS =====
+    doc.setFontSize(10);
+
+    doc.text(`Location: ${record.s_location || ""}`, 10, y);
+    y += 6;
+
+    doc.text(`Contractor: ${record.s_contractor_name || ""}`, 10, y);
+    y += 6;
+
+    doc.text(`Nature of Work: ${record.s_nature_of_work || ""}`, 10, y);
+    y += 6;
+
+    doc.text(`Place of Work: ${record.s_place_of_work || ""}`, 10, y);
+    y += 6;
+
+    doc.text(`Date & Time: ${record.dt_work_datetime || ""}`, 10, y);
+    y += 10;
+
+    // ===== TABLE HEADER =====
+    // ===== TABLE START =====
+    const startX = 20; // center alignment
+    const tableWidth = 170;
+    const colWidths = [70, 20, 20, 60]; // Name, Age, Sex, Mobile
+
+    // HEADER
+    doc.setFont("helvetica", "bold");
+
+    let x = startX;
+
+    ["Name", "Age", "Sex", "Mobile"].forEach((text, i) => {
+      doc.rect(x, y, colWidths[i], 8);
+      doc.text(text, x + 2, y + 5);
+      x += colWidths[i];
     });
 
-    row += 1; // blank line
+    y += 8;
 
-    // ===== LABOUR TABLE HEADER =====
-    worksheet.getRow(row).values = [
-      "Labour Name",
-      "Age",
-      "Sex",
-      "Address",
-      "Temporary Card No",
-      "Mobile No",
-      "ID Type",
-      "Govt ID No",
+    // DATA
+    doc.setFont("helvetica", "normal");
+
+    (record.labours || []).forEach((l, index) => {
+      let x = startX;
+
+      const rowData = [
+        l.s_labour_name || "",
+        String(l.n_age || ""),
+        l.s_sex || "",
+        l.s_mobile_no || "",
+      ];
+
+      rowData.forEach((cell, i) => {
+        doc.rect(x, y, colWidths[i], 8);
+        doc.text(String(cell), x + 2, y + 5, { maxWidth: colWidths[i] - 4 });
+        x += colWidths[i];
+      });
+
+      y += 8;
+
+      // page break
+      if (y > 260) {
+        doc.addPage();
+        y = 20;
+      }
+    });
+
+    y += 15;
+
+    // ===== SIGNATURE SECTION =====
+    doc.setFont(undefined, "bold");
+
+    doc.text("Signature of Contractor Supervisor", 10, y);
+    doc.text("Signature of Engineer Incharge", 110, y);
+    y += 20;
+
+    doc.text("Signature of Area Incharge", 10, y);
+    doc.text("Signature of Security Incharge", 110, y);
+
+    // ===== DOWNLOAD =====
+    doc.save("Casual_Labour_Permit.pdf");
+  }
+
+  async function downloadLabourDetailsExcel(record) {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Casual Labour");
+
+    let rowIndex = 1;
+
+    // ===== TITLE =====
+    worksheet.mergeCells("A1:D1");
+    worksheet.getCell("A1").value = "Temporary Entry Permit";
+    worksheet.getCell("A1").font = { bold: true, size: 14 };
+    worksheet.getCell("A1").alignment = { horizontal: "center" };
+
+    rowIndex += 2;
+
+    // ===== MASTER DETAILS =====
+    const details = [
+      ["Location", record.s_location],
+      ["Contractor", record.s_contractor_name],
+      ["Nature of Work", record.s_nature_of_work],
+      ["Place of Work", record.s_place_of_work],
+      ["Date & Time", record.dt_work_datetime],
     ];
 
-    worksheet.getRow(row).eachCell((cell) => {
+    details.forEach(([label, value]) => {
+      worksheet.getCell(`A${rowIndex}`).value = label;
+      worksheet.getCell(`A${rowIndex}`).font = { bold: true };
+      worksheet.getCell(`B${rowIndex}`).value = value || "";
+      rowIndex++;
+    });
+
+    rowIndex += 1;
+
+    // ===== TABLE HEADER =====
+    worksheet.addRow(["Name", "Age", "Sex", "Mobile"]);
+
+    worksheet.getRow(rowIndex).eachCell((cell) => {
       cell.font = { bold: true };
       cell.alignment = { horizontal: "center" };
     });
 
-    row++;
+    rowIndex++;
 
-    // ===== LABOUR DATA (REPEATING) =====
+    // ===== LABOUR DATA =====
     (record.labours || []).forEach((l) => {
-      worksheet.getRow(row).values = [
-        l.s_labour_name ?? "",
-        l.n_age ?? "",
-        l.s_sex ?? "",
-        l.s_address ?? "",
-        l.s_temp_access_card_no ?? "",
-        l.s_mobile_no ?? "",
-        l.s_id_type ?? "",
-        l.s_govt_id_no ?? "",
-      ];
-      row++;
+      worksheet.addRow([
+        l.s_labour_name || "",
+        l.n_age || "",
+        l.s_sex || "",
+        l.s_mobile_no || "",
+      ]);
     });
 
-    // ===== AUTO COLUMN WIDTH =====
+    // ===== COLUMN WIDTH =====
     worksheet.columns.forEach((col) => {
-      let max = 15;
-      col.eachCell({ includeEmpty: true }, (cell) => {
-        const len = cell.value ? cell.value.toString().length : 0;
-        if (len > max) max = len;
-      });
-      col.width = max + 2;
+      col.width = 20;
     });
 
     // ===== DOWNLOAD =====
@@ -690,9 +763,32 @@ function casualLabourApp() {
 
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "Temporary Entry Permit.xlsx";
+    link.download = "Casual_Labour.xlsx";
     link.click();
   }
+
+  let selectedRecord = null;
+
+  window.showDownloadOptions = function (record) {
+    selectedRecord = record;
+    document.getElementById("downloadModal").style.display = "flex";
+  };
+
+  window.closeDownloadModal = function () {
+    document.getElementById("downloadModal").style.display = "none";
+  };
+
+  window.downloadAsPDF = function () {
+    if (!selectedRecord) return;
+    downloadCasualPDF(selectedRecord);
+    closeDownloadModal();
+  };
+
+  window.downloadAsExcel = function () {
+    if (!selectedRecord) return;
+    downloadLabourDetailsExcel(selectedRecord);
+    closeDownloadModal();
+  };
 
   /* ================= DOWNLOAD ================= */
 
