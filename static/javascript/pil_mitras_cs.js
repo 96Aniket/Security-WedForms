@@ -51,7 +51,7 @@ function pipelineMitraApp() {
 
   function loadData() {
     $.get("/get_pipeline_mitra_data", res => {
-      console.log("PIPELINE MITRA API:", res);
+      
 
       if (!res.success || !Array.isArray(res.data)) return;
 

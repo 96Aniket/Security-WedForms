@@ -347,6 +347,78 @@ function visitorDeclarationApp() {
     });
   });
 
+  window.downloadTableExcel = async function () {
+    const res = await $.get("/get_visitor_declaration_data");
+
+    const data = res.data; 
+
+    if (!data || data.length === 0) {
+      alert("No data available");
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Visitor Report");
+
+    /* ===== TITLE ===== */
+    worksheet.mergeCells("A1:F1");
+    worksheet.getCell("A1").value = "Visitor Declaration Report";
+    worksheet.getCell("A1").font = { bold: true, size: 14 };
+    worksheet.getCell("A1").alignment = { horizontal: "center" };
+
+    worksheet.addRow([]);
+
+    /* ===== HEADER (NO ACTION COLUMN) ===== */
+    const header = [
+      "Sr No",
+      "Location",
+      "Visitor Name",
+      "Host Name",
+      "Pass No",
+      "Date / Time",
+    ];
+
+    const headerRow = worksheet.addRow(header);
+
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true };
+      cell.alignment = { horizontal: "center" };
+    });
+
+    /* ===== DATA ===== */
+    data.forEach((row, index) => {
+      worksheet.addRow([
+        index + 1,
+        row.s_location || "",
+        row.s_visitor_name || "",
+        row.s_host_name || "",
+        row.s_visitor_pass_no || "",
+        row.dt_visit_datetime || "",
+      ]);
+    });
+
+    /* ===== AUTO WIDTH ===== */
+    worksheet.columns.forEach((col) => {
+      let max = 10;
+      col.eachCell({ includeEmpty: true }, (cell) => {
+        const len = cell.value ? cell.value.toString().length : 0;
+        if (len > max) max = len;
+      });
+      col.width = max + 2;
+    });
+
+    /* ===== DOWNLOAD ===== */
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "Visitor_Table_Report.xlsx";
+    link.click();
+  };
+
   /* ============ Download============ */
   $("#masterTable").on("click", ".icon-btn.download", function () {
     const record = $(this).closest("tr").data("record");
@@ -583,16 +655,15 @@ function visitorDeclarationApp() {
     doc.text("Checked By:", startX + 120, y);
     doc.text("Name & Sign of Security", startX + 105, y + 14);
 
-  
     /* ===== FOOTER TEXT (LEFT SIDE + BIG FONT) ===== */
 
     y += 25;
 
-    doc.setFontSize(10); 
+    doc.setFontSize(10);
 
     doc.text(
       "UOM - Unit of measurement (Nos/ Kgs / packages / pairs)",
-      startX, 
+      startX,
       y,
     );
 
