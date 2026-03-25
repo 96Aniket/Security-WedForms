@@ -1,5 +1,30 @@
 let editingItemIndex = null;
 
+document.addEventListener("keydown", function (e) {
+  if (e.target.id === "item_uom") {
+    const allowedKeys = [
+      "Backspace",
+      "Delete",
+      "ArrowLeft",
+      "ArrowRight",
+      "Tab",
+      " ",
+    ];
+    if (
+      (e.key >= "0" && e.key <= "9") ||
+      (!/[a-zA-Z]/.test(e.key) && !allowedKeys.includes(e.key))
+    ) {
+      e.preventDefault();
+    }
+  }
+});
+
+document.addEventListener("input", function (e) {
+  if (e.target.id === "item_uom") {
+    e.target.value = e.target.value.replace(/[^a-zA-Z ]/g, "");
+  }
+});
+
 function visitorDeclarationApp() {
   let allData = [];
   let items = [];
@@ -348,7 +373,7 @@ function visitorDeclarationApp() {
   window.downloadTableExcel = async function () {
     const res = await $.get("/get_visitor_declaration_data");
 
-    const data = res.data; 
+    const data = res.data;
 
     if (!data || data.length === 0) {
       alert("No data available");
@@ -437,7 +462,7 @@ function visitorDeclarationApp() {
 
     // ===== TITLE =====
     worksheet.mergeCells("A1:D1");
-    worksheet.getCell("A1").value = "Visitor Declaration Slip";
+    worksheet.getCell("A1").value = "Visitor Declaration Slip (returnable material)";
     worksheet.getCell("A1").font = { bold: true, size: 14 };
     worksheet.getCell("A1").alignment = {
       horizontal: "center",
