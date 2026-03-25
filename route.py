@@ -47,12 +47,12 @@ def home():
     if session["user"]["role"] == "agency":
         return redirect("/login")
 
-    return render_template('main.html')
+    return render_template('main_Security_WebForms.html')
 
 @routes_bp.route('/pil-patrolling')
 def pil_patrolling():
     return render_template(
-        'pil patrolling.html',
+        'pil patrolling_Security_WebForms.html',
         **get_user_context()
     )
 
@@ -60,14 +60,14 @@ def pil_patrolling():
 @routes_bp.route('/pil-baa-test')
 def pil_baa_test():
     return render_template(
-        'pil baa test.html',
+        'pil baa test_Security_WebForms.html',
         **get_user_context()
     )
 
 @routes_bp.route('/casual-labour')
 def casual_labour():
     return render_template(
-        'casual labour list.html',
+        'casual labour list_Security_WebForms.html',
         **get_user_context()
     )
 
@@ -75,7 +75,7 @@ def casual_labour():
 @routes_bp.route('/pil-mitras')
 def pil_mitras():
     return render_template(
-        'pil mitras cs.html',
+        'pil mitras cs_Security_WebForms.html',
         **get_user_context()
     )
 
@@ -83,7 +83,7 @@ def pil_mitras():
 @routes_bp.route('/pil-vehicle')
 def pil_vehicle():
     return render_template(
-        'pil vehicle checklist.html',
+        'pil vehicle checklist_Security_WebForms.html',
         **get_user_context()
     )
 
@@ -91,18 +91,18 @@ def pil_vehicle():
 @routes_bp.route('/pil-visitor')
 def pil_visitor():
     return render_template(
-        'pil visitor slip.html',
+        'pil visitor slip_Security_WebForms.html',
         **get_user_context()
     )
 
 
 @routes_bp.route('/approval_review')
 def approval_reviews():
-    return render_template('approval_review.html')
+    return render_template('approval_review_Security_WebForms.html')
 
 @routes_bp.route('/requisition-form')
 def requisition_form():
-    return render_template('requisition form.html')
+    return render_template('requisition form_Security_WebForms.html')
 
 @routes_bp.route('/form-fill')
 def form_fill_page():
@@ -136,7 +136,7 @@ def form_fill_page():
         </div>
         """
     return render_template(
-        "form-fill.html",
+        "form-fill_Security_WebForms.html",
         request_id=request_id,
         token=token
     )
@@ -145,7 +145,7 @@ def form_fill_page():
 @routes_bp.route('/reports')
 def reports():
     return render_template(
-        'reports.html',
+        'reports_Security_WebForms.html',
         **get_user_context()
     )
 
@@ -215,7 +215,7 @@ def form_edit_page():
     request_id = token_data["request_id"]
     form = queries.get_form_by_request_id(request_id)
     return render_template(
-        "form_edit.html",
+        "form_edit_Security_WebForms.html",
         request_id=request_id,
         form=form,
         token=token
